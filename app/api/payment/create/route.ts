@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
       ? "https://app.midtrans.com/snap/v1/transactions"
       : "https://app.sandbox.midtrans.com/snap/v1/transactions";
 
-    const orderId = `seotulis-${planId}-${userId}-${Date.now()}`;
+    const orderId = `st-${planId}-${Date.now()}`;
 
     const r = await fetch(baseUrl, {
       method: "POST",
