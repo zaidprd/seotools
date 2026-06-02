@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
 
     const data = await r.json();
     if (!r.ok) throw new Error(data?.error_messages?.join(", ") || "Midtrans error");
-    return NextResponse.json({ token: data.token, redirect_url: data.redirect_url });
+    return NextResponse.json({ token: data.token, redirect_url: data.redirect_url, orderId });
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
