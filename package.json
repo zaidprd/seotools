@@ -9,12 +9,15 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@sanity/image-url": "^2.1.1",
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.106.2",
     "midtrans-client": "^1.4.3",
     "next": "14.2.15",
+    "next-sanity": "^13.0.8",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "recharts": "^3.8.1"
   },
   "devDependencies": {
     "@types/node": "^20",

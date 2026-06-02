@@ -24,12 +24,13 @@ export async function middleware(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   const { pathname } = request.nextUrl;
 
-  // Proteksi /dashboard
-  if (pathname.startsWith("/dashboard") && !user) {
+  const protectedPaths = ["/dashboard", "/documents", "/settings"];
+  const isProtected = protectedPaths.some(p => pathname === p || pathname.startsWith(p + "/"));
+
+  if (isProtected && !user) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  // Kalau sudah login, redirect dari /login ke /dashboard
   if (pathname === "/login" && user) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
@@ -38,5 +39,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|api/).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|api/|studio/).*)"],
 };

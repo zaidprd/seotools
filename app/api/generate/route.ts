@@ -114,6 +114,25 @@ export async function POST(req: NextRequest) {
     }
 
     if (aiCleaning) text = cleanAIContent(text);
+
+    // Simpan riwayat artikel
+    if (userId && text) {
+      try {
+        const sbSave = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+        const wordCount = text.split(/\s+/).filter(Boolean).length;
+        const titleMatch = text.match(/^#\s+(.+)/m);
+        const title = titleMatch ? titleMatch[1].trim() : text.slice(0, 80).trim();
+        const keywordMatch = prompt.match(/[Kk]eyword[^:]*:\s*"?([^"\n]+)"?/);
+        const keyword = keywordMatch ? keywordMatch[1].trim() : "";
+
+        await sbSave.from("articles").insert({
+          user_id: userId, title, keyword,
+          model_id: modelId, content: text,
+          word_count: wordCount, credits_used: cost,
+        });
+      } catch { /* silently ignore DB errors */ }
+    }
+
     return NextResponse.json({ text, creditsUsed: cost });
 
   } catch (e: any) {

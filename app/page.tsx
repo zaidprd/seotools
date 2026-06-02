@@ -635,6 +635,7 @@ export default function LandingPage() {
                 <a href="#" className="hover:text-white transition-colors">Tentang Kami</a>
                 <a href="#" className="hover:text-white transition-colors">Blog</a>
                 <a href="#" className="hover:text-white transition-colors">Afiliasi (30%)</a>
+                <Link href="/blog" className="hover:text-white transition-colors">Blog</Link>
               </div>
             </div>
             <div>
