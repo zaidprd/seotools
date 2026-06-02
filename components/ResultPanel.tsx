@@ -1,85 +1,98 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useRef, useCallback, useMemo } from "react";
 import { WPSite, ModelInfo, Synds, PROVIDER_COLORS } from "@/lib/constants";
 import { publishToWordPress } from "@/lib/api";
+import { marked } from "marked";
 
-// ─── SEO Checker ──────────────────────────────────────────────────────────────
-function analyzeSEO(content: string, keyword: string) {
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+marked.setOptions({ breaks: true, gfm: true } as any);
+
+function parseHtml(content: string): string {
+  try { return marked.parse(content) as string; }
+  catch { return content; }
+}
+
+// ─── SEO Analyzer ─────────────────────────────────────────────────────────────
+type CheckLevel = "ok" | "warn" | "fail";
+interface SEOCheck { label: string; level: CheckLevel; detail?: string; }
+
+function analyzeSEO(content: string, keyword: string): { checks: SEOCheck[]; score: number; wordCount: number } | null {
   if (!keyword.trim()) return null;
   const kw = keyword.toLowerCase().trim();
-  const text = content.toLowerCase();
-  const words = content.split(/\s+/).filter(Boolean);
+  const plain = content.replace(/<[^>]+>/g, " ").toLowerCase();
+  const words = plain.split(/\s+/).filter(Boolean);
   const totalWords = words.length;
 
-  const kwCount = text.split(kw).length - 1;
+  const kwCount = plain.split(kw).length - 1;
   const density = totalWords > 0 ? (kwCount / totalWords) * 100 : 0;
 
-  const first100 = words.slice(0, 100).join(" ").toLowerCase();
-  const h1 = content.match(/^#\s+(.+)/m);
-  const h2h3 = content.match(/^#{2,3}\s+.+/gm) || [];
+  const first100 = words.slice(0, 100).join(" ");
+  const h1 = content.match(/^#\s+(.+)/m) || content.match(/<h1[^>]*>([^<]+)<\/h1>/i);
+  const h2h3 = [...(content.matchAll(/^#{2,3}\s+.+/gm) || []), ...(content.matchAll(/<h[23][^>]*>[^<]+<\/h[23]>/gi) || [])];
   const metaMatch = content.match(/META:\s*(.+)/i);
   const meta = metaMatch ? metaMatch[1].trim() : "";
-  const sentences = content.split(/[.!?]+/).filter(s => s.trim().split(/\s+/).length > 3);
-  const avgSent = sentences.length > 0
-    ? sentences.reduce((s, x) => s + x.trim().split(/\s+/).length, 0) / sentences.length : 0;
+  const sentences = plain.split(/[.!?]+/).filter(s => s.trim().split(/\s+/).length > 3);
+  const avgSent = sentences.length > 0 ? sentences.reduce((s, x) => s + x.trim().split(/\s+/).length, 0) / sentences.length : 0;
 
-  const checks = [
-    { label: "Keyword density 0.5–2.5%", ok: density >= 0.5 && density <= 2.5, detail: `${density.toFixed(1)}%` },
-    { label: "Keyword di 100 kata pertama", ok: first100.includes(kw) },
-    { label: "Keyword di H1", ok: h1 ? h1[1].toLowerCase().includes(kw) : false },
-    { label: "Keyword di minimal 1 H2/H3", ok: h2h3.some(h => h.toLowerCase().includes(kw)) },
-    { label: `Panjang > 300 kata`, ok: totalWords > 300, detail: `${totalWords} kata` },
-    { label: "Meta description 120–160 karakter", ok: meta.length >= 120 && meta.length <= 160, detail: meta ? `${meta.length} kar` : "Tidak ada" },
-    { label: "Keyword di meta description", ok: meta.toLowerCase().includes(kw) },
-    { label: "Ada seksi FAQ", ok: /faq|pertanyaan umum/i.test(content) },
-    { label: "Ada kesimpulan", ok: /kesimpulan|penutup|conclusion/i.test(content) },
-    { label: "Rata-rata kalimat < 20 kata", ok: avgSent < 20, detail: `${avgSent.toFixed(1)} kata/kalimat` },
+  const densityLevel: CheckLevel = density >= 0.8 && density <= 2.0 ? "ok" : density >= 0.5 && density <= 2.5 ? "warn" : "fail";
+  const lengthLevel: CheckLevel = totalWords >= 600 ? "ok" : totalWords >= 300 ? "warn" : "fail";
+  const sentLevel: CheckLevel = avgSent <= 18 ? "ok" : avgSent <= 22 ? "warn" : "fail";
+
+  const checks: SEOCheck[] = [
+    { label: "Keyword density 0.5–2.5%", level: densityLevel, detail: `${density.toFixed(1)}%` },
+    { label: "Keyword di 100 kata pertama", level: first100.includes(kw) ? "ok" : "fail" },
+    { label: "Keyword di H1", level: (h1 ? h1[1] || h1[0] : "").toLowerCase().includes(kw) ? "ok" : "fail" },
+    { label: "Keyword di H2/H3", level: h2h3.some(h => h[0].toLowerCase().includes(kw)) ? "ok" : "warn" },
+    { label: "Panjang artikel", level: lengthLevel, detail: `${totalWords} kata` },
+    { label: "Meta description 120–160 kar", level: meta.length >= 120 && meta.length <= 160 ? "ok" : meta.length > 0 ? "warn" : "fail", detail: meta ? `${meta.length} kar` : "Tidak ada" },
+    { label: "Keyword di meta description", level: meta.toLowerCase().includes(kw) ? "ok" : meta ? "warn" : "fail" },
+    { label: "Ada seksi FAQ", level: /faq|pertanyaan umum/i.test(content) ? "ok" : "warn" },
+    { label: "Ada kesimpulan", level: /kesimpulan|penutup|conclusion/i.test(content) ? "ok" : "warn" },
+    { label: "Rata-rata kalimat", level: sentLevel, detail: `${avgSent.toFixed(1)} kata/kalimat` },
   ];
 
-  const score = Math.round((checks.filter(c => c.ok).length / checks.length) * 100);
+  const score = Math.round(checks.reduce((s, c) => s + (c.level === "ok" ? 10 : c.level === "warn" ? 5 : 0), 0));
   return { checks, score, wordCount: totalWords };
 }
 
-function SEOChecker({ content, keyword }: { content: string; keyword: string }) {
+function SEOPanel({ content, keyword }: { content: string; keyword: string }) {
   const result = useMemo(() => analyzeSEO(content, keyword), [content, keyword]);
-  if (!result) return <p className="text-xs text-slate-500 p-4">Masukkan keyword untuk cek SEO</p>;
+  if (!keyword) return <div className="p-4 text-xs text-slate-500 text-center">Masukkan keyword untuk cek SEO</div>;
+  if (!result) return null;
 
   const { checks, score, wordCount } = result;
-  const scoreColor = score >= 80 ? "text-emerald-400" : score >= 60 ? "text-amber-400" : "text-red-400";
-  const scoreBg = score >= 80 ? "bg-emerald-500" : score >= 60 ? "bg-amber-500" : "bg-red-500";
+  const scoreColor = score >= 80 ? "text-emerald-400" : score >= 55 ? "text-amber-400" : "text-red-400";
+  const scoreBg = score >= 80 ? "bg-emerald-500" : score >= 55 ? "bg-amber-500" : "bg-red-500";
+  const icon = (level: CheckLevel) => level === "ok" ? "✅" : level === "warn" ? "⚠️" : "❌";
 
   return (
-    <div className="flex flex-col gap-3 p-4">
-      {/* Score */}
-      <div className="flex items-center gap-3">
-        <div className="relative w-14 h-14 flex-shrink-0">
-          <svg className="w-14 h-14 -rotate-90" viewBox="0 0 56 56">
-            <circle cx="28" cy="28" r="22" fill="none" stroke="#1e293b" strokeWidth="5" />
-            <circle cx="28" cy="28" r="22" fill="none" stroke="currentColor"
-              strokeWidth="5" strokeLinecap="round"
-              className={scoreColor}
-              strokeDasharray={`${2 * Math.PI * 22 * score / 100} ${2 * Math.PI * 22}`} />
+    <div className="flex flex-col gap-3 p-3 overflow-y-auto h-full">
+      <div className="flex items-center gap-2.5">
+        <div className="relative w-12 h-12 flex-shrink-0">
+          <svg className="w-12 h-12 -rotate-90" viewBox="0 0 48 48">
+            <circle cx="24" cy="24" r="18" fill="none" stroke="#1e293b" strokeWidth="4" />
+            <circle cx="24" cy="24" r="18" fill="none" stroke="currentColor"
+              strokeWidth="4" strokeLinecap="round" className={scoreColor}
+              strokeDasharray={`${2 * Math.PI * 18 * score / 100} ${2 * Math.PI * 18}`} />
           </svg>
-          <span className={`absolute inset-0 flex items-center justify-center text-sm font-black ${scoreColor}`}>{score}</span>
+          <span className={`absolute inset-0 flex items-center justify-center text-xs font-black ${scoreColor}`}>{score}</span>
         </div>
         <div>
-          <p className="font-bold text-white text-sm">{score >= 80 ? "SEO Bagus!" : score >= 60 ? "Perlu Perbaikan" : "Perlu Banyak Perbaikan"}</p>
-          <p className="text-xs text-slate-500">{wordCount} kata · {checks.filter(c => c.ok).length}/{checks.length} lulus</p>
+          <p className="font-bold text-white text-xs">{score >= 80 ? "SEO Bagus!" : score >= 55 ? "Perlu Perbaikan" : "Banyak yang Kurang"}</p>
+          <p className="text-[10px] text-slate-500">{wordCount} kata · {checks.filter(c => c.level === "ok").length}/{checks.length} ok</p>
         </div>
       </div>
-
-      {/* Progress bar */}
-      <div className="w-full bg-slate-800 rounded-full h-1.5">
-        <div className={`h-1.5 rounded-full transition-all ${scoreBg}`} style={{ width: `${score}%` }} />
+      <div className="w-full bg-slate-800 rounded-full h-1">
+        <div className={`h-1 rounded-full transition-all ${scoreBg}`} style={{ width: `${score}%` }} />
       </div>
-
-      {/* Checks */}
-      <div className="flex flex-col gap-1.5">
+      <div className="flex flex-col gap-1">
         {checks.map((c, i) => (
-          <div key={i} className="flex items-center gap-2">
-            <span className={`text-sm flex-shrink-0 ${c.ok ? "text-emerald-400" : "text-red-400"}`}>{c.ok ? "✅" : "❌"}</span>
-            <span className={`text-xs flex-1 ${c.ok ? "text-slate-300" : "text-slate-400"}`}>{c.label}</span>
-            {c.detail && <span className="text-[10px] text-slate-600 flex-shrink-0">{c.detail}</span>}
+          <div key={i} className="flex items-start gap-1.5 py-0.5">
+            <span className="text-xs flex-shrink-0 mt-0.5">{icon(c.level)}</span>
+            <div className="flex-1 min-w-0">
+              <span className={`text-[11px] ${c.level === "ok" ? "text-slate-300" : c.level === "warn" ? "text-amber-400/80" : "text-slate-400"}`}>{c.label}</span>
+              {c.detail && <span className="text-[10px] text-slate-600 ml-1">({c.detail})</span>}
+            </div>
           </div>
         ))}
       </div>
@@ -87,11 +100,53 @@ function SEOChecker({ content, keyword }: { content: string; keyword: string }) 
   );
 }
 
-// ─── Main Component ───────────────────────────────────────────────────────────
-export default function ResultPanel({ content: initialContent, keyword = "", model, wpSites, synds }: {
-  content: string; keyword?: string; model: ModelInfo; wpSites: WPSite[]; synds: Synds;
+// ─── Editor Toolbar ────────────────────────────────────────────────────────────
+function Toolbar({ onWrap, onInsert, onUpload, onAI, isGeneratingAI }: {
+  onWrap: (before: string, after: string) => void;
+  onInsert: (text: string) => void;
+  onUpload: () => void;
+  onAI: () => void;
+  isGeneratingAI: boolean;
 }) {
-  const [mode, setMode] = useState<"preview" | "edit" | "seo">("preview");
+  const btns = [
+    { label: "B", title: "Bold", action: () => onWrap("<strong>", "</strong>"), cls: "font-black" },
+    { label: "I", title: "Italic", action: () => onWrap("<em>", "</em>"), cls: "italic" },
+    { label: "H2", title: "Heading 2", action: () => onWrap("\n<h2>", "</h2>\n"), cls: "" },
+    { label: "H3", title: "Heading 3", action: () => onWrap("\n<h3>", "</h3>\n"), cls: "" },
+    { label: "🔗", title: "Sisipkan Link", action: () => {
+      const url = typeof window !== "undefined" ? window.prompt("Masukkan URL:") : null;
+      if (url) onWrap(`<a href="${url}">`, "</a>");
+    }, cls: "" },
+  ];
+
+  return (
+    <div className="flex items-center gap-1 px-2 py-1.5 border-b border-slate-800 bg-slate-900/60 flex-wrap">
+      {btns.map(b => (
+        <button key={b.label} onClick={b.action} title={b.title}
+          className={`text-xs px-2 py-1 rounded border border-slate-700 hover:border-slate-600 text-slate-300 hover:text-white hover:bg-slate-800 transition-all ${b.cls}`}>
+          {b.label}
+        </button>
+      ))}
+      <div className="w-px h-4 bg-slate-700 mx-1" />
+      <button onClick={onUpload} title="Upload Gambar"
+        className="text-xs px-2 py-1 rounded border border-slate-700 hover:border-blue-500/40 text-slate-400 hover:text-blue-300 hover:bg-blue-500/5 transition-all">
+        📁 Upload
+      </button>
+      <button onClick={onAI} disabled={isGeneratingAI} title="Generate Gambar AI (1 💎)"
+        className="text-xs px-2 py-1 rounded border border-amber-500/30 hover:border-amber-500/60 text-amber-400 hover:bg-amber-500/5 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1">
+        {isGeneratingAI
+          ? <><span className="w-2.5 h-2.5 border border-amber-400 border-t-transparent rounded-full animate-spin" />Generating...</>
+          : "✨ AI Gambar (1 💎)"}
+      </button>
+    </div>
+  );
+}
+
+// ─── Main ResultPanel ──────────────────────────────────────────────────────────
+export default function ResultPanel({ content: initialContent, keyword = "", model, wpSites, synds, userId }: {
+  content: string; keyword?: string; model: ModelInfo; wpSites: WPSite[]; synds: Synds; userId?: string;
+}) {
+  const [mode, setMode] = useState<"preview" | "edit">("preview");
   const [content, setContent] = useState(initialContent);
   const [copied, setCopied] = useState(false);
   const [wpSel, setWpSel] = useState<WPSite | null>(null);
@@ -100,20 +155,79 @@ export default function ResultPanel({ content: initialContent, keyword = "", mod
   const [publishing, setPublishing] = useState(false);
   const [pubResult, setPubResult] = useState<{ link: string } | null>(null);
   const [pubError, setPubError] = useState<string | null>(null);
+  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
+  const [aiImageError, setAiImageError] = useState<string | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const htmlContent = useMemo(() => parseHtml(content), [content]);
+
+  const titleMatch = content.match(/^#\s+(.+)/m) || content.match(/<h1[^>]*>([^<]+)<\/h1>/i);
+  const title = titleMatch ? titleMatch[1] : content.slice(0, 60);
 
   const copy = () => { navigator.clipboard.writeText(content); setCopied(true); setTimeout(() => setCopied(false), 2000); };
+  const download = () => {
+    const blob = new Blob([content], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = "artikel.md"; a.click();
+    URL.revokeObjectURL(url);
+  };
 
-  const titleMatch = content.match(/^#\s+(.+)/m);
-  const title = titleMatch ? titleMatch[1] : content.slice(0, 60);
+  const wrapSelection = useCallback((before: string, after: string) => {
+    const ta = textareaRef.current;
+    if (!ta) return;
+    const start = ta.selectionStart, end = ta.selectionEnd;
+    const sel = content.substring(start, end);
+    const newContent = content.substring(0, start) + before + sel + after + content.substring(end);
+    setContent(newContent);
+    requestAnimationFrame(() => { ta.focus(); ta.selectionStart = start + before.length; ta.selectionEnd = end + before.length; });
+  }, [content]);
+
+  const insertAtCursor = useCallback((text: string) => {
+    const ta = textareaRef.current;
+    const pos = ta ? ta.selectionStart : content.length;
+    const newContent = content.substring(0, pos) + text + content.substring(pos);
+    setContent(newContent);
+    requestAnimationFrame(() => { if (ta) { ta.focus(); ta.selectionStart = ta.selectionEnd = pos + text.length; } });
+  }, [content]);
+
+  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const src = ev.target?.result as string;
+      insertAtCursor(`\n<img src="${src}" alt="gambar" style="max-width:100%;height:auto;display:block;margin:1em auto;border-radius:8px" />\n`);
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
+
+  const handleAIImage = async () => {
+    if (!userId) { setAiImageError("Login diperlukan"); return; }
+    const desc = typeof window !== "undefined" ? window.prompt("Deskripsi gambar yang ingin digenerate:") : null;
+    if (!desc) return;
+    setIsGeneratingAI(true); setAiImageError(null);
+    try {
+      const res = await fetch("/api/generate-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: desc, userId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      const mimeType = data.mimeType || "image/png";
+      insertAtCursor(`\n<img src="data:${mimeType};base64,${data.image}" alt="${desc}" style="max-width:100%;height:auto;display:block;margin:1em auto;border-radius:8px" />\n`);
+    } catch (e: any) { setAiImageError(e.message); }
+    setIsGeneratingAI(false);
+  };
 
   const publish = async () => {
     if (!wpSel) return;
     setPublishing(true); setPubResult(null); setPubError(null);
     try {
-      const effectiveStatus = scheduledAt ? "future" : postStatus;
       const r = await publishToWordPress(wpSel, {
         title, content,
-        status: effectiveStatus,
+        status: scheduledAt ? "future" : postStatus,
         scheduledAt: scheduledAt || undefined,
         focusKeyword: keyword || undefined,
       });
@@ -133,21 +247,22 @@ export default function ResultPanel({ content: initialContent, keyword = "", mod
           <span className={`text-[10px] px-2 py-0.5 rounded border ${PROVIDER_COLORS[model.provider] || "text-slate-400 border-slate-700"}`}>{model.label}</span>
         </div>
         <div className="flex items-center gap-1.5">
-          {/* Mode tabs */}
-          {(["preview", "edit", "seo"] as const).map(m => (
+          {(["preview", "edit"] as const).map(m => (
             <button key={m} onClick={() => setMode(m)}
               className={`text-[11px] px-2.5 py-1.5 rounded-lg border transition-all ${mode === m ? "border-amber-500/40 bg-amber-500/10 text-amber-400" : "border-slate-700 hover:border-slate-600 text-slate-400"}`}>
-              {m === "preview" ? "👁 Preview" : m === "edit" ? "✏️ Edit" : "🎯 SEO"}
+              {m === "preview" ? "👁 Preview" : "✏️ Edit"}
             </button>
           ))}
-          <button onClick={copy}
-            className="text-[11px] px-2.5 py-1.5 rounded-lg border border-slate-700 hover:border-slate-600 text-slate-400 hover:text-white transition-all">
-            {copied ? "✓ Disalin" : "📋 Salin"}
+          <button onClick={copy} className="text-[11px] px-2.5 py-1.5 rounded-lg border border-slate-700 hover:border-slate-600 text-slate-400 hover:text-white transition-all">
+            {copied ? "✓ Salin" : "📋 Salin"}
+          </button>
+          <button onClick={download} className="text-[11px] px-2.5 py-1.5 rounded-lg border border-slate-700 hover:border-slate-600 text-slate-400 hover:text-white transition-all">
+            ⬇ Unduh
           </button>
         </div>
       </div>
 
-      {/* Syndication badges */}
+      {/* Syndication */}
       {Object.entries(synds).some(([, v]) => v) && (
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-[10px] text-slate-600">Sindikasi:</span>
@@ -157,7 +272,7 @@ export default function ResultPanel({ content: initialContent, keyword = "", mod
         </div>
       )}
 
-      {/* WordPress publish panel */}
+      {/* WordPress publish */}
       {wpSites.length > 0 && (
         <div className="bg-blue-950/30 border border-blue-900/40 rounded-xl p-3 flex flex-col gap-2.5">
           <p className="text-[11px] font-bold text-blue-300">🌐 Publish ke WordPress</p>
@@ -180,12 +295,8 @@ export default function ResultPanel({ content: initialContent, keyword = "", mod
                   <option value="pending">Pending Review</option>
                   <option value="future">Jadwalkan</option>
                 </select>
-                {/* Schedule datetime picker */}
-                <div className="flex items-center gap-1.5 flex-1">
-                  <span className="text-[11px] text-slate-500">📅</span>
-                  <input type="datetime-local" value={scheduledAt} onChange={e => setScheduledAt(e.target.value)}
-                    className="flex-1 bg-slate-900 border border-slate-700 text-slate-300 text-xs rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500/40" />
-                </div>
+                <input type="datetime-local" value={scheduledAt} onChange={e => setScheduledAt(e.target.value)}
+                  className="flex-1 bg-slate-900 border border-slate-700 text-slate-300 text-xs rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500/40" />
                 <button onClick={publish} disabled={publishing}
                   className="flex-shrink-0 text-xs bg-blue-600 hover:bg-blue-500 disabled:opacity-60 text-white font-bold py-2 px-3 rounded-lg flex items-center gap-1.5 transition-colors">
                   {publishing ? <><span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />Mengirim...</> : <>⬆ {scheduledAt ? "Jadwalkan" : `Kirim ke ${wpSel.name}`}</>}
@@ -199,28 +310,71 @@ export default function ResultPanel({ content: initialContent, keyword = "", mod
         </div>
       )}
 
-      {/* Content area */}
-      <div className="flex-1 bg-slate-900/50 border border-slate-800 rounded-xl overflow-hidden flex flex-col">
-        {mode !== "seo" && (
-          <div className="px-4 py-2 border-b border-slate-800 flex items-center gap-2 bg-slate-900/80">
-            <div className="flex gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-red-500/60" /><span className="w-2.5 h-2.5 rounded-full bg-amber-500/60" /><span className="w-2.5 h-2.5 rounded-full bg-emerald-500/60" /></div>
-            <span className="text-[11px] text-slate-600 ml-1">{mode === "edit" ? "artikel.md — Mode Edit" : "artikel.md"}</span>
-            {mode === "edit" && <span className="ml-auto text-[10px] text-amber-400/70">● Sedang diedit</span>}
-          </div>
+      {/* Main content area */}
+      <div className="flex-1 bg-slate-900/50 border border-slate-800 rounded-xl overflow-hidden flex flex-col min-h-0">
+        {mode === "preview" && (
+          <>
+            <div className="px-4 py-2 border-b border-slate-800 flex items-center gap-2 bg-slate-900/80">
+              <div className="flex gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-red-500/60" /><span className="w-2.5 h-2.5 rounded-full bg-amber-500/60" /><span className="w-2.5 h-2.5 rounded-full bg-emerald-500/60" /></div>
+              <span className="text-[11px] text-slate-600 ml-1">Preview</span>
+            </div>
+            <div
+              className="flex-1 overflow-y-auto p-5 text-slate-200
+                [&_h1]:text-2xl [&_h1]:font-black [&_h1]:text-white [&_h1]:mb-4 [&_h1]:mt-5 [&_h1]:leading-tight
+                [&_h2]:text-xl [&_h2]:font-bold [&_h2]:text-white [&_h2]:mb-3 [&_h2]:mt-6
+                [&_h3]:text-lg [&_h3]:font-bold [&_h3]:text-slate-200 [&_h3]:mb-2 [&_h3]:mt-4
+                [&_p]:text-slate-300 [&_p]:leading-relaxed [&_p]:mb-3
+                [&_strong]:text-white [&_strong]:font-bold
+                [&_em]:text-slate-200 [&_em]:italic
+                [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-3
+                [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-3
+                [&_li]:text-slate-300 [&_li]:mb-1
+                [&_blockquote]:border-l-2 [&_blockquote]:border-amber-500/40 [&_blockquote]:pl-4 [&_blockquote]:text-slate-400 [&_blockquote]:italic [&_blockquote]:mb-3
+                [&_a]:text-amber-400 [&_a]:underline [&_a]:underline-offset-2
+                [&_code]:text-amber-300 [&_code]:bg-slate-900/80 [&_code]:px-1 [&_code]:rounded [&_code]:text-sm
+                [&_table]:w-full [&_table]:border-collapse [&_table]:mb-4 [&_table]:text-sm
+                [&_th]:border [&_th]:border-slate-700 [&_th]:px-3 [&_th]:py-2 [&_th]:bg-slate-900/60 [&_th]:text-white [&_th]:text-left
+                [&_td]:border [&_td]:border-slate-700/60 [&_td]:px-3 [&_td]:py-2 [&_td]:text-slate-300
+                [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-xl [&_img]:mx-auto [&_img]:block [&_img]:my-4
+                [&_hr]:border-slate-800 [&_hr]:my-6"
+              dangerouslySetInnerHTML={{ __html: htmlContent }}
+            />
+          </>
         )}
-        <div className="flex-1 overflow-y-auto">
-          {mode === "preview" && (
-            <pre className="p-5 text-sm text-slate-200 whitespace-pre-wrap leading-7 font-sans">{content}</pre>
-          )}
-          {mode === "edit" && (
-            <textarea value={content} onChange={e => setContent(e.target.value)}
-              className="w-full h-full p-5 bg-transparent text-sm text-slate-200 font-sans leading-7 focus:outline-none resize-none"
-              spellCheck={false} />
-          )}
-          {mode === "seo" && (
-            <SEOChecker content={content} keyword={keyword} />
-          )}
-        </div>
+
+        {mode === "edit" && (
+          <>
+            {/* Editor toolbar */}
+            <Toolbar
+              onWrap={wrapSelection}
+              onInsert={insertAtCursor}
+              onUpload={() => fileInputRef.current?.click()}
+              onAI={handleAIImage}
+              isGeneratingAI={isGeneratingAI}
+            />
+            <input ref={fileInputRef} type="file" accept="image/*" onChange={handleUpload} className="hidden" />
+            {aiImageError && (
+              <div className="px-3 py-1.5 text-[11px] text-red-400 bg-red-500/5 border-b border-red-500/10">✗ {aiImageError}</div>
+            )}
+            {/* Split: editor + SEO panel */}
+            <div className="flex-1 flex overflow-hidden min-h-0">
+              <textarea
+                ref={textareaRef}
+                value={content}
+                onChange={e => setContent(e.target.value)}
+                className="flex-1 bg-transparent text-sm text-slate-200 font-mono leading-6 p-4 focus:outline-none resize-none overflow-y-auto"
+                spellCheck={false}
+                style={{ fontFamily: "'Fira Code', 'Courier New', monospace" }}
+              />
+              <div className="w-52 flex-shrink-0 border-l border-slate-800 bg-slate-950/30 overflow-hidden">
+                <div className="px-3 py-2 border-b border-slate-800 bg-slate-900/40">
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">🎯 SEO Checker</p>
+                </div>
+                <SEOPanel content={content} keyword={keyword} />
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

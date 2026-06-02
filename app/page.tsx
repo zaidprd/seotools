@@ -6,6 +6,7 @@ import { PLANS, MODELS, FREE_MODEL_ID } from "@/lib/constants";
 const FEATURES = [
   { icon: "⚡", title: "Generate 1 Klik", desc: "Dari keyword ke artikel SEO lengkap dalam hitungan menit. Judul, struktur, FAQ, meta description — semua otomatis." },
   { icon: "⊞", title: "Bulk Generation", desc: "Input puluhan topik sekaligus. AI generate 5 pilihan judul per topik, kamu pilih, lalu generate semua sekaligus." },
+  { icon: "🖼", title: "Gambar AI Otomatis", desc: "Gambar digenerate dan disisipkan otomatis di posisi yang tepat saat artikel dibuat. Tidak perlu cari gambar manual." },
   { icon: "🌐", title: "Auto-Publish WordPress", desc: "Sambungkan situs WordPress tanpa plugin tambahan. Artikel langsung terkirim dengan format HTML yang benar." },
   { icon: "🇮🇩", title: "Bahasa Indonesia Natural", desc: "Bukan terjemahan kaku. Paham konteks lokal: UMKM, Tokopedia, Shopee, tren dan istilah Indonesia." },
   { icon: "🎯", title: "Optimasi SEO Yoast", desc: "Keyword density, LSI keyword, meta description, struktur heading, paragraf pembuka — semua dioptimasi otomatis." },
@@ -465,6 +466,7 @@ export default function LandingPage() {
                   { feature: "Bahasa Indonesia Natural", seo: true, manual: true, other: false },
                   { feature: "Auto-publish WordPress", seo: true, manual: false, other: false },
                   { feature: "Yoast SEO Hijau Otomatis", seo: true, manual: "Tergantung", other: false },
+                  { feature: "Gambar AI otomatis saat generate", seo: true, manual: false, other: "Berbayar mahal" },
                   { feature: "Keyword Density Otomatis", seo: true, manual: false, other: false },
                   { feature: "Generate < 60 detik", seo: true, manual: false, other: "Kadang" },
                   { feature: "Struktur E-E-A-T", seo: true, manual: "Tergantung", other: false },

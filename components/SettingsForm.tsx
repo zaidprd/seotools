@@ -1,5 +1,5 @@
 "use client";
-import { Config, WPSite, ModelInfo, LANGUAGES, ARTICLE_TYPES, ARTICLE_SIZES, TONES, POVS, READABILITY, COUNTRIES, LINK_TYPES, IMG_STYLES, IMG_SIZES, IMG_COUNTS, YT_COUNTS, LAYOUT_OPTS, FREE_MAX_WORDS } from "@/lib/constants";
+import { Config, WPSite, ModelInfo, LANGUAGES, ARTICLE_TYPES, ARTICLE_SIZES, TONES, POVS, READABILITY, COUNTRIES, LINK_TYPES, IMG_STYLES, IMG_SIZES, IMG_COUNTS, YT_COUNTS, LAYOUT_OPTS, FREE_MAX_WORDS, CREDIT_COST } from "@/lib/constants";
 import { Sec, Sel, Inp, Tog } from "./ui";
 import ModelSelector from "./ModelSelector";
 import WPPanel from "./WPPanel";
@@ -54,17 +54,47 @@ export default function SettingsForm({ cfg, set, model, setModel, wpSites, addWp
       </Sec>
 
       <Sec title="Media Hub" icon="🖼">
-        <div className="bg-slate-900/80 border border-slate-800 rounded-lg px-3 py-2 mb-1">
-          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">🤖 Gambar AI</p>
-          <div className="grid grid-cols-3 gap-2 mb-2">
-            <Sel label="Jumlah" opts={IMG_COUNTS} val={cfg.imgCount} set={v => f("imgCount", v)} />
-            <Sel label="Ukuran" opts={IMG_SIZES} val={cfg.imgSize} set={v => f("imgSize", v)} />
-            <Sel label="Style" opts={IMG_STYLES} val={cfg.imgStyle} set={v => f("imgStyle", v)} />
+        {/* Gambar AI — hanya plan berbayar */}
+        <div className="relative">
+          <div className={`bg-slate-900/80 border border-slate-800 rounded-lg px-3 py-2 mb-1 ${!isPro ? "opacity-50 pointer-events-none select-none" : ""}`}>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">🤖 Gambar AI Otomatis</p>
+              {isPro && (
+                <span className="text-[9px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded-full">Aktif</span>
+              )}
+            </div>
+            <div className="grid grid-cols-3 gap-2 mb-2">
+              <Sel label="Jumlah" opts={["0", ...IMG_COUNTS]} val={isPro ? cfg.imgCount : "0"} set={v => f("imgCount", v)} />
+              <Sel label="Ukuran" opts={IMG_SIZES} val={cfg.imgSize} set={v => f("imgSize", v)} />
+              <Sel label="Style" opts={IMG_STYLES} val={cfg.imgStyle} set={v => f("imgStyle", v)} />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Tog label="Keyword utama di gambar pertama" val={cfg.imgFirstKeyword} set={v => f("imgFirstKeyword", v)} />
+              <Tog label="Alt-text SEO otomatis" val={cfg.imgAltText} set={v => f("imgAltText", v)} />
+            </div>
+            {isPro && parseInt(cfg.imgCount || "0") > 0 && (
+              <div className="mt-2 pt-2 border-t border-slate-800/60">
+                <p className="text-[10px] text-slate-500">
+                  💡 Gambar disisipkan otomatis saat artikel dibuat. Setiap gambar = <span className="text-amber-400 font-bold">1 💎</span>
+                </p>
+                <div className="mt-1.5 bg-slate-900/60 border border-slate-700/50 rounded-lg px-2.5 py-1.5">
+                  <p className="text-[10px] text-slate-400">
+                    Estimasi kredit: <span className="text-white font-bold">{(CREDIT_COST[model.id] ?? 1) + parseInt(cfg.imgCount || "0")} 💎</span>
+                    <span className="text-slate-600 ml-1">(artikel {CREDIT_COST[model.id] ?? 1} + {cfg.imgCount} gambar)</span>
+                  </p>
+                  <p className="text-[10px] text-slate-600 mt-0.5">Kamu punya {credits} 💎 tersisa</p>
+                </div>
+              </div>
+            )}
           </div>
-          <div className="flex flex-col gap-1.5">
-            <Tog label="Keyword utama di gambar pertama" val={cfg.imgFirstKeyword} set={v => f("imgFirstKeyword", v)} />
-            <Tog label="Alt-text SEO otomatis" val={cfg.imgAltText} set={v => f("imgAltText", v)} />
-          </div>
+          {!isPro && (
+            <div className="absolute inset-0 flex items-center justify-center bg-slate-950/60 rounded-lg backdrop-blur-[2px]">
+              <div className="text-center px-4 py-2">
+                <p className="text-amber-400 text-xs font-bold">🔒 Hanya Paket Berbayar</p>
+                <p className="text-slate-500 text-[10px] mt-0.5">Upgrade untuk gambar AI otomatis</p>
+              </div>
+            </div>
+          )}
         </div>
         <div className="bg-slate-900/80 border border-slate-800 rounded-lg px-3 py-2">
           <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">▶ YouTube Videos</p>

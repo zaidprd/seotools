@@ -10,6 +10,15 @@ export async function generateArticle(cfg: Config & { modelId?: string; userId?:
       modelId: cfg.modelId,
       userId: cfg.userId,
       aiCleaning: cfg.aiCleaning,
+      imageConfig: {
+        count: parseInt(cfg.imgCount || "0"),
+        style: cfg.imgStyle || "Foto",
+        instructions: cfg.imgInstructions || "",
+        altText: cfg.imgAltText !== false,
+        firstKeyword: cfg.imgFirstKeyword !== false,
+        keyword: cfg.keyword || "",
+        size: cfg.imgSize || "Sedang 800px",
+      },
     }),
   });
   const data = await res.json();
