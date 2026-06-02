@@ -175,7 +175,7 @@ export default function SettingsForm({ cfg, set, model, setModel, wpSites, addWp
         </div>
       </Sec>
 
-      <Sec title="Publishing to Website" icon="🚀">
+      <Sec title="Publishing to Website" icon="🚀" defaultOpen={wpSites.length > 0}>
         <WPPanel sites={wpSites} addSite={addWp} removeSite={removeWp} selected={wpSel} setSelected={setWpSel} />
         {wpSel && <div className="mt-2 pt-2 border-t border-slate-800"><Sel label="Status Publish" opts={["draft","publish","pending"]} val={cfg.postStatus} set={v=>f("postStatus",v)} /></div>}
       </Sec>

@@ -32,13 +32,20 @@ export const Inp = ({ label, val, set, placeholder, multiline, rows = 3, maxLen,
   </div>
 );
 
-export const Sec = ({ title, icon, children, collapsible = true }: { title: string; icon: string; children: ReactNode; collapsible?: boolean }) => {
-  const [open, setOpen] = useState(true);
+export const Sec = ({ title, icon, children, collapsible = true, defaultOpen }: {
+  title: string; icon: string; children: ReactNode; collapsible?: boolean; defaultOpen?: boolean;
+}) => {
+  // collapsible sections start collapsed; non-collapsible always open; defaultOpen overrides
+  const [open, setOpen] = useState(defaultOpen ?? !collapsible);
   return (
     <div className="border border-slate-800 rounded-xl overflow-hidden">
-      <button onClick={() => collapsible && setOpen(!open)} className={`w-full flex items-center justify-between px-4 py-3 bg-slate-900/80 ${collapsible ? "hover:bg-slate-800/60 cursor-pointer" : "cursor-default"} transition-colors`}>
-        <div className="flex items-center gap-2"><span className="text-amber-500 text-sm">{icon}</span><span className="text-[11px] font-black text-slate-300 uppercase tracking-widest">{title}</span></div>
-        {collapsible && <span className="text-slate-600 text-xs">{open ? "▲" : "▼"}</span>}
+      <button onClick={() => collapsible && setOpen(!open)}
+        className={`w-full flex items-center justify-between px-4 py-2.5 bg-slate-900/80 ${collapsible ? "hover:bg-slate-800/60 cursor-pointer" : "cursor-default"} transition-colors`}>
+        <div className="flex items-center gap-2">
+          <span className="text-amber-500 text-sm">{icon}</span>
+          <span className="text-[11px] font-black text-slate-300 uppercase tracking-widest">{title}</span>
+        </div>
+        {collapsible && <span className="text-slate-500 text-[10px]">{open ? "▲" : "▼"}</span>}
       </button>
       {open && <div className="px-4 py-3 bg-slate-950/40 flex flex-col gap-2.5">{children}</div>}
     </div>
