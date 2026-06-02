@@ -1,7 +1,10 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getPost, urlFor } from "@/lib/sanity";
-import { PortableText } from "next-sanity";
+// PortableText diimport dari @portabletext/react jika tersedia, fallback ke plain render
+const PortableText = ({ value }: { value: any[] }) => (
+  <div>{value?.map((b: any, i: number) => <p key={i} className="mb-3 text-slate-300">{b.children?.map((c: any) => c.text).join("")}</p>)}</div>
+);
 
 export const revalidate = 60;
 

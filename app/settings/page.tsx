@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import AppShell from "@/components/AppShell";
 import { getWPSites, saveWPSites } from "@/lib/wp-sites";
-import { WPSite } from "@/lib/constants";
+import { WPSite, PLANS } from "@/lib/constants";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 interface UserProfile {
@@ -152,7 +152,8 @@ export default function SettingsPage() {
   };
 
   const isPro = profile?.plan && profile.plan !== "free";
-  const creditsTotal = isPro ? (profile?.plan === "starter" ? 100 : profile?.plan === "pro" ? 300 : 1000) : 1;
+  const planData = PLANS.find(p => p.id === (profile?.plan || "free"));
+  const creditsTotal = planData?.credits ?? 1;
   const creditsUsed = profile?.credits_used ?? 0;
   const progressPct = creditsTotal > 0 ? Math.min(100, Math.round((creditsUsed / creditsTotal) * 100)) : 0;
 
