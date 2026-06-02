@@ -105,7 +105,7 @@ export default function GeneratePage() {
   const currentModel = !isPro ? (MODELS.find(m => m.id === FREE_MODEL_ID) || defaultModel) : model;
 
   return (
-    <div className="h-screen flex flex-col" style={{ fontFamily: "'DM Sans',sans-serif" }}>
+    <div className="h-full flex flex-col" style={{ fontFamily: "'DM Sans',sans-serif" }}>
       {/* Page header */}
       <div className="border-b border-slate-800/60 px-6 py-3 flex items-center gap-3 bg-[#0c0e14]">
         <span className="text-xl">⚡</span>

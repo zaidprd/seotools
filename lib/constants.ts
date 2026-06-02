@@ -17,8 +17,8 @@ export const MODELS: ModelInfo[] = [
 
 export const FREE_MODEL_ID    = "gemini-2.5-flash-lite";
 export const FREE_MODEL_LABEL = "Gemini 2.5 Flash-Lite";
-export const FREE_CREDITS     = 1; // gratis 1 kredit selamanya
-export const FREE_MAX_WORDS   = "Sedang (1000–1500 kata)"; // max artikel gratis
+export const FREE_CREDITS     = 1;
+export const FREE_MAX_WORDS   = "Sedang (1000–1500 kata)";
 
 // Biaya kredit per model
 export const CREDIT_COST: Record<string, number> = {
@@ -71,7 +71,7 @@ export const defaultCfg = (): Config => ({
   language: "Indonesia", articleType: "Blog Post", articleSize: "Sedang (1000–1500 kata)",
   tone: "Ramah", pov: "Umum (Anda/Kita)", readability: "Menengah (SMA)", country: "Indonesia",
   aiCleaning: false, brandVoice: "", details: "", seoKeywords: "",
-  imgCount: "3", imgSize: "Sedang 800px", imgStyle: "Foto", imgInstructions: "", imgBrand: "",
+  imgCount: "0", imgSize: "Sedang 800px", imgStyle: "Foto", imgInstructions: "", imgBrand: "",
   imgFirstKeyword: true, imgAltText: true, ytCount: "0", ytLayout: "Satu Gambar & Satu Teks",
   mediaUnderHeading: true, introType: "Hook", introBrief: "",
   withConclusion: true, withTables: false, withH3: true, withLists: true, withNotes: false,
@@ -91,26 +91,30 @@ export interface UserData {
 export const PLANS = [
   {
     id: "free", name: "Gratis", price: 0, priceLabel: "Rp 0", period: "selamanya",
-    credits: 1, maxWords: "1.500 kata",
-    features: ["1 artikel selamanya", "Maks 1.500 kata", "Gemini Flash-Lite", "Export manual"],
+    credits: 1, maxWords: "1.500 kata", maxSites: 0, maxBulk: 0,
+    canSchedule: false, canSyndicate: false, priority: false, imageSource: "upload",
+    features: ["1 artikel selamanya", "Maks 1.500 kata", "Gemini Flash-Lite", "Upload gambar dari komputer", "Export manual"],
     cta: "Mulai Gratis", highlight: false,
   },
   {
     id: "starter", name: "Starter", price: 99000, priceLabel: "Rp 99rb", period: "/bulan",
-    credits: 100, maxWords: "5.000 kata",
-    features: ["100 kredit/bulan", "Semua model AI", "Auto-publish WordPress", "Bulk generation", "Priority support"],
+    credits: 20, maxWords: "3.000 kata", maxSites: 1, maxBulk: 5,
+    canSchedule: true, canSyndicate: false, priority: false, imageSource: "imagen",
+    features: ["20 kredit/bulan", "Maks 3.000 kata", "Semua model AI", "1 situs WordPress", "Bulk max 5 artikel", "Schedule publish", "Generate gambar AI otomatis", "Editor artikel built-in", "Email support"],
     cta: "Pilih Starter", highlight: false,
   },
   {
     id: "pro", name: "Pro", price: 199000, priceLabel: "Rp 199rb", period: "/bulan",
-    credits: 300, maxWords: "5.000 kata",
-    features: ["300 kredit/bulan", "Semua model AI", "Unlimited situs WordPress", "Bulk hingga 100 artikel", "Sindikasi konten", "Priority support"],
+    credits: 50, maxWords: "5.000 kata", maxSites: 3, maxBulk: 20,
+    canSchedule: true, canSyndicate: true, priority: true, imageSource: "imagen",
+    features: ["50 kredit/bulan", "Maks 5.000 kata", "Semua model AI", "3 situs WordPress", "Bulk max 20 artikel", "Schedule publish", "Sindikasi konten", "Generate gambar AI otomatis", "Editor artikel + SEO checker", "Priority generate", "Priority support"],
     cta: "Pilih Pro", highlight: true,
   },
   {
-    id: "agency", name: "Agency", price: 499000, priceLabel: "Rp 499rb", period: "/bulan",
-    credits: 1000, maxWords: "5.000 kata",
-    features: ["1.000 kredit/bulan", "Semua model AI", "Situs WordPress unlimited", "Bulk hingga 500 artikel", "API access", "White-label", "Dedicated support"],
+    id: "agency", name: "Agency", price: 399000, priceLabel: "Rp 399rb", period: "/bulan",
+    credits: 100, maxWords: "5.000 kata", maxSites: -1, maxBulk: 100,
+    canSchedule: true, canSyndicate: true, priority: true, imageSource: "imagen",
+    features: ["100 kredit/bulan", "Maks 5.000 kata", "Semua model AI", "Unlimited situs WordPress", "Bulk max 100 artikel", "Schedule publish", "Sindikasi konten", "Generate gambar AI otomatis", "Editor artikel + SEO checker", "Priority generate", "Dedicated support", "API access (segera)"],
     cta: "Pilih Agency", highlight: false,
   },
 ];

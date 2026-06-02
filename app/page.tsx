@@ -458,7 +458,7 @@ export default function LandingPage() {
                     <span className="text-amber-400 font-black">SEOTulis</span>
                   </th>
                   <th className="px-5 py-4 text-center text-slate-400 font-semibold">Nulis Manual</th>
-                  <th className="px-5 py-4 text-center text-slate-400 font-semibold">AI Lain</th>
+                  <th className="px-5 py-4 text-center text-slate-400 font-semibold">SEOWriting.ai</th>
                 </tr>
               </thead>
               <tbody>
@@ -466,12 +466,15 @@ export default function LandingPage() {
                   { feature: "Bahasa Indonesia Natural", seo: true, manual: true, other: false },
                   { feature: "Auto-publish WordPress", seo: true, manual: false, other: false },
                   { feature: "Yoast SEO Hijau Otomatis", seo: true, manual: "Tergantung", other: false },
-                  { feature: "Gambar AI otomatis saat generate", seo: true, manual: false, other: "Berbayar mahal" },
+                  { feature: "Generate Gambar AI otomatis", seo: "✅ Berbayar", manual: false, other: "Berbayar mahal" },
+                  { feature: "Upload Gambar Manual", seo: "✅ Semua plan", manual: true, other: false },
+                  { feature: "Editor artikel built-in", seo: true, manual: true, other: false },
+                  { feature: "SEO Checker realtime", seo: true, manual: false, other: false },
                   { feature: "Keyword Density Otomatis", seo: true, manual: false, other: false },
                   { feature: "Generate < 60 detik", seo: true, manual: false, other: "Kadang" },
                   { feature: "Struktur E-E-A-T", seo: true, manual: "Tergantung", other: false },
-                  { feature: "Bulk Generation", seo: true, manual: false, other: false },
-                  { feature: "Harga per artikel", seo: "Rp 330–1.650", manual: "Rp 50.000+", other: "Rp 3.000+" },
+                  { feature: "Bulk Generation", seo: "✅ Starter+", manual: false, other: false },
+                  { feature: "Harga per artikel", seo: "Rp 990–4.950", manual: "Rp 50.000+", other: "Rp 3.000+" },
                 ].map((row, i) => (
                   <tr key={row.feature} className={`border-t border-slate-800/60 ${i % 2 === 0 ? "bg-slate-900/20" : ""}`}>
                     <td className="px-5 py-3.5 text-slate-300">{row.feature}</td>

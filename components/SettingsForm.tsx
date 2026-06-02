@@ -136,14 +136,33 @@ export default function SettingsForm({ cfg, set, model, setModel, wpSites, addWp
       </Sec>
 
       <Sec title="Connect to Web" icon="🌐">
-        <Sel label="Akses Real-time" opts={["Tidak","Ya"]} val={cfg.connectWeb?"Ya":"Tidak"} set={v=>f("connectWeb",v==="Ya")} />
+        <div className="relative">
+          <div className={!isPro ? "opacity-40 pointer-events-none select-none" : ""}>
+            <Sel label="Akses Real-time" opts={["Tidak","Ya"]} val={cfg.connectWeb?"Ya":"Tidak"} set={v=>f("connectWeb",v==="Ya")} />
+          </div>
+          {!isPro && (
+            <div className="absolute inset-0 flex items-center justify-end pr-1">
+              <span className="text-[10px] text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">🔒 Pro</span>
+            </div>
+          )}
+        </div>
       </Sec>
 
-      <Sec title="Syndication" icon="📡">
-        <div className="grid grid-cols-2 gap-2">
-          {([["𝕏 Twitter","twitter"],["in LinkedIn","linkedin"],["f Facebook","facebook"],["✉ Email","email"],["📱 WhatsApp","wa"],["📌 Pinterest","pinterest"]] as [string,keyof Config["synds"]][]).map(([l,k]) => (
-            <Tog key={k} label={l} val={cfg.synds[k]} set={v=>set(p=>({...p,synds:{...p.synds,[k]:v}}))} />
-          ))}
+      <Sec title="Sindikasi" icon="📡">
+        <div className="relative">
+          <div className={`grid grid-cols-2 gap-2 ${!isPro ? "opacity-40 pointer-events-none select-none" : ""}`}>
+            {([["𝕏 Twitter","twitter"],["in LinkedIn","linkedin"],["f Facebook","facebook"],["✉ Email","email"],["📱 WhatsApp","wa"],["📌 Pinterest","pinterest"]] as [string,keyof Config["synds"]][]).map(([l,k]) => (
+              <Tog key={k} label={l} val={cfg.synds[k]} set={v=>set(p=>({...p,synds:{...p.synds,[k]:v}}))} />
+            ))}
+          </div>
+          {!isPro && (
+            <div className="absolute inset-0 flex items-center justify-center bg-slate-950/50 rounded-lg backdrop-blur-[2px]">
+              <div className="text-center">
+                <p className="text-amber-400 text-xs font-bold">🔒 Hanya Pro & Agency</p>
+                <p className="text-slate-500 text-[10px] mt-0.5">Upgrade untuk sindikasi konten</p>
+              </div>
+            </div>
+          )}
         </div>
       </Sec>
 

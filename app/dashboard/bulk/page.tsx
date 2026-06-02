@@ -167,7 +167,7 @@ export default function BulkPage() {
   };
 
   return (
-    <div className="h-screen flex flex-col" style={{ fontFamily: "'DM Sans',sans-serif" }}>
+    <div className="h-full flex flex-col" style={{ fontFamily: "'DM Sans',sans-serif" }}>
       <div className="border-b border-slate-800/60 px-6 py-3 flex items-center gap-3 bg-[#0c0e14]">
         <span className="text-xl">⊞</span>
         <div>
@@ -177,8 +177,22 @@ export default function BulkPage() {
         {!isPro && <span className="ml-auto text-[10px] text-amber-400 border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 rounded-full">Hanya 1 artikel gratis</span>}
       </div>
 
-      <div className="flex flex-1 gap-5 overflow-hidden px-5 py-5">
+      <div className="flex flex-1 gap-5 overflow-hidden px-5 py-5 relative">
         {showUpgrade && <UpgradePopup onClose={() => setShowUpgrade(false)} reason="Kredit tidak cukup untuk melanjutkan" />}
+        {/* Free plan overlay */}
+        {!isPro && (
+          <div className="absolute inset-0 z-30 bg-[#0c0e14]/85 backdrop-blur-sm flex items-center justify-center rounded-xl">
+            <div className="text-center max-w-sm px-8 py-10">
+              <div className="text-5xl mb-4">⊞</div>
+              <h3 className="font-black text-xl text-white mb-2" style={{ fontFamily: "Sora,sans-serif" }}>Bulk Generation</h3>
+              <p className="text-slate-400 text-sm mb-6 leading-relaxed">Generate banyak artikel sekaligus tersedia mulai paket <span className="text-amber-400 font-bold">Starter</span>.</p>
+              <a href="/pricing" className="inline-block bg-amber-500 hover:bg-amber-400 text-slate-900 font-black px-6 py-3 rounded-xl transition-all hover:shadow-lg hover:shadow-amber-500/25 text-sm">
+                Upgrade ke Starter →
+              </a>
+              <p className="text-slate-600 text-xs mt-3">Mulai dari Rp 99rb/bulan · 20 kredit</p>
+            </div>
+          </div>
+        )}
 
         <div className="w-80 flex-shrink-0 flex flex-col gap-3 overflow-y-auto pb-6 pr-1">
           <div className="border border-slate-800 rounded-xl overflow-hidden">
