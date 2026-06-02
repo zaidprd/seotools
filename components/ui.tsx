@@ -35,19 +35,33 @@ export const Inp = ({ label, val, set, placeholder, multiline, rows = 3, maxLen,
 export const Sec = ({ title, icon, children, collapsible = true, defaultOpen }: {
   title: string; icon: string; children: ReactNode; collapsible?: boolean; defaultOpen?: boolean;
 }) => {
-  // collapsible sections start collapsed; non-collapsible always open; defaultOpen overrides
-  const [open, setOpen] = useState(defaultOpen ?? !collapsible);
+  // Default: SEMUA section terbuka (kecuali yang di-set defaultOpen={false} secara eksplisit)
+  const [open, setOpen] = useState(defaultOpen ?? true);
+
+  // Collapsed: baris teks ringkas yang bisa diklik untuk membuka
+  if (collapsible && !open) {
+    return (
+      <button onClick={() => setOpen(true)}
+        className="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-left hover:bg-slate-800/40 transition-colors group border border-slate-800/60">
+        <span className="text-amber-600/70 text-xs group-hover:text-amber-500 transition-colors flex-shrink-0">{icon}</span>
+        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex-1 group-hover:text-slate-300 transition-colors">{title}</span>
+        <span className="text-slate-600 text-[11px] group-hover:text-amber-500 transition-colors flex-shrink-0">▾</span>
+      </button>
+    );
+  }
+
+  // Expanded: kartu penuh dengan border
   return (
     <div className="border border-slate-800 rounded-xl overflow-hidden">
-      <button onClick={() => collapsible && setOpen(!open)}
+      <button onClick={() => collapsible && setOpen(false)}
         className={`w-full flex items-center justify-between px-4 py-2.5 bg-slate-900/80 ${collapsible ? "hover:bg-slate-800/60 cursor-pointer" : "cursor-default"} transition-colors`}>
         <div className="flex items-center gap-2">
           <span className="text-amber-500 text-sm">{icon}</span>
-          <span className="text-[11px] font-black text-slate-300 uppercase tracking-widest">{title}</span>
+          <span className="text-[11px] font-black text-slate-200 uppercase tracking-widest">{title}</span>
         </div>
-        {collapsible && <span className="text-slate-500 text-[10px]">{open ? "▲" : "▼"}</span>}
+        {collapsible && <span className="text-slate-500 text-[11px]">▴</span>}
       </button>
-      {open && <div className="px-4 py-3 bg-slate-950/40 flex flex-col gap-2.5">{children}</div>}
+      <div className="px-4 py-3 bg-slate-950/40 flex flex-col gap-2.5">{children}</div>
     </div>
   );
 };

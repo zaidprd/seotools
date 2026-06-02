@@ -18,8 +18,9 @@ export default function SettingsForm({ cfg, set, model, setModel, wpSites, addWp
     : ARTICLE_SIZES;
 
   return (
-    <div className="flex flex-col gap-3 overflow-y-auto pb-6 pr-0.5">
+    <div className="flex flex-col gap-1.5 overflow-y-auto pb-6 pr-0.5">
 
+      {/* Core Settings — SELALU TERBUKA */}
       <Sec title="Core Settings" icon="⚙" collapsible={false}>
         <div className="grid grid-cols-2 gap-2">
           <Sel label="Bahasa" opts={LANGUAGES} val={cfg.language} set={v => f("language", v)} />
@@ -44,16 +45,17 @@ export default function SettingsForm({ cfg, set, model, setModel, wpSites, addWp
         </div>
       </Sec>
 
-      <Sec title="Brand Voice" icon="🎙">
+      {/* Semua section lain — TERTUTUP secara default */}
+      <Sec title="Brand Voice" icon="🎙" defaultOpen={true}>
         <p className="text-[10px] text-slate-600 leading-relaxed">Buat gaya unik agar konten selalu konsisten.</p>
         <Inp val={cfg.brandVoice} set={v => f("brandVoice", v)} placeholder="cth: profesional namun hangat..." multiline rows={3} maxLen={500} />
       </Sec>
 
-      <Sec title="Details to Include" icon="📝">
+      <Sec title="Details to Include" icon="📝" defaultOpen={true}>
         <Inp val={cfg.details} set={v => f("details", v)} placeholder="cth: sertakan data BPS 2024, sebutkan Tokopedia..." multiline rows={3} maxLen={6000} />
       </Sec>
 
-      <Sec title="Media Hub" icon="🖼">
+      <Sec title="Media Hub" icon="🖼" defaultOpen={true}>
         {/* Gambar AI — hanya plan berbayar */}
         <div className="relative">
           <div className={`bg-slate-900/80 border border-slate-800 rounded-lg px-3 py-2 mb-1 ${!isPro ? "opacity-50 pointer-events-none select-none" : ""}`}>
@@ -106,12 +108,12 @@ export default function SettingsForm({ cfg, set, model, setModel, wpSites, addWp
       </Sec>
 
       {mode === "single" && (
-        <Sec title="SEO" icon="🔍">
+        <Sec title="SEO" icon="🔍" defaultOpen={true}>
           <Inp label="Keywords untuk disertakan" val={cfg.seoKeywords} set={v => f("seoKeywords", v)} placeholder="keyword1, keyword2..." multiline rows={2} maxLen={2000} />
         </Sec>
       )}
 
-      <Sec title="Structure" icon="🏗">
+      <Sec title="Structure" icon="🏗" defaultOpen={true}>
         <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Pengantar / Hook</label>
         <div className="flex gap-1 flex-wrap mb-2">
           {["Hook","Pertanyaan","Cerita","Statistik","Kutipan","Pernyataan Berani"].map(t => (
@@ -127,15 +129,15 @@ export default function SettingsForm({ cfg, set, model, setModel, wpSites, addWp
         </div>
       </Sec>
 
-      <Sec title="Internal Linking" icon="🔗">
+      <Sec title="Internal Linking" icon="🔗" defaultOpen={true}>
         <Sel label="Pilih Website" opts={["Tidak Ada",...wpSites.map(s=>s.name)]} val={cfg.internalLinkSite} set={v=>f("internalLinkSite",v)} />
       </Sec>
 
-      <Sec title="External Linking" icon="↗">
+      <Sec title="External Linking" icon="↗" defaultOpen={true}>
         <Sel label="Tipe Link" opts={LINK_TYPES} val={cfg.extLinkType} set={v=>f("extLinkType",v)} />
       </Sec>
 
-      <Sec title="Connect to Web" icon="🌐">
+      <Sec title="Connect to Web" icon="🌐" defaultOpen={true}>
         <div className="relative">
           <div className={!isPro ? "opacity-40 pointer-events-none select-none" : ""}>
             <Sel label="Akses Real-time" opts={["Tidak","Ya"]} val={cfg.connectWeb?"Ya":"Tidak"} set={v=>f("connectWeb",v==="Ya")} />
@@ -148,7 +150,7 @@ export default function SettingsForm({ cfg, set, model, setModel, wpSites, addWp
         </div>
       </Sec>
 
-      <Sec title="Sindikasi" icon="📡">
+      <Sec title="Sindikasi" icon="📡" defaultOpen={true}>
         <div className="relative">
           <div className={`grid grid-cols-2 gap-2 ${!isPro ? "opacity-40 pointer-events-none select-none" : ""}`}>
             {([["𝕏 Twitter","twitter"],["in LinkedIn","linkedin"],["f Facebook","facebook"],["✉ Email","email"],["📱 WhatsApp","wa"],["📌 Pinterest","pinterest"]] as [string,keyof Config["synds"]][]).map(([l,k]) => (
@@ -166,7 +168,7 @@ export default function SettingsForm({ cfg, set, model, setModel, wpSites, addWp
         </div>
       </Sec>
 
-      <Sec title="Document" icon="📁">
+      <Sec title="Document" icon="📁" defaultOpen={true}>
         <div className="flex items-center gap-2">
           <p className="text-[10px] text-slate-500">Simpan ke:</p>
           {["Home","Blog","Produk"].map(d => (
@@ -175,9 +177,31 @@ export default function SettingsForm({ cfg, set, model, setModel, wpSites, addWp
         </div>
       </Sec>
 
-      <Sec title="Publishing to Website" icon="🚀" defaultOpen={wpSites.length > 0}>
+      {/* Publishing — terbuka HANYA jika sudah ada situs WP */}
+      <Sec title="Publishing to Website" icon="🚀" defaultOpen={true}>
         <WPPanel sites={wpSites} addSite={addWp} removeSite={removeWp} selected={wpSel} setSelected={setWpSel} />
-        {wpSel && <div className="mt-2 pt-2 border-t border-slate-800"><Sel label="Status Publish" opts={["draft","publish","pending"]} val={cfg.postStatus} set={v=>f("postStatus",v)} /></div>}
+        {wpSel && (
+          <div className="mt-2 pt-2 border-t border-slate-800 flex flex-col gap-2">
+            <Sel label="Status Publish" opts={["draft","publish","pending","schedule"]} val={cfg.postStatus} set={v=>f("postStatus",v)} />
+            {/* Schedule date picker — muncul saat status = schedule (Starter+) */}
+            {cfg.postStatus === "schedule" && (
+              isPro ? (
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Jadwal Publish</label>
+                  <input type="datetime-local" value={cfg.scheduleDate || ""}
+                    onChange={e => f("scheduleDate", e.target.value)}
+                    className="bg-slate-900 border border-slate-700/60 text-slate-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-amber-500/60" />
+                  <p className="text-[10px] text-slate-600">Artikel akan dipublish otomatis pada waktu ini.</p>
+                </div>
+              ) : (
+                <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg px-3 py-2">
+                  <p className="text-[10px] text-amber-400 font-bold">🔒 Schedule hanya untuk paket berbayar</p>
+                  <a href="/pricing" className="text-[10px] text-amber-300 underline">Upgrade ke Starter →</a>
+                </div>
+              )
+            )}
+          </div>
+        )}
       </Sec>
     </div>
   );

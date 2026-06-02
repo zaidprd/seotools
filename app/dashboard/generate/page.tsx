@@ -107,7 +107,7 @@ export default function GeneratePage() {
   return (
     <div className="h-full flex flex-col" style={{ fontFamily: "'DM Sans',sans-serif" }}>
       {/* Page header */}
-      <div className="border-b border-slate-800/60 px-6 py-3 flex items-center gap-3 bg-[#0c0e14]">
+      <div className="border-b border-slate-800/60 px-6 py-3 flex items-center gap-3 bg-[#0c0e14] flex-shrink-0">
         <span className="text-xl">⚡</span>
         <div>
           <h1 className="font-bold text-white text-sm">1-Click Blog Post</h1>
@@ -120,13 +120,14 @@ export default function GeneratePage() {
         )}
       </div>
 
-      <div className="flex flex-1 gap-5 overflow-hidden px-5 py-5">
+      <div className="flex flex-1 gap-5 overflow-hidden px-5 py-5 min-h-0">
         {showUpgrade && <UpgradePopup onClose={() => setShowUpgrade(false)} reason={upgradeReason} />}
 
-        {/* Left panel */}
-        <div className="w-80 flex-shrink-0 flex flex-col gap-3 overflow-y-auto pb-6 pr-1">
-          <div className="border border-slate-800 rounded-xl overflow-hidden">
-            <div className="bg-slate-900/80 px-4 py-3">
+        {/* Left panel — gap-2.5 konsisten, padding bawah lega */}
+        <div className="w-80 flex-shrink-0 flex flex-col gap-2.5 overflow-y-auto pb-8 pr-1.5">
+          {/* Keyword & Judul card */}
+          <div className="border border-slate-800 rounded-xl overflow-hidden flex-shrink-0">
+            <div className="bg-slate-900/80 px-4 py-2.5">
               <span className="text-[11px] font-black text-slate-300 uppercase tracking-widest">Keyword & Judul</span>
             </div>
             <div className="px-4 py-3 bg-slate-950/40 flex flex-col gap-3">
@@ -135,7 +136,7 @@ export default function GeneratePage() {
                 <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Judul</label>
                 <div className="flex gap-1.5">
                   <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Kosongkan untuk auto-generate..."
-                    className="flex-1 bg-slate-900 border border-slate-700/60 text-slate-200 text-xs rounded-lg px-3 py-2.5 focus:outline-none focus:border-amber-500/60 placeholder-slate-700" />
+                    className="flex-1 min-w-0 bg-slate-900 border border-slate-700/60 text-slate-200 text-xs rounded-lg px-3 py-2.5 focus:outline-none focus:border-amber-500/60 placeholder-slate-700" />
                   <button onClick={handleGenerateTitle} disabled={!keyword.trim() || genTitleLoading}
                     className="flex-shrink-0 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-amber-400 text-xs px-2.5 rounded-lg transition-colors disabled:opacity-40 flex items-center">
                     {genTitleLoading ? <span className="w-3 h-3 border border-amber-400 border-t-transparent rounded-full animate-spin" /> : "✨"}
@@ -153,26 +154,34 @@ export default function GeneratePage() {
               </div>
             </div>
           </div>
-          <Sec title="Outline Editor" icon="📐">
+
+          {/* Outline Editor — collapsed by default */}
+          <Sec title="Outline Editor" icon="📐" defaultOpen={true}>
             <OutlineEditor rows={outlineRows} setRows={setOutlineRows} />
           </Sec>
+
+          {/* SettingsForm — semua section collapsed kecuali Core Settings */}
           <SettingsForm cfg={cfg} set={setCfg} model={currentModel} setModel={setModel}
             wpSites={wpSites} addWp={addWp} removeWp={removeWp}
             wpSel={wpSel} setWpSel={setWpSel} mode="single"
             credits={credits} isPro={isPro} />
-          <RunBtn onClick={generate} loading={loading}
-            disabled={!keyword.trim() || credits < cost}
-            label={`Buat Artikel (${cost} 💎)`} sublabel="Membuat..." />
-          {credits === 0 && (
-            <button onClick={() => setShowUpgrade(true)}
-              className="w-full py-2 text-[11px] text-amber-400 border border-amber-500/20 rounded-xl hover:bg-amber-500/5 transition-colors">
-              💎 Kredit habis — Upgrade sekarang
-            </button>
-          )}
+
+          {/* Run button — sticky di bawah panel kiri */}
+          <div className="sticky bottom-0 pt-2 pb-1 bg-gradient-to-t from-[#0c0e14] via-[#0c0e14] to-transparent flex-shrink-0">
+            <RunBtn onClick={generate} loading={loading}
+              disabled={!keyword.trim() || credits < cost}
+              label={`Buat Artikel (${cost} 💎)`} sublabel="Membuat..." />
+            {credits === 0 && (
+              <button onClick={() => setShowUpgrade(true)}
+                className="w-full mt-2 py-2 text-[11px] text-amber-400 border border-amber-500/20 rounded-xl hover:bg-amber-500/5 transition-colors">
+                💎 Kredit habis — Upgrade sekarang
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Right panel */}
-        <div className="flex-1 flex flex-col overflow-hidden" ref={resultRef}>
+        <div className="flex-1 flex flex-col overflow-hidden min-w-0" ref={resultRef}>
           {!result && !loading && !error && (
             <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center">
               <div className="w-16 h-16 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-3xl">⚡</div>

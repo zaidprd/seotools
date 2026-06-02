@@ -63,7 +63,7 @@ export interface Config {
   withTables: boolean; withH3: boolean; withLists: boolean; withNotes: boolean; withOutlineEl: boolean;
   withKeyTakeaways: boolean; withFAQ: boolean; withBold: boolean; withQuotes: boolean;
   internalLinkSite: string; extLinkType: string; connectWeb: boolean; synds: Synds;
-  syndLink: string; saveFolder: string; postStatus: string;
+  syndLink: string; saveFolder: string; postStatus: string; scheduleDate?: string;
   keyword?: string; title?: string; extraKeywords?: string; outline?: string;
 }
 

@@ -113,22 +113,25 @@ export default function SettingsPage() {
     if (!wpForm.url || !wpForm.user || !wpForm.pass) { setWpMsg({ type: "err", text: "Lengkapi semua field" }); return; }
     setTestingWp(true);
     try {
-      const url = wpForm.url.replace(/\/$/, "");
-      const r = await fetch(`${url}/wp-json/wp/v2/users/me`, {
-        headers: { "Authorization": `Basic ${btoa(`${wpForm.user}:${wpForm.pass}`)}` },
+      const cleanUrl = wpForm.url.replace(/\/$/, "");
+      // Proxy via server API to avoid CORS
+      const r = await fetch("/api/wp/test-connection", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: cleanUrl, user: wpForm.user, pass: wpForm.pass }),
       });
-      if (r.ok) {
-        const data = await r.json();
-        const newSite: WPSite = { id: Date.now(), name: wpForm.name || data.name || url, url, user: wpForm.user, pass: wpForm.pass };
+      const data = await r.json();
+      if (r.ok && data.ok) {
+        const newSite: WPSite = { id: Date.now(), name: wpForm.name || data.name || cleanUrl, url: cleanUrl, user: wpForm.user, pass: wpForm.pass };
         const updated = [...wpSites, newSite];
         saveWPSites(updated);
         setWpSites(updated);
         setWpForm({ name: "", url: "", user: "", pass: "" });
-        setWpMsg({ type: "ok", text: `✓ Terhubung ke ${newSite.name}` });
-      } else { setWpMsg({ type: "err", text: `Koneksi gagal (${r.status})` }); }
+        setWpMsg({ type: "ok", text: `✓ Terhubung ke ${newSite.name} (${data.name})` });
+      } else { setWpMsg({ type: "err", text: data.error || "Koneksi gagal" }); }
     } catch (e: any) { setWpMsg({ type: "err", text: e.message }); }
     setTestingWp(false);
-    setTimeout(() => setWpMsg(null), 4000);
+    setTimeout(() => setWpMsg(null), 5000);
   };
 
   const removeWpSite = (id: number) => {
