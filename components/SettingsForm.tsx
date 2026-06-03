@@ -18,7 +18,7 @@ export default function SettingsForm({ cfg, set, model, setModel, wpSites, addWp
     : ARTICLE_SIZES;
 
   return (
-    <div className="flex flex-col gap-1.5 overflow-y-auto pb-6 pr-0.5">
+    <div className="flex flex-col gap-1.5 pb-6 pr-0.5">
 
       {/* Core Settings — SELALU TERBUKA */}
       <Sec title="Core Settings" icon="⚙" collapsible={false}>

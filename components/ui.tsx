@@ -4,7 +4,7 @@ import { useState, ReactNode } from "react";
 export const Tog = ({ label, val, set, disabled }: { label: string; val: boolean; set: (v: boolean) => void; disabled?: boolean }) => (
   <div className={`flex items-center justify-between gap-2 py-0.5 ${disabled ? "opacity-40" : ""}`}>
     <span className="text-xs text-slate-300 leading-tight">{label}</span>
-    <button onClick={() => !disabled && set(!val)} className={`relative w-9 h-[18px] rounded-full flex-shrink-0 transition-colors duration-200 ${val ? "bg-amber-500" : "bg-slate-700"}`}>
+    <button type="button" onClick={() => !disabled && set(!val)} className={`relative w-9 h-[18px] rounded-full flex-shrink-0 transition-colors duration-200 ${val ? "bg-amber-500" : "bg-slate-700"}`}>
       <span className={`absolute top-0.5 w-[14px] h-[14px] rounded-full bg-white shadow transition-all duration-200 ${val ? "left-[18px]" : "left-0.5"}`} />
     </button>
   </div>
@@ -13,8 +13,19 @@ export const Tog = ({ label, val, set, disabled }: { label: string; val: boolean
 export const Sel = ({ label, opts, val, set, tooltip }: { label?: string; opts: string[]; val: string; set: (v: string) => void; tooltip?: string }) => (
   <div className="flex flex-col gap-1">
     {label && <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1">{label}{tooltip && <span className="text-slate-700 cursor-help" title={tooltip}>ⓘ</span>}</label>}
-    <select value={val} onChange={e => set(e.target.value)} className="bg-slate-900 border border-slate-700/60 text-slate-200 text-xs rounded-lg px-2.5 py-2 focus:outline-none focus:border-amber-500/60 transition-colors cursor-pointer">
-      {opts.map(o => <option key={o}>{o}</option>)}
+    <select
+      value={val}
+      onChange={e => set(e.target.value)}
+      style={{
+        height: "36px", minHeight: "36px",
+        backgroundColor: "#0f172a", color: "#e2e8f0",
+        border: "1px solid rgba(51,65,85,0.6)", borderRadius: "8px",
+        padding: "0 10px", fontSize: "12px",
+        appearance: "auto", WebkitAppearance: "menulist",
+        width: "100%", cursor: "pointer",
+      }}
+    >
+      {opts.map(o => <option key={o} value={o} style={{ backgroundColor: "#0f172a", color: "#e2e8f0" }}>{o}</option>)}
     </select>
   </div>
 );
@@ -27,21 +38,25 @@ export const Inp = ({ label, val, set, placeholder, multiline, rows = 3, maxLen,
     </div>}
     {note && <p className="text-[10px] text-slate-600 -mt-0.5">{note}</p>}
     {multiline
-      ? <textarea value={val} onChange={e => set(e.target.value)} rows={rows} placeholder={placeholder} maxLength={maxLen} className="bg-slate-900 border border-slate-700/60 text-slate-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-amber-500/60 placeholder-slate-700 resize-none transition-colors" />
-      : <input type={type || "text"} value={val} onChange={e => set(e.target.value)} placeholder={placeholder} maxLength={maxLen} className="bg-slate-900 border border-slate-700/60 text-slate-200 text-xs rounded-lg px-3 py-2.5 focus:outline-none focus:border-amber-500/60 placeholder-slate-700 transition-colors" />}
+      ? <textarea
+          value={val} onChange={e => set(e.target.value)} rows={rows} placeholder={placeholder} maxLength={maxLen}
+          style={{ backgroundColor: "#0f172a", color: "#e2e8f0", border: "1px solid rgba(51,65,85,0.6)", borderRadius: "8px", padding: "8px 12px", fontSize: "12px", width: "100%", resize: "none" }}
+          className="focus:outline-none focus:border-amber-500/60 placeholder-slate-600" />
+      : <input
+          type={type || "text"} value={val} onChange={e => set(e.target.value)} placeholder={placeholder} maxLength={maxLen}
+          style={{ height: "38px", minHeight: "38px", backgroundColor: "#0f172a", color: "#e2e8f0", border: "1px solid rgba(51,65,85,0.6)", borderRadius: "8px", padding: "0 12px", fontSize: "12px", width: "100%" }}
+          className="focus:outline-none focus:border-amber-500/60 placeholder-slate-600" />}
   </div>
 );
 
 export const Sec = ({ title, icon, children, collapsible = true, defaultOpen }: {
   title: string; icon: string; children: ReactNode; collapsible?: boolean; defaultOpen?: boolean;
 }) => {
-  // Default: SEMUA section terbuka (kecuali yang di-set defaultOpen={false} secara eksplisit)
   const [open, setOpen] = useState(defaultOpen ?? true);
 
-  // Collapsed: baris teks ringkas yang bisa diklik untuk membuka
   if (collapsible && !open) {
     return (
-      <button onClick={() => setOpen(true)}
+      <button type="button" onClick={() => setOpen(true)}
         className="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-left hover:bg-slate-800/40 transition-colors group border border-slate-800/60">
         <span className="text-amber-600/70 text-xs group-hover:text-amber-500 transition-colors flex-shrink-0">{icon}</span>
         <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex-1 group-hover:text-slate-300 transition-colors">{title}</span>
@@ -50,10 +65,9 @@ export const Sec = ({ title, icon, children, collapsible = true, defaultOpen }: 
     );
   }
 
-  // Expanded: kartu penuh dengan border
   return (
     <div className="border border-slate-800 rounded-xl overflow-hidden">
-      <button onClick={() => collapsible && setOpen(false)}
+      <button type="button" onClick={() => collapsible && setOpen(false)}
         className={`w-full flex items-center justify-between px-4 py-2.5 bg-slate-900/80 ${collapsible ? "hover:bg-slate-800/60 cursor-pointer" : "cursor-default"} transition-colors`}>
         <div className="flex items-center gap-2">
           <span className="text-amber-500 text-sm">{icon}</span>
@@ -72,7 +86,7 @@ export const Badge = ({ text, v = "default" }: { text: string; v?: string }) => 
 };
 
 export const RunBtn = ({ onClick, loading, disabled, label, sublabel }: { onClick: () => void; loading?: boolean; disabled?: boolean; label: string; sublabel?: string }) => (
-  <button onClick={onClick} disabled={disabled || loading} className="w-full py-3.5 rounded-xl font-black text-sm tracking-widest uppercase transition-all disabled:opacity-30 disabled:cursor-not-allowed bg-amber-500 hover:bg-amber-400 active:scale-[0.98] text-slate-900 shadow-xl shadow-amber-500/20 flex items-center justify-center gap-2">
+  <button type="button" onClick={onClick} disabled={disabled || loading} className="w-full py-3.5 rounded-xl font-black text-sm tracking-widest uppercase transition-all disabled:opacity-30 disabled:cursor-not-allowed bg-amber-500 hover:bg-amber-400 active:scale-[0.98] text-slate-900 shadow-xl shadow-amber-500/20 flex items-center justify-center gap-2">
     {loading ? <><span className="w-4 h-4 border-[3px] border-slate-900/40 border-t-slate-900 rounded-full animate-spin" />{sublabel || "Memproses..."}</> : <><span className="text-base">▶</span>{label}</>}
   </button>
 );
