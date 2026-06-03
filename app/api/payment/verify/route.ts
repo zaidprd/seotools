@@ -1,13 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { PLANS } from "@/lib/constants";
+import { requireAuth } from "@/lib/supabase/require-auth";
 
 export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
   try {
-    const { orderId, userId } = await req.json();
-    if (!orderId || !userId) return NextResponse.json({ error: "orderId dan userId wajib diisi" }, { status: 400 });
+    const { user, errorResponse } = await requireAuth();
+    if (errorResponse) return errorResponse;
+
+    const { orderId } = await req.json();
+    if (!orderId) return NextResponse.json({ error: "orderId wajib diisi" }, { status: 400 });
 
     const serverKey = process.env.MIDTRANS_SERVER_KEY!;
     const isProduction = process.env.MIDTRANS_IS_PRODUCTION === "true";
@@ -15,13 +19,17 @@ export async function POST(req: NextRequest) {
       ? `https://api.midtrans.com/v2/${orderId}/status`
       : `https://api.sandbox.midtrans.com/v2/${orderId}/status`;
 
-    // Cek status transaksi ke Midtrans
     const r = await fetch(statusUrl, {
       headers: { "Authorization": `Basic ${Buffer.from(serverKey + ":").toString("base64")}` },
     });
     const tx = await r.json();
 
     if (!r.ok) throw new Error(tx?.error_messages?.join(", ") || `Midtrans status error ${r.status}`);
+
+    // Verify the order belongs to the authenticated user
+    if (tx.custom_field1 && tx.custom_field1 !== user.id) {
+      return NextResponse.json({ error: "Akses ditolak" }, { status: 403 });
+    }
 
     const isSuccess =
       tx.transaction_status === "settlement" ||
@@ -46,25 +54,26 @@ export async function POST(req: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    const { data: user } = await supabase
-      .from("users").select("credits, plan, plan_expires_at").eq("id", userId).single();
+    const { data: userData } = await supabase
+      .from("users").select("credits, plan, plan_expires_at").eq("id", user.id).single();
 
     // Idempotency: skip jika plan sudah di-update dengan expiry di masa depan
     const alreadyApplied =
-      user?.plan === planId &&
-      user?.plan_expires_at &&
-      new Date(user.plan_expires_at) > new Date();
+      userData?.plan === planId &&
+      userData?.plan_expires_at &&
+      new Date(userData.plan_expires_at) > new Date();
 
     if (alreadyApplied) {
       return NextResponse.json({ success: true, alreadyApplied: true, message: "Paket sudah aktif" });
     }
 
-    const newCredits = (user?.credits ?? 0) + plan.credits;
+    const newCredits = (userData?.credits ?? 0) + plan.credits;
     await supabase.from("users").update({
       plan: planId,
       credits: newCredits,
       plan_expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-    }).eq("id", userId);
+      subscription_id: orderId,
+    }).eq("id", user.id);
 
     return NextResponse.json({
       success: true,
@@ -74,7 +83,7 @@ export async function POST(req: NextRequest) {
       orderId,
     });
 
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+  } catch {
+    return NextResponse.json({ error: "Gagal memverifikasi pembayaran" }, { status: 500 });
   }
 }

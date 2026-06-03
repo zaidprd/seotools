@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { CREDIT_COST, FREE_MODEL_ID } from "@/lib/constants";
 import { createClient } from "@supabase/supabase-js";
+import { requireAuth } from "@/lib/supabase/require-auth";
 
 export const runtime  = "nodejs";
 export const maxDuration = 90;
@@ -48,7 +49,6 @@ function insertImages(content: string, images: string[], cfg: ImageConfig): stri
     if (isH2) {
       h2Count++;
       if (h2Count === 1 && idx < images.length) {
-        // Insert first image BEFORE the first H2
         const alt = cfg.firstKeyword ? cfg.keyword : cfg.altText ? `${cfg.keyword} ilustrasi` : "";
         result.push("", makeImgTag(images[idx++], alt, cfg.size), "");
       }
@@ -57,7 +57,6 @@ function insertImages(content: string, images: string[], cfg: ImageConfig): stri
     result.push(line);
 
     if (isH2 && h2Count >= 2 && idx < images.length) {
-      // Insert after 2nd+ H2
       const heading = line.replace(/^##\s*/, "");
       const alt = cfg.altText ? `${cfg.keyword} - ${heading}` : "";
       result.push("", makeImgTag(images[idx++], alt, cfg.size), "");
@@ -67,52 +66,90 @@ function insertImages(content: string, images: string[], cfg: ImageConfig): stri
   return result.join("\n");
 }
 
+// Whitelist model IDs yang valid untuk mencegah penyalahgunaan
+const ALLOWED_MODELS = new Set(Object.keys(CREDIT_COST));
+
 export async function POST(req: NextRequest) {
   try {
-    const { prompt, modelId = FREE_MODEL_ID, aiCleaning = false, userId, imageConfig } = await req.json();
+    // Verifikasi session — userId selalu dari session, bukan body
+    const { user, errorResponse } = await requireAuth();
+    if (errorResponse) return errorResponse;
+    const userId = user.id;
+
+    const { prompt, modelId = FREE_MODEL_ID, aiCleaning = false, imageConfig } = await req.json();
     if (!prompt) return NextResponse.json({ error: "Prompt kosong" }, { status: 400 });
 
-    const cost = CREDIT_COST[modelId] ?? 1;
+    // Validasi model ID
+    const safeModelId = ALLOWED_MODELS.has(modelId) ? modelId : FREE_MODEL_ID;
+    const cost = CREDIT_COST[safeModelId] ?? 1;
     const imgCfg: ImageConfig = imageConfig || { count: 0, style: "Foto", instructions: "", altText: true, firstKeyword: true, keyword: "", size: "Sedang 800px" };
     const imgCount = Math.min(imgCfg.count || 0, 6);
 
-    let userPlan = "free";
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
 
-    // Cek & kurangi kredit
-    if (userId) {
-      const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
-      const { data: user } = await supabase
-        .from("users").select("credits, plan, credits_used, articles_used").eq("id", userId).single();
+    const { data: userData } = await supabase
+      .from("users")
+      .select("credits, plan, credits_used, articles_used, plan_expires_at, role")
+      .eq("id", userId)
+      .single();
 
-      const isFreePlan = !user?.plan || user.plan === "free";
-      const imageCost = (!isFreePlan && imgCount > 0) ? imgCount : 0;
-      const totalCost = cost + imageCost;
+    if (!userData) return NextResponse.json({ error: "User tidak ditemukan" }, { status: 404 });
 
-      if (!user || user.credits < totalCost) {
-        return NextResponse.json(
-          { error: `Kredit tidak cukup. Butuh ${totalCost} 💎 (artikel ${cost} + gambar ${imageCost}), kamu punya ${user?.credits ?? 0} 💎.` },
-          { status: 402 }
-        );
+    // Admin/owner bypass — skip semua cek kredit, plan, dan expiry
+    const isAdmin = userData.role === "admin";
+
+    // Cek plan expiry — jika sudah expired, turunkan ke free
+    const planIsActive = isAdmin || !userData.plan_expires_at || new Date(userData.plan_expires_at) > new Date();
+    const effectivePlan = isAdmin
+      ? "agency"
+      : (userData.plan && userData.plan !== "free" && planIsActive) ? userData.plan : "free";
+
+    const isFreePlan = effectivePlan === "free";
+    const imageCost = (!isFreePlan && imgCount > 0) ? imgCount : 0;
+    const totalCost = cost + imageCost;
+
+    if (!isAdmin) {
+      // Atomic credit deduction via RPC — mencegah race condition
+      // Jalankan migration: supabase/migrations/20260604_security_fixes.sql
+      const { data: deductResult, error: rpcError } = await supabase.rpc("deduct_credits", {
+        p_user_id: userId,
+        p_amount: totalCost,
+      });
+
+      if (rpcError) {
+        // Fallback jika fungsi RPC belum diinstall
+        console.error("[generate] RPC deduct_credits tidak tersedia, jalankan migration SQL:", rpcError.message);
+        if ((userData.credits ?? 0) < totalCost) {
+          return NextResponse.json(
+            { error: `Kredit tidak cukup. Butuh ${totalCost} 💎, kamu punya ${userData.credits ?? 0} 💎.` },
+            { status: 402 }
+          );
+        }
+        await supabase.from("users").update({
+          credits: userData.credits - totalCost,
+          credits_used: (userData.credits_used ?? 0) + totalCost,
+          articles_used: (userData.articles_used ?? 0) + 1,
+        }).eq("id", userId);
+      } else {
+        const result = deductResult as { success: boolean; credits: number };
+        if (!result?.success) {
+          return NextResponse.json(
+            { error: `Kredit tidak cukup. Butuh ${totalCost} 💎, kamu punya ${result?.credits ?? 0} 💎.` },
+            { status: 402 }
+          );
+        }
       }
-
-      await supabase.from("users").update({
-        credits: user.credits - totalCost,
-        credits_used: (user.credits_used ?? 0) + totalCost,
-        articles_used: (user.articles_used ?? 0) + 1,
-      }).eq("id", userId);
-
-      userPlan = user.plan || "free";
     }
 
     // Generate article text
-    const provider = getProvider(modelId);
+    const provider = getProvider(safeModelId);
     let text = "";
 
     if (provider === "google") {
       const key = process.env.GOOGLE_API_KEY;
-      if (!key) return NextResponse.json({ error: "GOOGLE_API_KEY belum di-set" }, { status: 500 });
+      if (!key) return NextResponse.json({ error: "Konfigurasi server tidak lengkap" }, { status: 500 });
       const r = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${key}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/${safeModelId}:generateContent?key=${key}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -124,27 +161,27 @@ export async function POST(req: NextRequest) {
         }
       );
       const data = await r.json();
-      if (!r.ok) throw new Error(data?.error?.message || "Google error");
+      if (!r.ok) throw new Error("Google API error");
       text = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
     } else if (provider === "openai") {
       const key = process.env.OPENAI_API_KEY;
-      if (!key) return NextResponse.json({ error: "OPENAI_API_KEY belum di-set" }, { status: 500 });
+      if (!key) return NextResponse.json({ error: "Konfigurasi server tidak lengkap" }, { status: 500 });
       const r = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${key}` },
         body: JSON.stringify({
-          model: modelId, max_tokens: 4000,
+          model: safeModelId, max_tokens: 4000,
           messages: [{ role: "system", content: SYSTEM }, { role: "user", content: prompt }],
         }),
       });
       const data = await r.json();
-      if (!r.ok) throw new Error(data?.error?.message || "OpenAI error");
+      if (!r.ok) throw new Error("OpenAI API error");
       text = data.choices?.[0]?.message?.content || "";
 
     } else {
       const key = process.env.OPENROUTER_API_KEY;
-      if (!key) return NextResponse.json({ error: "OPENROUTER_API_KEY belum di-set" }, { status: 500 });
+      if (!key) return NextResponse.json({ error: "Konfigurasi server tidak lengkap" }, { status: 500 });
       const r = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -154,19 +191,19 @@ export async function POST(req: NextRequest) {
           "X-Title": "SEOTulis.AI",
         },
         body: JSON.stringify({
-          model: modelId, max_tokens: 4000,
+          model: safeModelId, max_tokens: 4000,
           messages: [{ role: "system", content: SYSTEM }, { role: "user", content: prompt }],
         }),
       });
       const data = await r.json();
-      if (!r.ok) throw new Error(data?.error?.message || "OpenRouter error");
+      if (!r.ok) throw new Error("OpenRouter API error");
       text = data.choices?.[0]?.message?.content || "";
     }
 
     if (aiCleaning) text = cleanAIContent(text);
 
     // Generate & insert images (paid plans only)
-    if (imgCount > 0 && userPlan !== "free" && text) {
+    if (imgCount > 0 && !isFreePlan && text) {
       try {
         const key = process.env.GOOGLE_API_KEY;
         if (key) {
@@ -204,26 +241,25 @@ export async function POST(req: NextRequest) {
     }
 
     // Save article history
-    if (userId && text) {
+    if (text) {
       try {
-        const sbSave = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
         const wordCount = text.replace(/<[^>]+>/g, " ").split(/\s+/).filter(Boolean).length;
         const titleMatch = text.match(/^#\s+(.+)/m);
         const title = titleMatch ? titleMatch[1].trim() : text.slice(0, 80).trim();
         const keywordMatch = prompt.match(/[Kk]eyword[^:]*:\s*"?([^"\n]+)"?/);
         const keyword = keywordMatch ? keywordMatch[1].trim() : imgCfg.keyword || "";
 
-        await sbSave.from("articles").insert({
+        await supabase.from("articles").insert({
           user_id: userId, title, keyword,
-          model_id: modelId, content: text,
-          word_count: wordCount, credits_used: cost + (userPlan !== "free" ? imgCount : 0),
+          model_id: safeModelId, content: text,
+          word_count: wordCount, credits_used: isAdmin ? 0 : cost + (!isFreePlan ? imageCost : 0),
         });
-      } catch { /* silently ignore */ }
+      } catch { /* silently ignore history save errors */ }
     }
 
-    return NextResponse.json({ text, creditsUsed: cost });
+    return NextResponse.json({ text, creditsUsed: isAdmin ? 0 : totalCost });
 
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message || "Terjadi kesalahan" }, { status: 500 });
+  } catch {
+    return NextResponse.json({ error: "Terjadi kesalahan saat generate artikel" }, { status: 500 });
   }
 }

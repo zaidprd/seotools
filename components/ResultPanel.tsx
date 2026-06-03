@@ -7,8 +7,14 @@ import Link from "@tiptap/extension-link";
 import { WPSite, ModelInfo, Synds, PROVIDER_COLORS } from "@/lib/constants";
 import { publishToWordPress } from "@/lib/api";
 import { marked } from "marked";
+import DOMPurify from "dompurify";
 
 marked.setOptions({ breaks: true, gfm: true } as any);
+
+function sanitizeHtml(dirty: string): string {
+  if (typeof window === "undefined") return dirty;
+  return DOMPurify.sanitize(dirty, { USE_PROFILES: { html: true } });
+}
 
 // ─── SEO Analyzer ──────────────────────────────────────────────────────────────
 type CheckLevel = "ok" | "warn" | "fail";
@@ -259,7 +265,7 @@ export default function ResultPanel({ content: initialContent, keyword = "", mod
 }) {
   const [mode, setMode] = useState<"preview" | "edit">("preview");
   const [htmlContent, setHtmlContent] = useState(() => {
-    try { return marked.parse(initialContent) as string; } catch { return initialContent; }
+    try { return sanitizeHtml(marked.parse(initialContent) as string); } catch { return initialContent; }
   });
   const [wpSel, setWpSel] = useState<WPSite | null>(null);
   const [postStatus, setPostStatus] = useState("draft");

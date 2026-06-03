@@ -17,6 +17,8 @@
     "@tiptap/pm": "^3.24.0",
     "@tiptap/react": "^3.24.0",
     "@tiptap/starter-kit": "^3.24.0",
+    "@types/dompurify": "^3.0.5",
+    "dompurify": "^3.4.8",
     "marked": "^18.0.4",
     "midtrans-client": "^1.4.3",
     "next": "14.2.15",

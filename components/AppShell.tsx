@@ -12,7 +12,15 @@ const NAV = [
   { href: "/blog", icon: "📰", label: "Blog" },
 ];
 
-interface UserInfo { id: string; email: string; plan: string; credits: number; full_name?: string; }
+interface UserInfo {
+  id: string;
+  email: string;
+  plan: string;
+  credits: number;
+  full_name?: string;
+  role?: string;
+  plan_expires_at?: string;
+}
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -23,7 +31,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     const sb = createClient();
     sb.auth.getUser().then(({ data: { user } }) => {
       if (!user) { router.push("/login"); return; }
-      fetch(`/api/user?userId=${user.id}`).then(r => r.json()).then(setUserInfo);
+      fetch(`/api/user`).then(r => r.json()).then(setUserInfo);
     });
   }, []);
 
@@ -32,9 +40,15 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     router.push("/login");
   };
 
-  const planBadge = userInfo?.plan && userInfo.plan !== "free"
-    ? "text-amber-400 bg-amber-500/10 border-amber-500/20"
-    : "text-slate-500 bg-slate-800/80 border-slate-700";
+  const isAdmin = userInfo?.role === "admin";
+
+  const planBadge = isAdmin
+    ? "text-yellow-300 bg-yellow-500/10 border-yellow-500/30"
+    : userInfo?.plan && userInfo.plan !== "free"
+      ? "text-amber-400 bg-amber-500/10 border-amber-500/20"
+      : "text-slate-500 bg-slate-800/80 border-slate-700";
+
+  const planLabel = isAdmin ? "OWNER" : (userInfo?.plan || "FREE").toUpperCase();
 
   return (
     <div className="flex min-h-screen bg-[#0c0e14] text-slate-100" style={{ fontFamily: "'DM Sans',sans-serif" }}>
@@ -76,20 +90,41 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           {userInfo ? (
             <>
               <div className="flex items-center gap-2.5 px-1">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-[#0c0e14] font-black text-xs flex-shrink-0">
-                  {(userInfo.full_name || userInfo.email || "U")[0].toUpperCase()}
+                {/* Avatar */}
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-xs flex-shrink-0 ${
+                  isAdmin
+                    ? "bg-gradient-to-br from-yellow-400 to-amber-600 text-[#0c0e14]"
+                    : "bg-gradient-to-br from-amber-500 to-orange-600 text-[#0c0e14]"
+                }`}>
+                  {isAdmin ? "👑" : (userInfo.full_name || userInfo.email || "U")[0].toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold text-white truncate">{userInfo.full_name || userInfo.email.split("@")[0]}</p>
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-xs font-semibold text-white truncate">
+                      {userInfo.full_name || userInfo.email.split("@")[0]}
+                    </p>
+                  </div>
                   <span className={`inline-flex text-[9px] font-bold px-1.5 py-0.5 rounded border ${planBadge}`}>
-                    {(userInfo.plan || "FREE").toUpperCase()}
+                    {isAdmin && <span className="mr-0.5">👑</span>}{planLabel}
                   </span>
                 </div>
               </div>
-              <div className="bg-slate-900/60 border border-slate-800 rounded-lg px-3 py-2">
-                <p className="text-[10px] text-slate-500">Kredit tersisa</p>
-                <p className="text-sm font-black text-amber-400">{userInfo.credits} 💎</p>
-              </div>
+
+              {/* Kredit — sembunyikan untuk admin */}
+              {!isAdmin && (
+                <div className="bg-slate-900/60 border border-slate-800 rounded-lg px-3 py-2">
+                  <p className="text-[10px] text-slate-500">Kredit tersisa</p>
+                  <p className="text-sm font-black text-amber-400">{userInfo.credits} 💎</p>
+                </div>
+              )}
+
+              {isAdmin && (
+                <div className="bg-yellow-500/5 border border-yellow-500/20 rounded-lg px-3 py-2">
+                  <p className="text-[10px] text-yellow-500/70">Akses penuh aktif</p>
+                  <p className="text-xs font-bold text-yellow-400">∞ Unlimited</p>
+                </div>
+              )}
+
               <button onClick={logout}
                 className="flex items-center gap-2 px-3 py-2 text-slate-600 hover:text-red-400 text-xs transition-colors rounded-lg hover:bg-red-500/5">
                 <span>⏏</span> Sign Out

@@ -16,7 +16,6 @@ export async function POST(req: NextRequest) {
     const {
       order_id, status_code, gross_amount, signature_key,
       transaction_status, fraud_status, custom_field1, custom_field2,
-      payment_type,
     } = body;
 
     // Verifikasi signature Midtrans
@@ -26,7 +25,7 @@ export async function POST(req: NextRequest) {
       .digest("hex");
 
     if (expected !== signature_key) {
-      console.error("[webhook] signature mismatch", { order_id, status_code, gross_amount });
+      console.error("[webhook] signature mismatch", { order_id });
       return NextResponse.json({ error: "Signature tidak valid" }, { status: 403 });
     }
 
@@ -54,6 +53,22 @@ export async function POST(req: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
+    // Idempotency: cek apakah order_id sudah pernah diproses
+    // Membutuhkan tabel processed_orders — jalankan supabase/migrations/20260604_security_fixes.sql
+    const { error: insertError } = await supabase
+      .from("processed_orders")
+      .insert({ order_id, user_id: userId, plan_id: planId });
+
+    if (insertError) {
+      if (insertError.code === "23505") {
+        // Duplicate key — webhook ini sudah diproses sebelumnya (Midtrans retry)
+        console.log("[webhook] duplicate order_id, skipping:", order_id);
+        return NextResponse.json({ status: "ok", message: "Already processed" });
+      }
+      // Tabel belum ada (migration belum dijalankan) — log warning tapi lanjutkan
+      console.warn("[webhook] processed_orders insert failed (migration belum dijalankan?):", insertError.message);
+    }
+
     // Ambil kredit user saat ini (bisa ada sisa)
     const { data: user, error: fetchErr } = await supabase
       .from("users")
@@ -73,11 +88,12 @@ export async function POST(req: NextRequest) {
       plan: planId,
       credits: newCredits,
       plan_expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      subscription_id: order_id,
     }).eq("id", userId);
 
     if (updateErr) {
       console.error("[webhook] update user error:", updateErr.message);
-      return NextResponse.json({ error: "Gagal update user: " + updateErr.message }, { status: 500 });
+      return NextResponse.json({ error: "Gagal memproses pembayaran" }, { status: 500 });
     }
 
     console.log("[webhook] success", { userId, planId, creditsAdded: plan.credits, newCredits });
@@ -90,8 +106,8 @@ export async function POST(req: NextRequest) {
       orderId: order_id,
     });
 
-  } catch (e: any) {
-    console.error("[webhook] exception:", e.message);
-    return NextResponse.json({ error: e.message }, { status: 500 });
+  } catch {
+    console.error("[webhook] exception");
+    return NextResponse.json({ error: "Terjadi kesalahan internal" }, { status: 500 });
   }
 }

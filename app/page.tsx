@@ -637,17 +637,16 @@ export default function LandingPage() {
             <div>
               <p className="text-sm font-bold text-white mb-3">Perusahaan</p>
               <div className="flex flex-col gap-2 text-sm text-slate-500">
-                <a href="#" className="hover:text-white transition-colors">Tentang Kami</a>
-                <a href="#" className="hover:text-white transition-colors">Blog</a>
-                <a href="#" className="hover:text-white transition-colors">Afiliasi (30%)</a>
+                <Link href="/tentang-kami" className="hover:text-white transition-colors">Tentang Kami</Link>
                 <Link href="/blog" className="hover:text-white transition-colors">Blog</Link>
+                <a href="mailto:support@seotulis.ai" className="hover:text-white transition-colors">Afiliasi (30%)</a>
               </div>
             </div>
             <div>
               <p className="text-sm font-bold text-white mb-3">Legal</p>
               <div className="flex flex-col gap-2 text-sm text-slate-500">
-                <a href="#" className="hover:text-white transition-colors">Syarat & Ketentuan</a>
-                <a href="#" className="hover:text-white transition-colors">Kebijakan Privasi</a>
+                <Link href="/syarat-ketentuan" className="hover:text-white transition-colors">Syarat & Ketentuan</Link>
+                <Link href="/kebijakan-privasi" className="hover:text-white transition-colors">Kebijakan Privasi</Link>
                 <a href="mailto:support@seotulis.ai" className="hover:text-white transition-colors">Hubungi Kami</a>
               </div>
             </div>

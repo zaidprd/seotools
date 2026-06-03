@@ -1,30 +1,57 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { requireAuth } from "@/lib/supabase/require-auth";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
 
 export async function POST(req: NextRequest) {
   try {
-    const { prompt, userId } = await req.json();
+    // Verifikasi session — userId selalu dari session, bukan body
+    const { user, errorResponse } = await requireAuth();
+    if (errorResponse) return errorResponse;
+    const userId = user.id;
+
+    const { prompt } = await req.json();
     if (!prompt) return NextResponse.json({ error: "Prompt diperlukan" }, { status: 400 });
-    if (!userId) return NextResponse.json({ error: "Login diperlukan" }, { status: 401 });
 
     const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
-    const { data: user } = await sb.from("users").select("plan, credits").eq("id", userId).single();
+    const { data: userData } = await sb.from("users").select("plan, credits, plan_expires_at, role").eq("id", userId).single();
 
-    if (!user || !user.plan || user.plan === "free") {
-      return NextResponse.json({ error: "Gambar AI hanya untuk paket berbayar. Silakan upgrade ke Starter/Pro/Agency." }, { status: 403 });
-    }
-    if ((user.credits ?? 0) < 1) {
-      return NextResponse.json({ error: "Kredit tidak cukup (butuh 1 💎 untuk generate gambar)" }, { status: 402 });
-    }
+    // Admin/owner bypass — skip semua cek plan dan kredit
+    const isAdmin = userData?.role === "admin";
 
-    // Deduct 1 credit
-    await sb.from("users").update({ credits: user.credits - 1 }).eq("id", userId);
+    if (!isAdmin) {
+      // Cek plan expiry
+      const planIsActive = !userData?.plan_expires_at || new Date(userData.plan_expires_at) > new Date();
+      const effectivePlan = (userData?.plan && userData.plan !== "free" && planIsActive) ? userData.plan : "free";
+
+      if (effectivePlan === "free") {
+        return NextResponse.json({ error: "Gambar AI hanya untuk paket berbayar. Silakan upgrade ke Starter/Pro/Agency." }, { status: 403 });
+      }
+
+      // Atomic credit deduction via RPC — mencegah race condition
+      const { data: deductResult, error: rpcError } = await sb.rpc("deduct_image_credit", {
+        p_user_id: userId,
+      });
+
+      if (rpcError) {
+        // Fallback jika RPC belum diinstall
+        console.error("[generate-image] RPC deduct_image_credit tidak tersedia:", rpcError.message);
+        if ((userData?.credits ?? 0) < 1) {
+          return NextResponse.json({ error: "Kredit tidak cukup (butuh 1 💎 untuk generate gambar)" }, { status: 402 });
+        }
+        await sb.from("users").update({ credits: (userData?.credits ?? 0) - 1 }).eq("id", userId);
+      } else {
+        const result = deductResult as { success: boolean; credits: number };
+        if (!result?.success) {
+          return NextResponse.json({ error: "Kredit tidak cukup (butuh 1 💎 untuk generate gambar)" }, { status: 402 });
+        }
+      }
+    }
 
     const key = process.env.GOOGLE_API_KEY;
-    if (!key) return NextResponse.json({ error: "GOOGLE_API_KEY belum dikonfigurasi" }, { status: 500 });
+    if (!key) return NextResponse.json({ error: "Konfigurasi server tidak lengkap" }, { status: 500 });
 
     const r = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${key}`,
@@ -40,18 +67,29 @@ export async function POST(req: NextRequest) {
 
     const data = await r.json();
     if (!r.ok) {
-      // Refund credit on API error
-      await sb.from("users").update({ credits: user.credits }).eq("id", userId);
-      throw new Error(data?.error?.message || "Imagen API error");
+      // Refund credit on API error (hanya jika bukan admin)
+      if (!isAdmin) {
+        try {
+          await sb.rpc("refund_credit", { p_user_id: userId, p_amount: 1 });
+        } catch {
+          await sb.from("users").update({ credits: (userData?.credits ?? 1) }).eq("id", userId);
+        }
+      }
+      return NextResponse.json({ error: "Gagal generate gambar, silakan coba lagi" }, { status: 500 });
     }
 
     const b64 = data.predictions?.[0]?.bytesBase64Encoded;
     const mimeType = data.predictions?.[0]?.mimeType || "image/png";
 
-    if (!b64) throw new Error("Gambar tidak berhasil digenerate — coba prompt yang berbeda");
+    if (!b64) {
+      if (!isAdmin) {
+        try { await sb.rpc("refund_credit", { p_user_id: userId, p_amount: 1 }); } catch { /* best effort */ }
+      }
+      return NextResponse.json({ error: "Gambar tidak berhasil digenerate — coba prompt yang berbeda" }, { status: 500 });
+    }
 
-    return NextResponse.json({ image: b64, mimeType, creditsUsed: 1 });
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message || "Terjadi kesalahan" }, { status: 500 });
+    return NextResponse.json({ image: b64, mimeType, creditsUsed: isAdmin ? 0 : 1 });
+  } catch {
+    return NextResponse.json({ error: "Terjadi kesalahan saat generate gambar" }, { status: 500 });
   }
 }
