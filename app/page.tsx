@@ -647,7 +647,7 @@ export default function LandingPage() {
               <div className="flex flex-col gap-2 text-sm text-slate-500">
                 <Link href="/syarat-ketentuan" className="hover:text-white transition-colors">Syarat & Ketentuan</Link>
                 <Link href="/kebijakan-privasi" className="hover:text-white transition-colors">Kebijakan Privasi</Link>
-                <a href="mailto:support@seotulis.ai" className="hover:text-white transition-colors">Hubungi Kami</a>
+                <a href="https://wa.me/6281274203815" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Hubungi Kami</a>
               </div>
             </div>
           </div>
