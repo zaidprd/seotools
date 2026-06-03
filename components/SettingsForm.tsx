@@ -1,8 +1,44 @@
 "use client";
+import { useState } from "react";
 import { Config, WPSite, ModelInfo, LANGUAGES, ARTICLE_TYPES, ARTICLE_SIZES, TONES, POVS, READABILITY, COUNTRIES, LINK_TYPES, IMG_STYLES, IMG_SIZES, IMG_COUNTS, YT_COUNTS, LAYOUT_OPTS, FREE_MAX_WORDS, CREDIT_COST } from "@/lib/constants";
 import { Sec, Sel, Inp, Tog } from "./ui";
 import ModelSelector from "./ModelSelector";
 import WPPanel from "./WPPanel";
+
+// ─── Fetch halaman dari sitemap XML ───────────────────────────────────────────
+function FetchSitemap({ baseUrl, onFetch }: { baseUrl: string; onFetch: (pages: string) => void }) {
+  const [sitemapUrl, setSitemapUrl] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetch_ = async () => {
+    const url = sitemapUrl.trim() || (baseUrl.replace(/\/+$/, "") + "/sitemap.xml");
+    setLoading(true); setError(null);
+    try {
+      const r = await fetch(`/api/fetch-sitemap?url=${encodeURIComponent(url)}`);
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || "Gagal fetch sitemap");
+      onFetch(data.pages);
+    } catch (e: any) { setError(e.message); }
+    setLoading(false);
+  };
+
+  return (
+    <div className="border-t border-slate-800 pt-2">
+      <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Fetch dari Sitemap</p>
+      <div className="flex gap-1.5">
+        <input value={sitemapUrl} onChange={e => setSitemapUrl(e.target.value)}
+          placeholder={baseUrl ? `${baseUrl.replace(/\/+$/,"")}/sitemap.xml` : "https://example.com/sitemap.xml"}
+          className="flex-1 bg-slate-900 border border-slate-700/60 text-slate-200 text-[10px] rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-amber-500/60 placeholder-slate-700" />
+        <button onClick={fetch_} disabled={loading || !baseUrl}
+          className="flex-shrink-0 text-[10px] px-2.5 py-1.5 rounded-lg border border-amber-500/30 text-amber-400 hover:bg-amber-500/5 disabled:opacity-40 transition-colors">
+          {loading ? "⟳" : "Fetch"}
+        </button>
+      </div>
+      {error && <p className="text-[10px] text-red-400 mt-1">✗ {error}</p>}
+    </div>
+  );
+}
 
 export default function SettingsForm({ cfg, set, model, setModel, wpSites, addWp, removeWp, wpSel, setWpSel, mode = "single", credits, isPro }: {
   cfg: Config; set: (fn: (p: Config) => Config) => void; model: ModelInfo; setModel: (m: ModelInfo) => void;
@@ -130,11 +166,77 @@ export default function SettingsForm({ cfg, set, model, setModel, wpSites, addWp
       </Sec>
 
       <Sec title="Internal Linking" icon="🔗" defaultOpen={true}>
-        <Sel label="Pilih Website" opts={["Tidak Ada",...wpSites.map(s=>s.name)]} val={cfg.internalLinkSite} set={v=>f("internalLinkSite",v)} />
+        <div className="flex flex-col gap-2">
+          {/* Mode selector */}
+          <div className="flex gap-1">
+            {["Tidak Ada", "Manual"].map(m => (
+              <button key={m} onClick={() => { f("internalLinkSite", m); if (m === "Tidak Ada") f("internalLinkBaseUrl", ""); }}
+                className={`text-[10px] px-2.5 py-1 rounded-lg border transition-all flex-1 ${cfg.internalLinkSite === m || (m === "Manual" && cfg.internalLinkSite !== "Tidak Ada") ? "bg-amber-500/15 border-amber-500/40 text-amber-300" : "border-slate-700 text-slate-500 hover:border-slate-600"}`}>
+                {m}
+              </button>
+            ))}
+          </div>
+
+          {cfg.internalLinkSite !== "Tidak Ada" && (
+            <div className="flex flex-col gap-2 mt-1">
+              {/* Base URL */}
+              <div>
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1">Base URL Website</label>
+                <input
+                  value={cfg.internalLinkBaseUrl}
+                  onChange={e => f("internalLinkBaseUrl", e.target.value)}
+                  placeholder="https://example.com"
+                  className="w-full bg-slate-900 border border-slate-700/60 text-slate-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-amber-500/60 placeholder-slate-700"
+                />
+                {cfg.internalLinkBaseUrl && cfg.internalLinkBaseUrl.includes("//") && (
+                  <p className="text-[10px] text-emerald-500/70 mt-0.5">✓ {cfg.internalLinkBaseUrl.replace(/\/+$/, "")}/path-artikel</p>
+                )}
+              </div>
+
+              {/* Daftar halaman manual */}
+              <div>
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1">Daftar Halaman (opsional)</label>
+                <textarea
+                  value={cfg.internalLinkPages}
+                  onChange={e => f("internalLinkPages", e.target.value)}
+                  placeholder={`/cara-membuat-blog — Cara Membuat Blog\n/tips-seo — Tips SEO Terbaik\natau tempel URL lengkap satu per baris`}
+                  rows={4}
+                  className="w-full bg-slate-900 border border-slate-700/60 text-slate-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-amber-500/60 placeholder-slate-700 resize-none"
+                />
+                <p className="text-[10px] text-slate-600 mt-0.5">Satu halaman per baris. AI akan memilih yang relevan.</p>
+              </div>
+
+              {/* Fetch dari sitemap */}
+              <FetchSitemap baseUrl={cfg.internalLinkBaseUrl} onFetch={pages => f("internalLinkPages", pages)} />
+            </div>
+          )}
+        </div>
       </Sec>
 
       <Sec title="External Linking" icon="↗" defaultOpen={true}>
-        <Sel label="Tipe Link" opts={LINK_TYPES} val={cfg.extLinkType} set={v=>f("extLinkType",v)} />
+        <div className="flex flex-col gap-2">
+          <div className="flex gap-1">
+            {LINK_TYPES.map(t => (
+              <button key={t} onClick={() => f("extLinkType", t)}
+                className={`text-[10px] px-2 py-1 rounded-lg border transition-all flex-1 ${cfg.extLinkType === t ? "bg-amber-500/15 border-amber-500/40 text-amber-300" : "border-slate-700 text-slate-500 hover:border-slate-600"}`}>
+                {t}
+              </button>
+            ))}
+          </div>
+          {cfg.extLinkType === "Manual" && (
+            <div>
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1">URL External</label>
+              <textarea
+                value={cfg.extLinkUrls}
+                onChange={e => f("extLinkUrls", e.target.value)}
+                placeholder={"https://wikipedia.org/wiki/topik\nhttps://sumber-terpercaya.com/artikel"}
+                rows={3}
+                className="w-full bg-slate-900 border border-slate-700/60 text-slate-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-amber-500/60 placeholder-slate-700 resize-none"
+              />
+              <p className="text-[10px] text-slate-600 mt-0.5">Satu URL per baris. AI akan menyisipkan sebagai referensi.</p>
+            </div>
+          )}
+        </div>
       </Sec>
 
       <Sec title="Connect to Web" icon="🌐" defaultOpen={true}>

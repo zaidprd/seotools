@@ -193,7 +193,7 @@ function SingleTab({ wpSites, addWp, removeWp, user, refreshUser }: {
           </div>
         )}
         {error && <div className="flex-1 flex items-center justify-center"><div className="bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 text-red-300 text-sm max-w-md">✗ {error}</div></div>}
-        {result && <ResultPanel content={result} model={currentModel} wpSites={wpSel ? [wpSel] : wpSites} synds={cfg.synds} />}
+        {result && <ResultPanel content={result} keyword={keyword} model={currentModel} wpSites={wpSel ? [wpSel] : wpSites} synds={cfg.synds} />}
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef, useMemo, useEffect } from "react";
+import { useState, useRef, useMemo, useEffect, useCallback } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
@@ -267,6 +267,12 @@ export default function ResultPanel({ content: initialContent, keyword = "", mod
   const [htmlContent, setHtmlContent] = useState(() => {
     try { return sanitizeHtml(marked.parse(initialContent) as string); } catch { return initialContent; }
   });
+  // Debounced content for SEO checker — recalculates 1s after user stops typing
+  const [seoContent, setSeoContent] = useState(htmlContent);
+  useEffect(() => {
+    const t = setTimeout(() => setSeoContent(htmlContent), 1000);
+    return () => clearTimeout(t);
+  }, [htmlContent]);
   const [wpSel, setWpSel] = useState<WPSite | null>(null);
   const [postStatus, setPostStatus] = useState("draft");
   const [scheduledAt, setScheduledAt] = useState("");
@@ -381,12 +387,55 @@ export default function ResultPanel({ content: initialContent, keyword = "", mod
     setShowMediaLibrary(false);
   };
 
+  // Upload semua gambar base64 di konten ke WP Media Library, return konten dengan URL WP
+  const uploadBase64ToWP = useCallback(async (html: string, site: WPSite): Promise<string> => {
+    const regex = /<img([^>]*?)src="(data:([^;]+);base64,([^"]+))"([^>]*?)>/gi;
+    let result = html;
+    const matches: Array<{ full: string; pre: string; dataUrl: string; mime: string; b64: string; post: string }> = [];
+    let m: RegExpExecArray | null;
+    while ((m = regex.exec(html)) !== null) {
+      matches.push({ full: m[0], pre: m[1], dataUrl: m[2], mime: m[3], b64: m[4], post: m[5] });
+    }
+    for (const img of matches) {
+      try {
+        const byteStr = atob(img.b64);
+        const bytes = new Uint8Array(byteStr.length);
+        for (let i = 0; i < byteStr.length; i++) bytes[i] = byteStr.charCodeAt(i);
+        const blob = new Blob([bytes], { type: img.mime });
+        const ext = img.mime.split("/")[1]?.replace("jpeg", "jpg") || "png";
+        const file = new File([blob], `seotulis-img-${Date.now()}.${ext}`, { type: img.mime });
+        const fd = new FormData();
+        fd.append("file", file);
+        const r = await fetch(`${site.url.replace(/\/+$/, "")}/wp-json/wp/v2/media`, {
+          method: "POST",
+          headers: {
+            "Authorization": `Basic ${btoa(`${site.user}:${site.pass}`)}`,
+            "Content-Disposition": `attachment; filename="${file.name}"`,
+          },
+          body: fd,
+        });
+        if (r.ok) {
+          const data = await r.json();
+          const wpUrl: string = data.source_url;
+          // Ganti hanya src base64 dengan URL WP, pertahankan atribut lain
+          result = result.replace(img.full, `<img${img.pre}src="${wpUrl}"${img.post}>`);
+        }
+      } catch { /* pertahankan base64 jika upload gagal */ }
+    }
+    return result;
+  }, []);
+
   const publish = async () => {
     if (!wpSel) return;
     setPublishing(true); setPubResult(null); setPubError(null);
     try {
+      // Upload semua gambar base64 ke WP Media Library sebelum publish
+      let content = htmlContent;
+      if (/data:[^"]+;base64,/.test(content)) {
+        content = await uploadBase64ToWP(content, wpSel);
+      }
       const r = await publishToWordPress(wpSel, {
-        title, content: htmlContent,
+        title, content,
         status: scheduledAt ? "future" : postStatus,
         scheduledAt: scheduledAt || undefined,
         focusKeyword: keyword || undefined,
@@ -541,7 +590,7 @@ export default function ResultPanel({ content: initialContent, keyword = "", mod
                 <div className="px-3 py-2 border-b border-slate-800 bg-slate-900/40">
                   <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">🎯 SEO Checker</p>
                 </div>
-                <SEOPanel content={htmlContent} keyword={keyword} />
+                <SEOPanel content={seoContent} keyword={keyword} />
               </div>
             </div>
           </>

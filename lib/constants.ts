@@ -62,7 +62,12 @@ export interface Config {
   mediaUnderHeading: boolean; introType: string; introBrief: string; withConclusion: boolean;
   withTables: boolean; withH3: boolean; withLists: boolean; withNotes: boolean; withOutlineEl: boolean;
   withKeyTakeaways: boolean; withFAQ: boolean; withBold: boolean; withQuotes: boolean;
-  internalLinkSite: string; extLinkType: string; connectWeb: boolean; synds: Synds;
+  internalLinkSite: string;
+  internalLinkBaseUrl: string;  // base URL situs untuk internal link (cth: https://example.com)
+  internalLinkPages: string;    // daftar halaman manual (satu URL/judul per baris)
+  extLinkType: string;
+  extLinkUrls: string;          // daftar URL external manual (satu per baris, mode Manual)
+  connectWeb: boolean; synds: Synds;
   syndLink: string; saveFolder: string; postStatus: string; scheduleDate?: string;
   keyword?: string; title?: string; extraKeywords?: string; outline?: string;
 }
@@ -76,7 +81,8 @@ export const defaultCfg = (): Config => ({
   mediaUnderHeading: true, introType: "Hook", introBrief: "",
   withConclusion: true, withTables: false, withH3: true, withLists: true, withNotes: false,
   withOutlineEl: false, withKeyTakeaways: false, withFAQ: true, withBold: true, withQuotes: false,
-  internalLinkSite: "Tidak Ada", extLinkType: "Tidak Ada", connectWeb: false,
+  internalLinkSite: "Tidak Ada", internalLinkBaseUrl: "", internalLinkPages: "",
+  extLinkType: "Tidak Ada", extLinkUrls: "", connectWeb: false,
   synds: { twitter: false, linkedin: false, facebook: false, email: false, wa: false, pinterest: false },
   syndLink: "Tidak Ada", saveFolder: "Home", postStatus: "draft",
 });
