@@ -14,6 +14,7 @@ export async function generateArticle(cfg: Config & { modelId?: string; userId?:
         count: parseInt(cfg.imgCount || "0"),
         style: cfg.imgStyle || "Foto",
         instructions: cfg.imgInstructions || "",
+        userPrompt: cfg.imgPrompt || "",
         altText: cfg.imgAltText !== false,
         firstKeyword: cfg.imgFirstKeyword !== false,
         keyword: cfg.keyword || "",

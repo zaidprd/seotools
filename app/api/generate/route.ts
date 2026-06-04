@@ -9,7 +9,7 @@ export const maxDuration = 90;
 const SYSTEM = "Kamu adalah penulis konten SEO profesional Indonesia terbaik. Tulis konten berkualitas tinggi, informatif, terstruktur dengan baik, dan dioptimasi untuk mesin pencari.";
 
 interface ImageConfig {
-  count: number; style: string; instructions: string;
+  count: number; style: string; instructions: string; userPrompt: string;
   altText: boolean; firstKeyword: boolean; keyword: string; size: string;
 }
 
@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
     // Validasi model ID
     const safeModelId = ALLOWED_MODELS.has(modelId) ? modelId : FREE_MODEL_ID;
     const cost = CREDIT_COST[safeModelId] ?? 1;
-    const imgCfg: ImageConfig = imageConfig || { count: 0, style: "Foto", instructions: "", altText: true, firstKeyword: true, keyword: "", size: "Sedang 800px" };
+    const imgCfg: ImageConfig = imageConfig || { count: 0, style: "Foto", instructions: "", userPrompt: "", altText: true, firstKeyword: true, keyword: "", size: "Sedang 800px" };
     const imgCount = Math.min(imgCfg.count || 0, 6);
 
     const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
@@ -209,12 +209,9 @@ export async function POST(req: NextRequest) {
         if (key) {
           const images: string[] = [];
           for (let i = 0; i < imgCount; i++) {
-            const imgPrompt = [
-              imgCfg.keyword,
-              imgCfg.style,
-              "high quality blog illustration",
-              imgCfg.instructions,
-            ].filter(Boolean).join(", ");
+            const imgPrompt = imgCfg.userPrompt
+              ? `Professional photo of ${imgCfg.keyword}, ${imgCfg.userPrompt}, high quality, blog article`
+              : [imgCfg.keyword, imgCfg.style, "high quality blog illustration", imgCfg.instructions].filter(Boolean).join(", ");
             try {
               const r = await fetch(
                 `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${key}`,

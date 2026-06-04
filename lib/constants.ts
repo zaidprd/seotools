@@ -58,7 +58,7 @@ export interface Config {
   language: string; articleType: string; articleSize: string; tone: string; pov: string;
   readability: string; country: string; aiCleaning: boolean; brandVoice: string; details: string;
   seoKeywords: string; imgCount: string; imgSize: string; imgStyle: string; imgInstructions: string;
-  imgBrand: string; imgFirstKeyword: boolean; imgAltText: boolean; ytCount: string; ytLayout: string;
+  imgBrand: string; imgFirstKeyword: boolean; imgAltText: boolean; imgPrompt: string; ytCount: string; ytLayout: string;
   mediaUnderHeading: boolean; introType: string; introBrief: string; withConclusion: boolean;
   withTables: boolean; withH3: boolean; withLists: boolean; withNotes: boolean; withOutlineEl: boolean;
   withKeyTakeaways: boolean; withFAQ: boolean; withBold: boolean; withQuotes: boolean;
@@ -77,7 +77,7 @@ export const defaultCfg = (): Config => ({
   tone: "Ramah", pov: "Umum (Anda/Kita)", readability: "Menengah (SMA)", country: "Indonesia",
   aiCleaning: false, brandVoice: "", details: "", seoKeywords: "",
   imgCount: "0", imgSize: "Sedang 800px", imgStyle: "Foto", imgInstructions: "", imgBrand: "",
-  imgFirstKeyword: true, imgAltText: true, ytCount: "0", ytLayout: "Satu Gambar & Satu Teks",
+  imgFirstKeyword: true, imgAltText: true, imgPrompt: "", ytCount: "0", ytLayout: "Satu Gambar & Satu Teks",
   mediaUnderHeading: true, introType: "Hook", introBrief: "",
   withConclusion: true, withTables: false, withH3: true, withLists: true, withNotes: false,
   withOutlineEl: false, withKeyTakeaways: false, withFAQ: true, withBold: true, withQuotes: false,

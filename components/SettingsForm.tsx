@@ -110,6 +110,18 @@ export default function SettingsForm({ cfg, set, model, setModel, wpSites, addWp
               <Tog label="Keyword utama di gambar pertama" val={cfg.imgFirstKeyword} set={v => f("imgFirstKeyword", v)} />
               <Tog label="Alt-text SEO otomatis" val={cfg.imgAltText} set={v => f("imgAltText", v)} />
             </div>
+            <div className="mt-2">
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1">Style Gambar (opsional)</label>
+              <input
+                value={cfg.imgPrompt}
+                onChange={e => f("imgPrompt", e.target.value)}
+                placeholder="cth: foto profesional, ilustrasi flat, infografis, cartoon..."
+                className="w-full bg-slate-900 border border-slate-700/60 text-slate-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-amber-500/60 placeholder-slate-700"
+              />
+              <p className="text-[10px] text-slate-600 mt-0.5">
+                {cfg.imgPrompt ? "Digabung: keyword + style kamu" : "Kosong = prompt otomatis dari keyword artikel"}
+              </p>
+            </div>
             {isPro && parseInt(cfg.imgCount || "0") > 0 && (
               <div className="mt-2 pt-2 border-t border-slate-800/60">
                 <p className="text-[10px] text-slate-500">
