@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
     if (!key) return NextResponse.json({ error: "Konfigurasi server tidak lengkap" }, { status: 500 });
 
     const r = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-04-17:generateContent?key=${key}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-native-image-generation:generateContent?key=${key}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -62,7 +62,6 @@ export async function POST(req: NextRequest) {
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: {
             responseModalities: ["IMAGE", "TEXT"],
-            responseMimeType: "image/jpeg",
           },
         }),
       }
