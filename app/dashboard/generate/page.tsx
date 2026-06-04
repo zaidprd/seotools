@@ -107,7 +107,7 @@ export default function GeneratePage() {
   return (
     <div className="h-full flex flex-col" style={{ fontFamily: "'DM Sans',sans-serif" }}>
       {/* Page header */}
-      <div className="border-b border-slate-800/60 px-6 py-3 flex items-center gap-3 bg-[#0c0e14] flex-shrink-0">
+      <div className="border-b border-slate-800/60 pl-14 pr-6 lg:px-6 py-3 flex items-center gap-3 bg-[#0c0e14] flex-shrink-0">
         <span className="text-xl">⚡</span>
         <div>
           <h1 className="font-bold text-white text-sm">1-Click Blog Post</h1>
