@@ -92,107 +92,11 @@ function SEOPanel({ content, keyword }: { content: string; keyword: string }) {
   );
 }
 
-// ─── Media Library Modal ───────────────────────────────────────────────────────
-interface MediaItem { id: number; source_url: string; alt_text: string; title: { rendered: string }; media_details?: { sizes?: { thumbnail?: { source_url: string } } }; }
-
-function MediaLibraryModal({ wpSite, onInsert, onClose }: { wpSite: WPSite; onInsert: (url: string, alt: string) => void; onClose: () => void; }) {
-  const [items, setItems] = useState<MediaItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
-
-  const fetchMedia = async (p = 1) => {
-    setLoading(true); setError(null);
-    try {
-      const r = await fetch(`${wpSite.url}/wp-json/wp/v2/media?per_page=20&page=${p}&media_type=image&orderby=date&order=desc`, {
-        headers: { "Authorization": `Basic ${btoa(`${wpSite.user}:${wpSite.pass}`)}` },
-      });
-      if (!r.ok) throw new Error(`HTTP ${r.status} — cek URL dan Application Password`);
-      const data: MediaItem[] = await r.json();
-      const total = parseInt(r.headers.get("X-WP-TotalPages") || "1");
-      setItems(p === 1 ? data : prev => [...prev, ...data]);
-      setHasMore(p < total);
-      setPage(p);
-    } catch (e: any) { setError(e.message); }
-    setLoading(false);
-  };
-
-  useEffect(() => { fetchMedia(1); }, []);
-
-  return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-[#0f1117] border border-slate-700 rounded-2xl w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl" onClick={e => e.stopPropagation()}>
-        {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800">
-          <div>
-            <h3 className="font-bold text-white">Media Library</h3>
-            <p className="text-xs text-slate-500">{wpSite.name} · klik gambar untuk sisipkan</p>
-          </div>
-          <button onClick={onClose} className="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-all flex items-center justify-center">✕</button>
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto p-4">
-          {error && (
-            <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-center">
-              <p className="text-red-400 text-sm">✗ {error}</p>
-              <p className="text-slate-500 text-xs mt-1">Pastikan WordPress URL benar dan CORS diaktifkan</p>
-              <button onClick={() => fetchMedia(1)} className="mt-2 text-xs text-amber-400 border border-amber-500/20 px-3 py-1 rounded-lg hover:bg-amber-500/5">Coba Lagi</button>
-            </div>
-          )}
-          {loading && items.length === 0 && (
-            <div className="flex items-center justify-center py-12 gap-2 text-slate-500">
-              <div className="w-5 h-5 rounded-full border-2 border-slate-700 border-t-amber-500 animate-spin" />
-              <span className="text-sm">Memuat gambar...</span>
-            </div>
-          )}
-          {!error && items.length === 0 && !loading && (
-            <div className="text-center py-12 text-slate-500 text-sm">Belum ada gambar di Media Library</div>
-          )}
-          {items.length > 0 && (
-            <div className="grid grid-cols-4 gap-2.5">
-              {items.map(item => (
-                <button key={item.id} onClick={() => onInsert(item.source_url, item.alt_text || item.title?.rendered || "")}
-                  className="aspect-square rounded-xl overflow-hidden border-2 border-transparent hover:border-amber-500/60 transition-all group relative bg-slate-900">
-                  <img
-                    src={item.media_details?.sizes?.thumbnail?.source_url || item.source_url}
-                    alt={item.alt_text || item.title?.rendered}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                    loading="lazy"
-                  />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
-                    <span className="text-white text-xl opacity-0 group-hover:opacity-100 transition-opacity">+</span>
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
-          {hasMore && !loading && (
-            <div className="text-center mt-4">
-              <button onClick={() => fetchMedia(page + 1)}
-                className="text-xs text-amber-400 border border-amber-500/20 px-4 py-2 rounded-lg hover:bg-amber-500/5 transition-colors">
-                Muat lebih banyak
-              </button>
-            </div>
-          )}
-          {loading && items.length > 0 && (
-            <div className="flex justify-center mt-3">
-              <div className="w-4 h-4 rounded-full border-2 border-slate-700 border-t-amber-500 animate-spin" />
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ─── TipTap Toolbar ────────────────────────────────────────────────────────────
-function TipTapToolbar({ editor, wpSite, onUpload, onOpenMedia, onAIImage, isUploading, isAIGenerating, uploadError }: {
+function TipTapToolbar({ editor, wpSite, onUpload, onAIImage, isUploading, isAIGenerating, uploadError }: {
   editor: ReturnType<typeof useEditor>;
   wpSite: WPSite | null;
   onUpload: (file: File) => void;
-  onOpenMedia: () => void;
   onAIImage: () => void;
   isUploading: boolean;
   isAIGenerating: boolean;
@@ -240,13 +144,6 @@ function TipTapToolbar({ editor, wpSite, onUpload, onOpenMedia, onAIImage, isUpl
       <input ref={fileInputRef} type="file" accept="image/*" className="hidden"
         onChange={e => { const f = e.target.files?.[0]; if (f) onUpload(f); e.target.value = ""; }} />
 
-      {/* Media Library — only if WP site selected */}
-      {wpSite && (
-        <button onClick={onOpenMedia} title={`Pilih dari Media Library ${wpSite.name}`}
-          className="text-[11px] px-2 py-1.5 rounded-lg border border-blue-500/30 text-blue-400 hover:bg-blue-500/5 hover:border-blue-500/60 transition-all flex items-center gap-1">
-          🖼 Media Library
-        </button>
-      )}
 
       {/* AI image */}
       <button onClick={onAIImage} disabled={isAIGenerating} title="Generate gambar AI (1 💎)"
@@ -284,7 +181,6 @@ export default function ResultPanel({ content: initialContent, keyword = "", mod
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isAIGenerating, setIsAIGenerating] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
-  const [showMediaLibrary, setShowMediaLibrary] = useState(false);
 
   const editor = useEditor({
     extensions: [
@@ -382,10 +278,6 @@ export default function ResultPanel({ content: initialContent, keyword = "", mod
     setIsAIGenerating(false);
   };
 
-  const insertFromMedia = (url: string, alt: string) => {
-    editor?.chain().focus().setImage({ src: url, alt }).run();
-    setShowMediaLibrary(false);
-  };
 
   // Upload semua gambar base64 di konten ke WP Media Library, return konten dengan URL WP
   const uploadBase64ToWP = useCallback(async (html: string, site: WPSite): Promise<string> => {
@@ -447,10 +339,6 @@ export default function ResultPanel({ content: initialContent, keyword = "", mod
 
   return (
     <div className="flex flex-col gap-3 h-full">
-      {/* Media Library Modal */}
-      {showMediaLibrary && wpSel && (
-        <MediaLibraryModal wpSite={wpSel} onInsert={insertFromMedia} onClose={() => setShowMediaLibrary(false)} />
-      )}
 
       {/* Top bar */}
       <div className="flex items-center justify-between flex-wrap gap-2">
@@ -555,7 +443,6 @@ export default function ResultPanel({ content: initialContent, keyword = "", mod
               editor={editor}
               wpSite={wpSel}
               onUpload={handleUpload}
-              onOpenMedia={() => { if (wpSel) setShowMediaLibrary(true); else alert("Pilih situs WordPress dulu di panel Publish di atas."); }}
               onAIImage={handleAIImage}
               isUploading={isUploading}
               isAIGenerating={isAIGenerating}

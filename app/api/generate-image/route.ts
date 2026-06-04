@@ -54,20 +54,22 @@ export async function POST(req: NextRequest) {
     if (!key) return NextResponse.json({ error: "Konfigurasi server tidak lengkap" }, { status: 500 });
 
     const r = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${key}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-04-17:generateContent?key=${key}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          instances: [{ prompt }],
-          parameters: { sampleCount: 1, aspectRatio: "4:3" },
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            responseModalities: ["IMAGE", "TEXT"],
+            responseMimeType: "image/jpeg",
+          },
         }),
       }
     );
 
     const data = await r.json();
     if (!r.ok) {
-      // Refund credit on API error (hanya jika bukan admin)
       if (!isAdmin) {
         try {
           await sb.rpc("refund_credit", { p_user_id: userId, p_amount: 1 });
@@ -78,15 +80,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Gagal generate gambar, silakan coba lagi" }, { status: 500 });
     }
 
-    const b64 = data.predictions?.[0]?.bytesBase64Encoded;
-    const mimeType = data.predictions?.[0]?.mimeType || "image/png";
+    // Cari part yang berisi gambar (inlineData dengan mimeType image/*)
+    const parts: any[] = data.candidates?.[0]?.content?.parts ?? [];
+    const imgPart = parts.find((p: any) => p.inlineData?.mimeType?.startsWith("image/"));
 
-    if (!b64) {
+    if (!imgPart) {
       if (!isAdmin) {
         try { await sb.rpc("refund_credit", { p_user_id: userId, p_amount: 1 }); } catch { /* best effort */ }
       }
       return NextResponse.json({ error: "Gambar tidak berhasil digenerate — coba prompt yang berbeda" }, { status: 500 });
     }
+
+    const b64 = imgPart.inlineData.data as string;
+    const mimeType = imgPart.inlineData.mimeType as string;
 
     return NextResponse.json({ image: b64, mimeType, creditsUsed: isAdmin ? 0 : 1 });
   } catch {
