@@ -28,7 +28,7 @@ export async function checkPlanStatus(userId: string): Promise<PlanStatus> {
   const isAdmin = data?.role === "admin";
 
   if (isAdmin) {
-    return { isAdmin: true, plan: data?.plan ?? "agency", isExpired: false, daysUntilExpiry: null, expiresAt: null };
+    return { isAdmin: true, plan: data?.plan ?? "pro", isExpired: false, daysUntilExpiry: null, expiresAt: null };
   }
 
   const plan = data?.plan ?? "free";

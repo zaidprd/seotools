@@ -39,8 +39,8 @@ export default function SyaratKetentuan() {
             <p>SEOTulis.AI adalah platform berbasis kecerdasan buatan (AI) yang membantu pengguna membuat konten artikel SEO berbahasa Indonesia. Layanan meliputi:</p>
             <ul className="list-disc pl-5 mt-2 space-y-1 text-slate-400">
               <li>Generator artikel SEO otomatis dengan berbagai model AI</li>
-              <li>Generator gambar AI (Starter, Pro, Agency)</li>
-              <li>Bulk article generation (Starter, Pro, Agency)</li>
+              <li>Generator gambar AI (Starter, Pro)</li>
+              <li>Bulk article generation (Starter, Pro)</li>
               <li>Integrasi publish langsung ke WordPress</li>
               <li>SEO Checker dan analisis konten</li>
             </ul>

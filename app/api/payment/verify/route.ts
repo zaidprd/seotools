@@ -1,88 +1,55 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { PLANS } from "@/lib/constants";
 import { requireAuth } from "@/lib/supabase/require-auth";
+import { settlePayment } from "@/lib/settle-payment";
 
 export const runtime = "nodejs";
 
+// Verifikasi pembayaran Mayar. Bisa dipanggil dengan paymentId (saat redirect),
+// atau tanpa paymentId → ambil pembayaran pending terakhir milik user.
 export async function POST(req: NextRequest) {
   try {
     const { user, errorResponse } = await requireAuth();
     if (errorResponse) return errorResponse;
 
-    const { orderId } = await req.json();
-    if (!orderId) return NextResponse.json({ error: "orderId wajib diisi" }, { status: 400 });
+    const body = await req.json().catch(() => ({}));
+    let paymentId: string | undefined = body.paymentId;
 
-    const serverKey = process.env.MIDTRANS_SERVER_KEY!;
-    const isProduction = process.env.MIDTRANS_IS_PRODUCTION === "true";
-    const statusUrl = isProduction
-      ? `https://api.midtrans.com/v2/${orderId}/status`
-      : `https://api.sandbox.midtrans.com/v2/${orderId}/status`;
-
-    const r = await fetch(statusUrl, {
-      headers: { "Authorization": `Basic ${Buffer.from(serverKey + ":").toString("base64")}` },
-    });
-    const tx = await r.json();
-
-    if (!r.ok) throw new Error(tx?.error_messages?.join(", ") || `Midtrans status error ${r.status}`);
-
-    // Verify the order belongs to the authenticated user
-    if (tx.custom_field1 && tx.custom_field1 !== user.id) {
-      return NextResponse.json({ error: "Akses ditolak" }, { status: 403 });
-    }
-
-    const isSuccess =
-      tx.transaction_status === "settlement" ||
-      (tx.transaction_status === "capture" && (tx.fraud_status === "accept" || !tx.fraud_status));
-
-    if (!isSuccess) {
-      return NextResponse.json({
-        success: false,
-        status: tx.transaction_status,
-        message: `Status transaksi: ${tx.transaction_status}`,
-      });
-    }
-
-    const planId = tx.custom_field2;
-    const plan = PLANS.find(p => p.id === planId);
-    if (!planId || !plan) {
-      return NextResponse.json({ error: "Data plan tidak ditemukan di transaksi" }, { status: 400 });
-    }
-
-    const supabase = createClient(
+    const sb = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    const { data: userData } = await supabase
-      .from("users").select("credits, plan, plan_expires_at").eq("id", user.id).single();
-
-    // Idempotency: skip jika plan sudah di-update dengan expiry di masa depan
-    const alreadyApplied =
-      userData?.plan === planId &&
-      userData?.plan_expires_at &&
-      new Date(userData.plan_expires_at) > new Date();
-
-    if (alreadyApplied) {
-      return NextResponse.json({ success: true, alreadyApplied: true, message: "Paket sudah aktif" });
+    if (!paymentId) {
+      const { data: latest } = await sb
+        .from("payments")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("status", "pending")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (!latest) {
+        return NextResponse.json({ success: false, error: "Tidak ada pembayaran pending untuk diverifikasi." });
+      }
+      paymentId = latest.id;
     }
 
-    const newCredits = (userData?.credits ?? 0) + plan.credits;
-    await supabase.from("users").update({
-      plan: planId,
-      credits: newCredits,
-      plan_expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-      subscription_id: orderId,
-    }).eq("id", user.id);
+    const r = await settlePayment(paymentId!, user.id);
 
-    return NextResponse.json({
-      success: true,
-      planId,
-      creditsAdded: plan.credits,
-      newCredits,
-      orderId,
-    });
-
+    if (r.result === "credited") {
+      return NextResponse.json({ success: true, planId: r.planId, creditsAdded: r.creditsAdded, newCredits: r.newCredits });
+    }
+    if (r.result === "already_paid") {
+      return NextResponse.json({ success: true, alreadyApplied: true, planId: r.planId });
+    }
+    if (r.result === "not_found") {
+      return NextResponse.json({ success: false, error: "Pembayaran tidak ditemukan." }, { status: 404 });
+    }
+    if (r.result === "expired") {
+      return NextResponse.json({ success: false, status: "expired", error: "Invoice sudah kedaluwarsa. Silakan buat pembayaran baru." });
+    }
+    return NextResponse.json({ success: false, status: "unpaid", message: "Pembayaran belum lunas." });
   } catch {
     return NextResponse.json({ error: "Gagal memverifikasi pembayaran" }, { status: 500 });
   }

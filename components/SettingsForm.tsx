@@ -63,7 +63,7 @@ export default function SettingsForm({ cfg, set, model, setModel, wpSites, addWp
           <Sel label="Tipe Artikel" opts={ARTICLE_TYPES} val={cfg.articleType} set={v => f("articleType", v)} />
           <div className="col-span-2">
             <Sel label="Ukuran Artikel" opts={availableSizes} val={!isPro ? FREE_MAX_WORDS : cfg.articleSize} set={v => f("articleSize", v)} />
-            {!isPro && <p className="text-[10px] text-amber-500/70 mt-1">⚡ Gratis maks 1.500 kata · Upgrade untuk lebih</p>}
+            {!isPro && <p className="text-[10px] text-amber-500/70 mt-1">⚡ Gratis maks 1.000 kata · Upgrade untuk lebih</p>}
           </div>
         </div>
         <div className="border-t border-slate-800 pt-2.5 mt-0.5">
@@ -274,7 +274,7 @@ export default function SettingsForm({ cfg, set, model, setModel, wpSites, addWp
           {!isPro && (
             <div className="absolute inset-0 flex items-center justify-center bg-slate-950/50 rounded-lg backdrop-blur-[2px]">
               <div className="text-center">
-                <p className="text-amber-400 text-xs font-bold">🔒 Hanya Pro & Agency</p>
+                <p className="text-amber-400 text-xs font-bold">🔒 Hanya Pro</p>
                 <p className="text-slate-500 text-[10px] mt-0.5">Upgrade untuk sindikasi konten</p>
               </div>
             </div>

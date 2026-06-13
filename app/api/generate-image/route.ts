@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
       const effectivePlan = (userData?.plan && userData.plan !== "free" && planIsActive) ? userData.plan : "free";
 
       if (effectivePlan === "free") {
-        return NextResponse.json({ error: "Gambar AI hanya untuk paket berbayar. Silakan upgrade ke Starter/Pro/Agency." }, { status: 403 });
+        return NextResponse.json({ error: "Gambar AI hanya untuk paket berbayar. Silakan upgrade ke Starter/Pro." }, { status: 403 });
       }
 
       // Atomic credit deduction via RPC — mencegah race condition

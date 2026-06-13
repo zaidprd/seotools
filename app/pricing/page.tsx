@@ -4,8 +4,6 @@ import { useRouter } from "next/navigation";
 import { PLANS, MODELS, FREE_MODEL_ID } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/client";
 
-declare global { interface Window { snap: any; } }
-
 export default function PricingPage() {
   const [billing, setBilling] = useState<"monthly"|"yearly">("monthly");
   const [loading, setLoading] = useState<string|null>(null);
@@ -18,27 +16,6 @@ export default function PricingPage() {
     createClient().auth.getUser().then(({ data: { user } }) => setUser(user));
   }, []);
 
-  // Verify payment with Midtrans then redirect
-  const verifyAndRedirect = async (orderId: string) => {
-    if (!user) { router.push("/dashboard?payment=success"); return; }
-    try {
-      const res = await fetch("/api/payment/verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderId, userId: user.id }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        router.push("/dashboard?payment=success");
-      } else {
-        // Payment pending or failed, redirect anyway
-        router.push("/dashboard?payment=pending");
-      }
-    } catch {
-      router.push("/dashboard?payment=success");
-    }
-  };
-
   const handleBuy = async (planId: string) => {
     if (planId === "free") { router.push("/login"); return; }
     if (!user) { router.push("/login"); return; }
@@ -46,44 +23,33 @@ export default function PricingPage() {
     try {
       const res = await fetch("/api/payment/create", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ planId, userId: user.id, email: user.email }),
+        body: JSON.stringify({ planId }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-
-      if (window.snap) {
-        window.snap.pay(data.token, {
-          onSuccess: () => verifyAndRedirect(data.orderId),
-          onPending: () => router.push("/dashboard?payment=pending"),
-          onError: () => { alert("Pembayaran gagal — coba lagi atau hubungi support"); setLoading(null); },
-          onClose: () => setLoading(null),
-        });
-      } else {
-        window.location.href = data.redirect_url;
-      }
+      // Redirect ke halaman pembayaran Mayar
+      window.location.href = data.paymentUrl;
     } catch (e: any) {
       alert(e.message); setLoading(null);
     }
   };
 
-  // Manual verify for past failed payments
+  // Verifikasi manual pembayaran terakhir yang belum masuk
   const handleManualVerify = async () => {
     if (!user) { alert("Login dulu"); return; }
-    const orderId = window.prompt("Masukkan Order ID dari email konfirmasi Midtrans:\n(contoh: st-starter-1780412489281)");
-    if (!orderId) return;
     setVerifying(true); setVerifyMsg(null);
     try {
       const res = await fetch("/api/payment/verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderId: orderId.trim(), userId: user.id }),
+        body: JSON.stringify({}),
       });
       const data = await res.json();
       if (data.success) {
         setVerifyMsg({ type: "ok", text: data.alreadyApplied ? "Paket sudah aktif sebelumnya." : `✅ Berhasil! ${data.creditsAdded} kredit ditambahkan. Redirecting...` });
         setTimeout(() => router.push("/dashboard?payment=success"), 2000);
       } else {
-        setVerifyMsg({ type: "err", text: data.error || `Status: ${data.status}. Pembayaran belum settlement.` });
+        setVerifyMsg({ type: "err", text: data.error || "Pembayaran belum lunas. Selesaikan pembayaran lalu coba lagi." });
       }
     } catch (e: any) {
       setVerifyMsg({ type: "err", text: e.message });
@@ -133,7 +99,7 @@ export default function PricingPage() {
           <div className="bg-slate-900/40 border border-slate-700/50 rounded-2xl p-4 mb-8 max-w-xl mx-auto flex flex-col sm:flex-row items-center gap-3">
             <div className="flex-1">
               <p className="text-sm font-semibold text-white">Sudah bayar tapi kredit belum masuk?</p>
-              <p className="text-xs text-slate-500 mt-0.5">Klik tombol di samping dan masukkan Order ID dari email konfirmasi Midtrans</p>
+              <p className="text-xs text-slate-500 mt-0.5">Klik tombol di samping untuk memverifikasi pembayaran terakhirmu</p>
             </div>
             <div className="flex flex-col items-end gap-1">
               <button onClick={handleManualVerify} disabled={verifying}
@@ -164,7 +130,7 @@ export default function PricingPage() {
         </div>
 
         {/* Plans */}
-        <div className="grid md:grid-cols-4 gap-5 items-start">
+        <div className="grid md:grid-cols-3 gap-5 items-start max-w-5xl mx-auto">
           {PLANS.map(plan => {
             const price = billing === "yearly" && plan.price > 0 ? Math.round(plan.price * (1 - yearlyDiscount)) : plan.price;
             const priceLabel = price === 0 ? "Rp 0" : `Rp ${price.toLocaleString("id-ID")}`;
@@ -209,11 +175,11 @@ export default function PricingPage() {
         <div className="mt-16 max-w-2xl mx-auto">
           <h2 className="text-2xl font-black text-center mb-8" style={{ fontFamily: "Sora,sans-serif" }}>Pertanyaan Umum</h2>
           {[
-            { q: "Apa itu kredit?", a: "Kredit adalah satuan penggunaan AI. Setiap kali generate artikel, kredit berkurang sesuai model yang dipilih. Gemini Flash-Lite = 1 kredit, GPT-4o = 5 kredit." },
-            { q: "Sudah bayar tapi kredit belum masuk?", a: "Klik tombol 'Verifikasi Pembayaran' di atas, masukkan Order ID dari email konfirmasi Midtrans. Kredit akan langsung ditambahkan jika pembayaran sudah settlement." },
+            { q: "Apa itu kredit?", a: "Kredit adalah satuan penggunaan AI. Setiap kali generate artikel, kredit berkurang sesuai model yang dipilih. GPT-5.4 Mini = 1 kredit, GPT-5.5 = 5 kredit." },
+            { q: "Sudah bayar tapi kredit belum masuk?", a: "Klik tombol 'Verifikasi Pembayaran' di atas. Sistem akan mengecek pembayaran terakhirmu ke Mayar dan langsung menambahkan kredit jika sudah lunas." },
             { q: "Apakah kredit kadaluarsa?", a: "Kredit berbayar tidak kadaluarsa. Kredit gratis (1 kredit) juga selamanya, tapi tidak di-reset." },
             { q: "Bisa ganti paket kapan saja?", a: "Ya, bisa upgrade kapan saja. Kredit langsung ditambahkan setelah pembayaran berhasil." },
-            { q: "Metode pembayaran apa saja?", a: "QRIS, Transfer Bank (BCA/Mandiri/BNI/BRI), GoPay, OVO, ShopeePay, Dana, dan kartu kredit/debit." },
+            { q: "Metode pembayaran apa saja?", a: "Lewat Mayar: QRIS, Transfer Bank/Virtual Account (BCA/Mandiri/BNI/BRI), GoPay, OVO, ShopeePay, Dana, dan kartu kredit/debit." },
             { q: "Apakah perlu install plugin WordPress?", a: "Tidak perlu! Kami menggunakan WordPress REST API yang sudah built-in. Cukup buat Application Password di WP Admin." },
           ].map((faq, i) => (
             <div key={i} className="border-b border-slate-800 py-4">

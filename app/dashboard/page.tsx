@@ -22,9 +22,20 @@ export default function DashboardHome() {
   useEffect(() => {
     setShowBanner(!localStorage.getItem("seotulis_banner_dismissed"));
 
-    // Check payment success param
+    // Check payment redirect param (Mayar verify_payment=<id> atau payment=success)
     const params = new URLSearchParams(window.location.search);
-    if (params.get("payment") === "success") {
+    const payId = params.get("verify_payment");
+    if (payId) {
+      fetch("/api/payment/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ paymentId: payId }),
+      }).catch(() => {}).finally(() => {
+        setPaymentToast(true);
+        window.history.replaceState({}, "", "/dashboard");
+        setTimeout(() => setPaymentToast(false), 6000);
+      });
+    } else if (params.get("payment") === "success") {
       setPaymentToast(true);
       window.history.replaceState({}, "", "/dashboard");
       setTimeout(() => setPaymentToast(false), 6000);

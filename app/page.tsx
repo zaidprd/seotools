@@ -102,7 +102,7 @@ const FAQS = [
   },
   {
     q: "Berapa lama generate 1 artikel?",
-    a: "Rata-rata 30-90 detik tergantung panjang artikel dan model AI yang dipilih. Artikel 1.500 kata dengan Gemini Flash-Lite biasanya selesai dalam 45 detik. Artikel panjang 4.000+ kata bisa 2-3 menit.",
+    a: "Rata-rata 30-90 detik tergantung panjang artikel dan model AI yang dipilih. Artikel 1.000 kata dengan GPT-5.4 Mini biasanya selesai dalam 45 detik. Artikel maksimal 2.500 kata sekitar 1-2 menit.",
   },
   {
     q: "Apakah perlu install plugin WordPress?",
@@ -114,7 +114,7 @@ const FAQS = [
   },
   {
     q: "Model AI mana yang paling bagus untuk blog Indonesia?",
-    a: "Untuk blog umum dan SEO konten, Gemini 2.5 Flash (2 💎) adalah sweet spot — kualitas bagus, harga terjangkau. Untuk konten premium, landing page, atau artikel kompetitif, GPT-4o (5 💎) atau DeepSeek V3 (2 💎) sangat direkomendasikan.",
+    a: "Untuk blog umum dan SEO konten, GPT-5.2 (2 💎) adalah sweet spot — kualitas bagus, harga terjangkau. Untuk konten premium, landing page, atau artikel kompetitif, GPT-5.5 (5 💎) atau GPT-5.4 (3 💎) sangat direkomendasikan.",
   },
   {
     q: "Bisa generate dalam bahasa lain selain Indonesia?",

@@ -6,8 +6,6 @@ import { createClient } from "@/lib/supabase/client";
 import { PLANS } from "@/lib/constants";
 import AppShell from "@/components/AppShell";
 
-declare global { interface Window { snap: any; } }
-
 interface UserProfile {
   id: string; email: string; plan: string; credits: number;
   credits_used: number; articles_used: number; full_name?: string;
@@ -23,19 +21,6 @@ export default function AccountPage() {
   const [loading, setLoading] = useState(true);
   const [renewLoading, setRenewLoading] = useState(false);
   const [renewMsg, setRenewMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
-
-  // Load Midtrans Snap script
-  useEffect(() => {
-    if (document.getElementById("midtrans-snap")) return;
-    const isProduction = process.env.NEXT_PUBLIC_MIDTRANS_IS_PRODUCTION === "true";
-    const script = document.createElement("script");
-    script.id = "midtrans-snap";
-    script.src = isProduction
-      ? "https://app.midtrans.com/snap/snap.js"
-      : "https://app.sandbox.midtrans.com/snap/snap.js";
-    script.setAttribute("data-client-key", process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || "");
-    document.head.appendChild(script);
-  }, []);
 
   const fetchProfile = useCallback(async () => {
     const res = await fetch(`/api/user`);
@@ -57,10 +42,25 @@ export default function AccountPage() {
     });
   }, []);
 
-  // Cek notif payment success dari URL
+  // Cek redirect pembayaran dari Mayar (verify_payment=<paymentId>) atau payment=success
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.get("payment") === "success") {
+    const payId = params.get("verify_payment");
+    if (payId) {
+      fetch("/api/payment/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ paymentId: payId }),
+      })
+        .then(r => r.json())
+        .then(d => {
+          if (d.success) setRenewMsg({ type: "ok", text: d.alreadyApplied ? "Paket sudah aktif." : "Perpanjangan berhasil! Paket aktif 30 hari lagi." });
+          else setRenewMsg({ type: "ok", text: "Pembayaran sedang diproses. Kredit akan masuk dalam beberapa menit." });
+          fetchProfile();
+        })
+        .catch(() => {})
+        .finally(() => window.history.replaceState({}, "", "/account"));
+    } else if (params.get("payment") === "success") {
       fetchProfile();
       window.history.replaceState({}, "", "/account");
     }
@@ -82,38 +82,8 @@ export default function AccountPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-
-      if (window.snap) {
-        window.snap.pay(data.token, {
-          onSuccess: async () => {
-            // Verifikasi manual setelah snap selesai
-            const vRes = await fetch("/api/payment/verify", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ orderId: data.orderId }),
-            });
-            const vData = await vRes.json();
-            if (vData.success) {
-              setRenewMsg({ type: "ok", text: "Perpanjangan berhasil! Paket aktif 30 hari lagi." });
-              fetchProfile();
-            } else {
-              setRenewMsg({ type: "ok", text: "Pembayaran diterima. Paket akan aktif dalam beberapa menit." });
-            }
-            setRenewLoading(false);
-          },
-          onPending: () => {
-            setRenewMsg({ type: "ok", text: "Pembayaran pending — akan diproses otomatis." });
-            setRenewLoading(false);
-          },
-          onError: () => {
-            setRenewMsg({ type: "err", text: "Pembayaran gagal. Coba lagi atau hubungi support." });
-            setRenewLoading(false);
-          },
-          onClose: () => setRenewLoading(false),
-        });
-      } else {
-        window.location.href = data.redirect_url;
-      }
+      // Redirect ke halaman pembayaran Mayar
+      window.location.href = data.paymentUrl;
     } catch (e: any) {
       setRenewMsg({ type: "err", text: e.message || "Gagal memulai pembayaran" });
       setRenewLoading(false);

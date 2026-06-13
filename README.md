@@ -68,8 +68,6 @@ lib/                          Constants, prompt builder, API client
 
 - [ ] Integrasi auth (NextAuth / Clerk / Supabase) — saat ini login langsung redirect
 - [ ] Database untuk simpan dokumen & user (Postgres/Supabase)
-- [ ] Sistem kredit/langganan + payment (Midtrans/Xendit untuk Indonesia)
-- [ ] Integrasi Sanity (selain WordPress)
 - [ ] Generate gambar AI (DALL-E / Stable Diffusion)
 - [ ] Rate limiting per user
 

@@ -13,7 +13,41 @@ interface ImageConfig {
   altText: boolean; firstKeyword: boolean; keyword: string; size: string;
 }
 
-function getProvider(modelId: string): "google" | "openrouter" | "openai" {
+// Registry provider OpenAI-compatible (proxy). `apiModel` opsional = nama model
+// asli yang dikirim ke API (kalau beda dari id internal di UI).
+interface OAIProvider { base: string; envKey: string; models: Set<string>; apiModel?: string; }
+
+function oaiProviders(): Record<string, OAIProvider> {
+  const providers: Record<string, OAIProvider> = {
+    joinbareng: {
+      base: process.env.JOINBARENG_BASE_URL || "https://joinbareng.com/api/ai-proxy-v2/v1",
+      envKey: "JOINBARENG_API_KEY",
+      models: new Set(["gpt-5.5", "gpt-5.4", "gpt-5.4-mini", "gpt-5.2", "gpt-5.3-codex", "gpt-5.3-codex-spark"]),
+    },
+  };
+
+  // Slot "custom" — provider bebas (SumoPod/OpenRouter/dll). Aktif jika env lengkap.
+  // CUSTOM_AI_BASE_URL + CUSTOM_AI_KEY + CUSTOM_AI_MODEL.
+  const cBase = process.env.CUSTOM_AI_BASE_URL;
+  const cModel = process.env.CUSTOM_AI_MODEL;
+  if (cBase && cModel && process.env.CUSTOM_AI_KEY) {
+    providers.custom = {
+      base: cBase,
+      envKey: "CUSTOM_AI_KEY",
+      apiModel: cModel,
+      models: new Set(["custom"]),
+    };
+  }
+
+  return providers;
+}
+
+function getProvider(modelId: string): string {
+  if (modelId === "custom") return "custom";
+  const oai = oaiProviders();
+  for (const [name, p] of Object.entries(oai)) {
+    if (p.models.has(modelId)) return name;
+  }
   if (modelId.startsWith("gemini")) return "google";
   if (modelId.startsWith("gpt-"))   return "openai";
   return "openrouter";
@@ -101,7 +135,7 @@ export async function POST(req: NextRequest) {
     // Cek plan expiry — jika sudah expired, turunkan ke free
     const planIsActive = isAdmin || !userData.plan_expires_at || new Date(userData.plan_expires_at) > new Date();
     const effectivePlan = isAdmin
-      ? "agency"
+      ? "pro"
       : (userData.plan && userData.plan !== "free" && planIsActive) ? userData.plan : "free";
 
     const isFreePlan = effectivePlan === "free";
@@ -145,7 +179,27 @@ export async function POST(req: NextRequest) {
     const provider = getProvider(safeModelId);
     let text = "";
 
-    if (provider === "google") {
+    const oai = oaiProviders();
+    if (provider === "custom" && !oai.custom) {
+      return NextResponse.json({ error: "Model Custom belum dikonfigurasi di server. Set CUSTOM_AI_BASE_URL, CUSTOM_AI_KEY, dan CUSTOM_AI_MODEL." }, { status: 500 });
+    }
+    if (oai[provider]) {
+      const cfg = oai[provider];
+      const key = process.env[cfg.envKey];
+      if (!key) return NextResponse.json({ error: "Konfigurasi server tidak lengkap" }, { status: 500 });
+      const r = await fetch(`${cfg.base.replace(/\/$/, "")}/chat/completions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${key}` },
+        body: JSON.stringify({
+          model: cfg.apiModel || safeModelId, max_tokens: 4000,
+          messages: [{ role: "system", content: SYSTEM }, { role: "user", content: prompt }],
+        }),
+      });
+      const data = await r.json();
+      if (!r.ok) throw new Error(`${provider} API error`);
+      text = data.choices?.[0]?.message?.content || "";
+
+    } else if (provider === "google") {
       const key = process.env.GOOGLE_API_KEY;
       if (!key) return NextResponse.json({ error: "Konfigurasi server tidak lengkap" }, { status: 500 });
       const r = await fetch(

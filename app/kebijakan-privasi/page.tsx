@@ -39,7 +39,7 @@ export default function KebijakanPrivasi() {
             <h3 className="text-base font-semibold text-slate-200 mt-4 mb-2">2.1 Data yang Anda Berikan</h3>
             <ul className="list-disc pl-5 space-y-1 text-slate-400">
               <li><strong className="text-white">Informasi akun:</strong> Alamat email, nama (opsional), foto profil (via Google OAuth)</li>
-              <li><strong className="text-white">Data pembayaran:</strong> Informasi transaksi (diproses oleh Midtrans — kami tidak menyimpan data kartu)</li>
+              <li><strong className="text-white">Data pembayaran:</strong> Informasi transaksi (diproses oleh Mayar — kami tidak menyimpan data kartu)</li>
               <li><strong className="text-white">Koneksi WordPress:</strong> URL situs, username, dan Application Password (disimpan lokal di browser Anda, tidak di server kami)</li>
             </ul>
 
@@ -51,7 +51,7 @@ export default function KebijakanPrivasi() {
             </ul>
 
             <h3 className="text-base font-semibold text-slate-200 mt-4 mb-2">2.3 Konten yang Dihasilkan</h3>
-            <p className="text-slate-400">Prompt dan artikel yang dihasilkan mungkin diproses oleh penyedia AI pihak ketiga (Google Gemini, OpenRouter). Lihat kebijakan privasi masing-masing penyedia untuk detail lebih lanjut.</p>
+            <p className="text-slate-400">Prompt dan artikel yang dihasilkan mungkin diproses oleh penyedia AI pihak ketiga (JoinBareng sebagai proxy AI, serta Google Gemini untuk gambar). Lihat kebijakan privasi masing-masing penyedia untuk detail lebih lanjut.</p>
           </section>
 
           <section>
@@ -71,9 +71,9 @@ export default function KebijakanPrivasi() {
             <p>Data Anda hanya dibagikan kepada:</p>
             <ul className="list-disc pl-5 mt-2 space-y-2 text-slate-400">
               <li><strong className="text-white">Supabase</strong> — penyimpanan database dan autentikasi (server di region Singapore)</li>
-              <li><strong className="text-white">Midtrans</strong> — pemrosesan pembayaran (tidak menyimpan data kartu di server kami)</li>
-              <li><strong className="text-white">Google (Gemini / Imagen)</strong> — untuk generate teks dan gambar AI</li>
-              <li><strong className="text-white">OpenRouter</strong> — untuk routing model AI alternatif</li>
+              <li><strong className="text-white">Mayar</strong> — pemrosesan pembayaran (tidak menyimpan data kartu di server kami)</li>
+              <li><strong className="text-white">JoinBareng</strong> — proxy AI utama untuk generate teks artikel (model GPT-5.x)</li>
+              <li><strong className="text-white">Google (Gemini / Imagen)</strong> — untuk generate gambar AI</li>
               <li><strong className="text-white">Resend</strong> — pengiriman email notifikasi</li>
             </ul>
             <p className="mt-2">Semua penyedia layanan pihak ketiga terikat perjanjian kerahasiaan dan hanya dapat menggunakan data untuk layanan yang kami minta.</p>
