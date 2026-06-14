@@ -398,43 +398,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ─── TESTIMONIALS ─── */}
-      <section className="max-w-6xl mx-auto px-5 py-20">
-        <div className="text-center mb-14">
-          <span className="text-xs font-bold text-amber-400 tracking-widest uppercase bg-amber-500/10 border border-amber-500/20 px-3 py-1 rounded-full">
-            Testimoni
-          </span>
-          <h2 className="text-3xl md:text-4xl font-black mt-4 mb-3" style={{ fontFamily: "Sora,sans-serif" }}>
-            Kata Mereka yang Sudah Coba
-          </h2>
-          <p className="text-slate-400">Hasil nyata dari pengguna beta SEOTulis.AI</p>
-        </div>
-
-        <div className="grid md:grid-cols-3 gap-5">
-          {TESTIMONIALS.map(t => (
-            <div key={t.name} className="bg-slate-900/40 border border-slate-800 rounded-2xl p-6 hover:border-slate-700 transition-all group">
-              {/* Stars */}
-              <div className="flex gap-0.5 mb-4">
-                {"★★★★★".split("").map((s, i) => <span key={i} className="text-amber-400 text-sm">{s}</span>)}
-              </div>
-              {/* Quote */}
-              <p className="text-sm text-slate-300 leading-relaxed mb-5">
-                &ldquo;{t.text}&rdquo;
-              </p>
-              {/* Author */}
-              <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${t.color} flex items-center justify-center text-white text-xs font-black flex-shrink-0`}>
-                  {t.avatar}
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-white">{t.name}</p>
-                  <p className="text-[11px] text-slate-500">{t.role} · <span className="text-amber-500/70">{t.site}</span></p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+      {/* ─── TESTIMONIALS ─── (disembunyikan sementara) */}
 
       {/* ─── COMPARISON TABLE ─── */}
       <section className="bg-slate-900/20 border-y border-slate-800/40 py-20">

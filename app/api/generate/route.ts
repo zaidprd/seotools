@@ -195,8 +195,12 @@ export async function POST(req: NextRequest) {
           messages: [{ role: "system", content: SYSTEM }, { role: "user", content: prompt }],
         }),
       });
+      if (!r.ok) {
+        const errText = await r.text().catch(() => "(no body)");
+        console.error(`[generate] ${provider} error ${r.status}:`, errText);
+        return NextResponse.json({ error: `Provider error (${r.status}): ${errText.slice(0, 200)}` }, { status: 502 });
+      }
       const data = await r.json();
-      if (!r.ok) throw new Error(`${provider} API error`);
       text = data.choices?.[0]?.message?.content || "";
 
     } else if (provider === "google") {
@@ -214,8 +218,12 @@ export async function POST(req: NextRequest) {
           }),
         }
       );
+      if (!r.ok) {
+        const errText = await r.text().catch(() => "(no body)");
+        console.error(`[generate] google error ${r.status}:`, errText);
+        return NextResponse.json({ error: `Google API error (${r.status})` }, { status: 502 });
+      }
       const data = await r.json();
-      if (!r.ok) throw new Error("Google API error");
       text = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
     } else if (provider === "openai") {
@@ -229,8 +237,12 @@ export async function POST(req: NextRequest) {
           messages: [{ role: "system", content: SYSTEM }, { role: "user", content: prompt }],
         }),
       });
+      if (!r.ok) {
+        const errText = await r.text().catch(() => "(no body)");
+        console.error(`[generate] openai error ${r.status}:`, errText);
+        return NextResponse.json({ error: `OpenAI error (${r.status})` }, { status: 502 });
+      }
       const data = await r.json();
-      if (!r.ok) throw new Error("OpenAI API error");
       text = data.choices?.[0]?.message?.content || "";
 
     } else {
@@ -249,8 +261,12 @@ export async function POST(req: NextRequest) {
           messages: [{ role: "system", content: SYSTEM }, { role: "user", content: prompt }],
         }),
       });
+      if (!r.ok) {
+        const errText = await r.text().catch(() => "(no body)");
+        console.error(`[generate] openrouter error ${r.status}:`, errText);
+        return NextResponse.json({ error: `OpenRouter error (${r.status})` }, { status: 502 });
+      }
       const data = await r.json();
-      if (!r.ok) throw new Error("OpenRouter API error");
       text = data.choices?.[0]?.message?.content || "";
     }
 
@@ -310,7 +326,9 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ text, creditsUsed: isAdmin ? 0 : totalCost });
 
-  } catch {
-    return NextResponse.json({ error: "Terjadi kesalahan saat generate artikel" }, { status: 500 });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("[generate] unhandled error:", msg);
+    return NextResponse.json({ error: `Generate gagal: ${msg}` }, { status: 500 });
   }
 }
