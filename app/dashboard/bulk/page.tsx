@@ -23,10 +23,10 @@ async function generateTitles(keyword: string, count = 5): Promise<string[]> {
 
 interface BulkResult { topic: string; titles: string[]; selectedTitle: string; keywords: string; status: "idle"|"genTitles"|"loading"|"selesai"|"error"; content: string; }
 
-function BulkRowCard({ row, index, onSelectTitle, onRegenTitles, onKeywordsChange, onTitleEdit }: {
+function BulkRowCard({ row, index, onSelectTitle, onRegenTitles, onKeywordsChange, onTitleEdit, onRemove }: {
   row: BulkResult; index: number;
   onSelectTitle: (t: string) => void; onRegenTitles: () => void; onKeywordsChange: (v: string) => void;
-  onTitleEdit: (v: string) => void;
+  onTitleEdit: (v: string) => void; onRemove: () => void;
 }) {
   const [open, setOpen] = useState(true);
   const [copied, setCopied] = useState(false);
@@ -44,6 +44,8 @@ function BulkRowCard({ row, index, onSelectTitle, onRegenTitles, onKeywordsChang
         {row.status === "loading" && <><span className="w-3 h-3 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" /><Badge text="Menulis" v="loading" /></>}
         {row.status === "selesai" && <Badge text="Selesai" v="success" />}
         {row.status === "error" && <Badge text="Gagal" v="error" />}
+        <button onClick={e => { e.stopPropagation(); onRemove(); }} title="Hapus baris ini"
+          className="text-slate-600 hover:text-red-400 text-xs w-5 h-5 flex items-center justify-center rounded hover:bg-red-500/10 transition-colors flex-shrink-0">✕</button>
         <span className="text-slate-700 text-xs">{open ? "▲" : "▼"}</span>
       </div>
       {open && (
@@ -135,21 +137,32 @@ export default function BulkPage() {
     const lines = topicInput.split("\n").map(t => t.trim()).filter(Boolean);
     if (!lines.length) return;
 
+    // Offset = jumlah baris yang sudah ada, supaya baris baru DITAMBAH di bawah (bukan menimpa)
+    const offset = rows.length;
+
     // Mode manual: tiap baris langsung jadi judul, siap generate tanpa langkah AI
     if (titleMode === "manual") {
-      setRows(lines.map(t => ({ topic: t, titles: [], selectedTitle: t, keywords: "", status: "idle", content: "" })));
+      const newRows: BulkResult[] = lines.map(t => ({ topic: t, titles: [], selectedTitle: t, keywords: "", status: "idle", content: "" }));
+      setRows(prev => [...prev, ...newRows]);
+      setTopicInput(""); // kosongkan input agar siap menambah batch berikutnya
       return;
     }
 
-    // Mode AI: generate 5 saran judul per topik
+    // Mode AI: generate 5 saran judul per topik, ditambah di bawah antrian
     setGenLoading(true);
-    setRows(lines.map(t => ({ topic: t, titles: [], selectedTitle: "", keywords: "", status: "genTitles", content: "" })));
+    const placeholders: BulkResult[] = lines.map(t => ({ topic: t, titles: [], selectedTitle: "", keywords: "", status: "genTitles", content: "" }));
+    setRows(prev => [...prev, ...placeholders]);
     for (let i = 0; i < lines.length; i++) {
       const titles = await generateTitles(lines[i], 5);
-      setRows(prev => prev.map((r, idx) => idx === i ? { ...r, titles, selectedTitle: titles[0] || "", status: "idle" } : r));
+      const targetIdx = offset + i;
+      setRows(prev => prev.map((r, idx) => idx === targetIdx ? { ...r, titles, selectedTitle: titles[0] || "", status: "idle" } : r));
     }
     setGenLoading(false);
+    setTopicInput(""); // kosongkan input agar siap menambah batch berikutnya
   };
+
+  const removeRow = (i: number) => setRows(prev => prev.filter((_, idx) => idx !== i));
+  const clearQueue = () => setRows([]);
 
   const regenTitles = async (i: number) => {
     setRows(prev => prev.map((r, idx) => idx === i ? { ...r, status: "genTitles" } : r));
@@ -268,14 +281,27 @@ export default function BulkPage() {
                 <div className="w-14 h-14 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-2xl">⊞</div>
                 <p className="text-slate-500 text-sm">Masukkan topik lalu klik <span className="text-amber-400 font-semibold">Generate Judul</span></p>
               </div>
-            : <div className="flex-1 overflow-y-auto flex flex-col gap-2.5 pb-2">
-                {rows.map((row, i) => (
-                  <BulkRowCard key={i} row={row} index={i}
-                    onSelectTitle={t => setRows(prev => prev.map((r, idx) => idx === i ? { ...r, selectedTitle: t } : r))}
-                    onRegenTitles={() => regenTitles(i)}
-                    onKeywordsChange={v => setRows(prev => prev.map((r, idx) => idx === i ? { ...r, keywords: v } : r))}
-                    onTitleEdit={v => setRows(prev => prev.map((r, idx) => idx === i ? { ...r, selectedTitle: v } : r))} />
-                ))}
+            : <div className="flex-1 flex flex-col gap-2.5 overflow-hidden">
+                {/* Header antrian */}
+                <div className="flex items-center justify-between flex-shrink-0">
+                  <p className="text-[11px] font-bold text-slate-400">
+                    Antrian Artikel <span className="text-slate-600">({rows.length})</span>
+                  </p>
+                  <button onClick={clearQueue}
+                    className="text-[10px] text-slate-500 hover:text-red-400 border border-slate-700 hover:border-red-500/30 px-2 py-1 rounded-lg transition-colors">
+                    🗑 Bersihkan Antrian
+                  </button>
+                </div>
+                <div className="flex-1 overflow-y-auto flex flex-col gap-2.5 pb-2">
+                  {rows.map((row, i) => (
+                    <BulkRowCard key={i} row={row} index={i}
+                      onSelectTitle={t => setRows(prev => prev.map((r, idx) => idx === i ? { ...r, selectedTitle: t } : r))}
+                      onRegenTitles={() => regenTitles(i)}
+                      onKeywordsChange={v => setRows(prev => prev.map((r, idx) => idx === i ? { ...r, keywords: v } : r))}
+                      onTitleEdit={v => setRows(prev => prev.map((r, idx) => idx === i ? { ...r, selectedTitle: v } : r))}
+                      onRemove={() => removeRow(i)} />
+                  ))}
+                </div>
               </div>
           }
         </div>
