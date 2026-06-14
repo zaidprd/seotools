@@ -212,7 +212,7 @@ export default function BulkPage() {
         )}
 
         <div className="w-80 flex-shrink-0 flex flex-col gap-3 overflow-y-auto pb-6 pr-1">
-          <div className="border border-slate-800 rounded-xl overflow-hidden">
+          <div className="border border-slate-800 rounded-xl overflow-hidden flex-shrink-0">
             <div className="bg-slate-900/80 px-4 py-3"><span className="text-[11px] font-black text-slate-300 uppercase tracking-widest">Topik Artikel</span></div>
             <div className="px-4 py-3 bg-slate-950/40 flex flex-col gap-2.5">
               {/* Toggle mode judul */}
