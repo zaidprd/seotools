@@ -69,7 +69,12 @@ export default function LoginPage() {
                 className="bg-slate-950 border border-slate-700 text-slate-200 text-sm rounded-xl px-4 py-3 focus:outline-none focus:border-amber-500/60 placeholder-slate-700 transition-colors" />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="password" className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Password</label>
+              <div className="flex items-center justify-between">
+                <label htmlFor="password" className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Password</label>
+                {mode === "login" && (
+                  <a href="/forgot-password" className="text-[10px] text-amber-400 hover:text-amber-300 transition-colors">Lupa password?</a>
+                )}
+              </div>
               <input id="password" name="password" type="password" required value={pass} onChange={e => setPass(e.target.value)}
                 placeholder="••••••••" minLength={6}
                 className="bg-slate-950 border border-slate-700 text-slate-200 text-sm rounded-xl px-4 py-3 focus:outline-none focus:border-amber-500/60 placeholder-slate-700 transition-colors" />

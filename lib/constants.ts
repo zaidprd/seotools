@@ -18,10 +18,11 @@ export const MODELS: ModelInfo[] = [
   { id: "custom",       label: "Custom (env)", provider: "Custom",     badge: "PRO",    credits: 3 },
 ];
 
-export const FREE_MODEL_ID    = "gpt-5.4-mini";
-export const FREE_MODEL_LABEL = "GPT-5.4 Mini";
+export const FREE_MODEL_ID    = "gpt-5.5";
+export const FREE_MODEL_LABEL = "GPT-5.5";
 export const FREE_CREDITS     = 1;
-export const FREE_MAX_WORDS   = "Standar (800–1.000 kata)";
+export const FREE_ARTICLE_COST = 1;          // kredit yg dicharge free user, terlepas dari harga model
+export const FREE_MAX_WORDS   = "Pendek (500–800 kata)";
 
 // Biaya kredit per model
 export const CREDIT_COST: Record<string, number> = {

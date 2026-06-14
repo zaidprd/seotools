@@ -1,7 +1,7 @@
 "use client";
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { MODELS, ModelInfo, WPSite, Config, UserData, defaultCfg, FREE_MODEL_ID, FREE_MAX_WORDS, CREDIT_COST } from "@/lib/constants";
+import { MODELS, ModelInfo, WPSite, Config, UserData, defaultCfg, FREE_MODEL_ID, FREE_MAX_WORDS, FREE_ARTICLE_COST, CREDIT_COST } from "@/lib/constants";
 import { generateArticle } from "@/lib/api";
 import { Sec, Inp, RunBtn } from "@/components/ui";
 import SettingsForm from "@/components/SettingsForm";
@@ -46,6 +46,7 @@ export default function GeneratePage() {
   const [error, setError] = useState<string | null>(null);
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [upgradeReason, setUpgradeReason] = useState("");
+  const [showModelTip, setShowModelTip] = useState(false);
   const [mobileTab, setMobileTab] = useState<"form" | "result">("form");
   const resultRef = useRef<HTMLDivElement>(null);
 
@@ -71,7 +72,7 @@ export default function GeneratePage() {
     setWpSites(prev => { const next = prev.filter(x => x.id !== id); saveWPSites(next); return next; });
   }, []);
 
-  const cost = CREDIT_COST[model.id] ?? 1;
+  const cost = isPro ? (CREDIT_COST[model.id] ?? 1) : FREE_ARTICLE_COST;
 
   const handleGenerateTitle = async () => {
     if (!keyword.trim()) return;
@@ -99,7 +100,11 @@ export default function GeneratePage() {
       if (authUser) fetchUser(authUser.id);
     } catch (e: any) {
       if (e.message?.includes("Kredit")) { setUpgradeReason(e.message); setShowUpgrade(true); }
-      else { setError(e.message); setMobileTab("result"); }
+      else {
+        setError(e.message);
+        setMobileTab("result");
+        if (isPro) setShowModelTip(true);
+      }
     }
     setLoading(false);
   };
@@ -222,7 +227,17 @@ export default function GeneratePage() {
               </div>
             </div>
           )}
-          {error && <div className="flex-1 flex items-center justify-center"><div className="bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 text-red-300 text-sm max-w-md">✗ {error}</div></div>}
+          {error && (
+            <div className="flex-1 flex flex-col items-center justify-center gap-3">
+              <div className="bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 text-red-300 text-sm max-w-md">✗ {error}</div>
+              {showModelTip && (
+                <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-3 text-amber-300 text-xs max-w-md text-center">
+                  💡 Coba ganti ke model yang lebih ringan (GPT-5.4 atau GPT-5.2) lalu klik Buat Artikel lagi.
+                  <button onClick={() => setShowModelTip(false)} className="ml-2 text-amber-500 hover:text-amber-400 underline">Tutup</button>
+                </div>
+              )}
+            </div>
+          )}
           {result && <ResultPanel content={result} keyword={keyword} model={currentModel} wpSites={wpSel ? [wpSel] : wpSites} synds={cfg.synds} userId={user?.id} />}
         </div>
       </div>
