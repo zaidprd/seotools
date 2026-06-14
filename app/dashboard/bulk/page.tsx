@@ -23,9 +23,10 @@ async function generateTitles(keyword: string, count = 5): Promise<string[]> {
 
 interface BulkResult { topic: string; titles: string[]; selectedTitle: string; keywords: string; status: "idle"|"genTitles"|"loading"|"selesai"|"error"; content: string; }
 
-function BulkRowCard({ row, index, onSelectTitle, onRegenTitles, onKeywordsChange }: {
+function BulkRowCard({ row, index, onSelectTitle, onRegenTitles, onKeywordsChange, onTitleEdit }: {
   row: BulkResult; index: number;
   onSelectTitle: (t: string) => void; onRegenTitles: () => void; onKeywordsChange: (v: string) => void;
+  onTitleEdit: (v: string) => void;
 }) {
   const [open, setOpen] = useState(true);
   const [copied, setCopied] = useState(false);
@@ -47,10 +48,17 @@ function BulkRowCard({ row, index, onSelectTitle, onRegenTitles, onKeywordsChang
       </div>
       {open && (
         <div className="border-t border-slate-800 px-4 py-3 flex flex-col gap-2.5 bg-slate-950/30">
+          {row.status !== "selesai" && (
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Judul Artikel (bisa diedit)</label>
+              <input value={row.selectedTitle} onChange={e => onTitleEdit(e.target.value)} placeholder="Ketik judul artikel di sini..."
+                className="w-full bg-slate-900 border border-amber-500/30 text-amber-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-amber-500/60 placeholder-slate-700" />
+            </div>
+          )}
           {row.titles.length > 0 && row.status !== "selesai" && (
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center justify-between">
-                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Pilih Judul</p>
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Saran Judul (klik untuk pakai)</p>
                 <button onClick={onRegenTitles} disabled={row.status === "genTitles"}
                   className="text-[10px] text-amber-400 hover:text-amber-300 border border-amber-500/20 px-2 py-0.5 rounded transition-colors disabled:opacity-40">
                   🔄 Regen
@@ -93,6 +101,7 @@ export default function BulkPage() {
   const [cfg, setCfg] = useState<Config>(defaultCfg());
   const [model, setModel] = useState<ModelInfo>(MODELS[0]);
   const [topicInput, setTopicInput] = useState("");
+  const [titleMode, setTitleMode] = useState<"ai" | "manual">("ai");
   const [wpSel, setWpSel] = useState<WPSite | null>(null);
   const [rows, setRows] = useState<BulkResult[]>([]);
   const [running, setRunning] = useState(false);
@@ -123,12 +132,20 @@ export default function BulkPage() {
   const removeWp = useCallback((id: number) => { setWpSites(prev => { const n = prev.filter(x => x.id !== id); saveWPSites(n); return n; }); }, []);
 
   const generateTitlesForAll = async () => {
-    const topics = topicInput.split("\n").map(t => t.trim()).filter(Boolean);
-    if (!topics.length) return;
+    const lines = topicInput.split("\n").map(t => t.trim()).filter(Boolean);
+    if (!lines.length) return;
+
+    // Mode manual: tiap baris langsung jadi judul, siap generate tanpa langkah AI
+    if (titleMode === "manual") {
+      setRows(lines.map(t => ({ topic: t, titles: [], selectedTitle: t, keywords: "", status: "idle", content: "" })));
+      return;
+    }
+
+    // Mode AI: generate 5 saran judul per topik
     setGenLoading(true);
-    setRows(topics.map(t => ({ topic: t, titles: [], selectedTitle: "", keywords: "", status: "genTitles", content: "" })));
-    for (let i = 0; i < topics.length; i++) {
-      const titles = await generateTitles(topics[i], 5);
+    setRows(lines.map(t => ({ topic: t, titles: [], selectedTitle: "", keywords: "", status: "genTitles", content: "" })));
+    for (let i = 0; i < lines.length; i++) {
+      const titles = await generateTitles(lines[i], 5);
       setRows(prev => prev.map((r, idx) => idx === i ? { ...r, titles, selectedTitle: titles[0] || "", status: "idle" } : r));
     }
     setGenLoading(false);
@@ -198,15 +215,40 @@ export default function BulkPage() {
           <div className="border border-slate-800 rounded-xl overflow-hidden">
             <div className="bg-slate-900/80 px-4 py-3"><span className="text-[11px] font-black text-slate-300 uppercase tracking-widest">Topik Artikel</span></div>
             <div className="px-4 py-3 bg-slate-950/40 flex flex-col gap-2.5">
+              {/* Toggle mode judul */}
               <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Topik / Keyword (1 per baris)</label>
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Mode Judul</label>
+                <div className="flex gap-1 bg-slate-900 border border-slate-700/60 rounded-lg p-1">
+                  <button onClick={() => setTitleMode("ai")}
+                    className={`flex-1 text-[11px] font-bold py-1.5 rounded-md transition-all ${titleMode === "ai" ? "bg-amber-500/15 text-amber-400 border border-amber-500/30" : "text-slate-500 border border-transparent hover:text-slate-300"}`}>
+                    ✨ AI Otomatis
+                  </button>
+                  <button onClick={() => setTitleMode("manual")}
+                    className={`flex-1 text-[11px] font-bold py-1.5 rounded-md transition-all ${titleMode === "manual" ? "bg-amber-500/15 text-amber-400 border border-amber-500/30" : "text-slate-500 border border-transparent hover:text-slate-300"}`}>
+                    ✍️ Ketik Manual
+                  </button>
+                </div>
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                  {titleMode === "ai" ? "Topik / Keyword (1 per baris)" : "Judul Artikel (1 per baris)"}
+                </label>
                 <textarea value={topicInput} onChange={e => setTopicInput(e.target.value)} rows={5}
-                  placeholder={"panel maker listrik\ncara diet sehat\nbisnis online 2026"}
+                  placeholder={titleMode === "ai"
+                    ? "panel maker listrik\ncara diet sehat\nbisnis online 2026"
+                    : "5 Cara Memulai Bisnis Online di 2026\nPanduan Lengkap Diet Sehat untuk Pemula\nTips Memilih Panel Listrik yang Tepat"}
                   className="bg-slate-900 border border-slate-700/60 text-slate-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-amber-500/60 placeholder-slate-700 resize-none" />
+                <p className="text-[10px] text-slate-600">
+                  {titleMode === "ai"
+                    ? "AI akan buatkan 5 saran judul per topik, kamu tinggal pilih."
+                    : "Tiap baris langsung jadi judul artikel — bisa diedit lagi nanti."}
+                </p>
               </div>
               <button onClick={generateTitlesForAll} disabled={!topicInput.trim() || genLoading}
                 className="w-full py-2.5 rounded-lg font-bold text-xs bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-amber-500/40 text-amber-400 transition-all disabled:opacity-40 flex items-center justify-center gap-2">
-                {genLoading ? <><span className="w-3 h-3 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />Generate Judul...</> : <>✨ Generate 5 Judul per Topik</>}
+                {genLoading
+                  ? <><span className="w-3 h-3 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />Generate Judul...</>
+                  : titleMode === "ai" ? <>✨ Generate 5 Judul per Topik</> : <>➕ Tambah ke Antrian</>}
               </button>
             </div>
           </div>
@@ -231,7 +273,8 @@ export default function BulkPage() {
                   <BulkRowCard key={i} row={row} index={i}
                     onSelectTitle={t => setRows(prev => prev.map((r, idx) => idx === i ? { ...r, selectedTitle: t } : r))}
                     onRegenTitles={() => regenTitles(i)}
-                    onKeywordsChange={v => setRows(prev => prev.map((r, idx) => idx === i ? { ...r, keywords: v } : r))} />
+                    onKeywordsChange={v => setRows(prev => prev.map((r, idx) => idx === i ? { ...r, keywords: v } : r))}
+                    onTitleEdit={v => setRows(prev => prev.map((r, idx) => idx === i ? { ...r, selectedTitle: v } : r))} />
                 ))}
               </div>
           }
