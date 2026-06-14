@@ -46,6 +46,7 @@ export default function GeneratePage() {
   const [error, setError] = useState<string | null>(null);
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [upgradeReason, setUpgradeReason] = useState("");
+  const [mobileTab, setMobileTab] = useState<"form" | "result">("form");
   const resultRef = useRef<HTMLDivElement>(null);
 
   const fetchUser = useCallback(async (uid: string) => {
@@ -94,10 +95,11 @@ export default function GeneratePage() {
         userId: user?.id,
       } as any);
       setResult(text);
+      setMobileTab("result");
       if (authUser) fetchUser(authUser.id);
     } catch (e: any) {
       if (e.message?.includes("Kredit")) { setUpgradeReason(e.message); setShowUpgrade(true); }
-      else setError(e.message);
+      else { setError(e.message); setMobileTab("result"); }
     }
     setLoading(false);
   };
@@ -120,11 +122,28 @@ export default function GeneratePage() {
         )}
       </div>
 
-      <div className="flex flex-1 gap-5 overflow-hidden px-5 py-5 min-h-0">
+      {/* Mobile tab bar — fixed bottom, only on small screens */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#0c0e14] border-t border-slate-800 flex">
+        <button
+          onClick={() => setMobileTab("form")}
+          className={`flex-1 flex flex-col items-center justify-center py-3 gap-0.5 text-[11px] font-bold transition-colors ${mobileTab === "form" ? "text-amber-400" : "text-slate-600"}`}>
+          <span className="text-base">⚙️</span>Pengaturan
+        </button>
+        <button
+          onClick={() => setMobileTab("result")}
+          className={`flex-1 flex flex-col items-center justify-center py-3 gap-0.5 text-[11px] font-bold transition-colors relative ${mobileTab === "result" ? "text-amber-400" : "text-slate-600"}`}>
+          <span className="text-base">📄</span>Hasil Artikel
+          {(loading || result) && (
+            <span className={`absolute top-2 right-[30%] w-2 h-2 rounded-full ${loading ? "bg-amber-400 animate-pulse" : "bg-emerald-400"}`} />
+          )}
+        </button>
+      </div>
+
+      <div className="flex flex-1 gap-5 overflow-hidden px-3 md:px-5 py-5 pb-20 md:pb-5 min-h-0">
         {showUpgrade && <UpgradePopup onClose={() => setShowUpgrade(false)} reason={upgradeReason} />}
 
-        {/* Left panel — gap-2.5 konsisten, padding bawah lega */}
-        <div className="w-80 flex-shrink-0 flex flex-col gap-2.5 overflow-y-auto pb-8 pr-1.5">
+        {/* Left panel */}
+        <div className={`${mobileTab === "form" ? "flex" : "hidden"} md:flex w-full md:w-80 flex-shrink-0 flex-col gap-2.5 overflow-y-auto pb-8 pr-1.5`}>
           {/* Keyword & Judul card */}
           <div className="border border-slate-800 rounded-xl overflow-hidden flex-shrink-0">
             <div className="bg-slate-900/80 px-4 py-2.5">
@@ -181,7 +200,7 @@ export default function GeneratePage() {
         </div>
 
         {/* Right panel */}
-        <div className="flex-1 flex flex-col overflow-hidden min-w-0" ref={resultRef}>
+        <div className={`${mobileTab === "result" ? "flex" : "hidden"} md:flex flex-1 flex-col overflow-hidden min-w-0`} ref={resultRef}>
           {!result && !loading && !error && (
             <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center">
               <div className="w-16 h-16 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-3xl">⚡</div>
