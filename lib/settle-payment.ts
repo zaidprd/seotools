@@ -50,13 +50,16 @@ export async function settlePayment(
 
   if (!locked || locked.length === 0) return { result: "already_paid", planId: pay.plan_id };
 
-  // Terapkan paket + tambah kredit + perpanjang 30 hari
-  const { data: u } = await sb.from("users").select("credits").eq("id", pay.user_id).single();
+  // Terapkan paket + tambah kredit + perpanjang 30 hari (lanjut dari expiry lama jika masih aktif)
+  const { data: u } = await sb.from("users").select("credits, plan_expires_at").eq("id", pay.user_id).single();
   const newCredits = (u?.credits ?? 0) + pay.credits;
+  const currentExpiry = u?.plan_expires_at ? new Date(u.plan_expires_at) : new Date();
+  const base = currentExpiry > new Date() ? currentExpiry : new Date();
+  const newExpiry = new Date(base.getTime() + 30 * 24 * 60 * 60 * 1000);
   await sb.from("users").update({
     plan: pay.plan_id,
     credits: newCredits,
-    plan_expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+    plan_expires_at: newExpiry.toISOString(),
     subscription_id: pay.mayar_invoice_id,
   }).eq("id", pay.user_id);
 
