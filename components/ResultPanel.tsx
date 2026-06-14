@@ -93,11 +93,11 @@ function SEOPanel({ content, keyword }: { content: string; keyword: string }) {
 }
 
 // ─── TipTap Toolbar ────────────────────────────────────────────────────────────
-function TipTapToolbar({ editor, wpSite, onUpload, onAIImage, isUploading, isAIGenerating, uploadError }: {
+function TipTapToolbar({ editor, wpSite, onUpload, onAISvg, isUploading, isAIGenerating, uploadError }: {
   editor: ReturnType<typeof useEditor>;
   wpSite: WPSite | null;
   onUpload: (file: File) => void;
-  onAIImage: () => void;
+  onAISvg: () => void;
   isUploading: boolean;
   isAIGenerating: boolean;
   uploadError: string | null;
@@ -145,10 +145,10 @@ function TipTapToolbar({ editor, wpSite, onUpload, onAIImage, isUploading, isAIG
         onChange={e => { const f = e.target.files?.[0]; if (f) onUpload(f); e.target.value = ""; }} />
 
 
-      {/* AI image */}
-      <button onClick={onAIImage} disabled={isAIGenerating} title="Generate gambar AI (1 💎)"
-        className="text-[11px] px-2 py-1.5 rounded-lg border border-amber-500/30 text-amber-400 hover:bg-amber-500/5 disabled:opacity-50 transition-all flex items-center gap-1">
-        {isAIGenerating ? <><span className="w-2.5 h-2.5 border border-amber-400 border-t-transparent rounded-full animate-spin" />AI...</> : "✨ AI Gambar"}
+      {/* AI SVG */}
+      <button onClick={onAISvg} disabled={isAIGenerating} title="Generate ilustrasi SVG dengan AI (gratis)"
+        className="text-[11px] px-2 py-1.5 rounded-lg border border-violet-500/30 text-violet-400 hover:bg-violet-500/5 disabled:opacity-50 transition-all flex items-center gap-1">
+        {isAIGenerating ? <><span className="w-2.5 h-2.5 border border-violet-400 border-t-transparent rounded-full animate-spin" />Generating...</> : "✨ AI SVG"}
       </button>
 
       {uploadError && <span className="text-[10px] text-red-400 ml-1">✗ {uploadError}</span>}
@@ -181,6 +181,7 @@ export default function ResultPanel({ content: initialContent, keyword = "", mod
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isAIGenerating, setIsAIGenerating] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
+  const [showSvgPreview, setShowSvgPreview] = useState<string | null>(null);
 
   const editor = useEditor({
     extensions: [
@@ -259,23 +260,31 @@ export default function ResultPanel({ content: initialContent, keyword = "", mod
     setIsUploading(false);
   };
 
-  const handleAIImage = async () => {
+  const handleAISvg = async () => {
     if (!userId) { setAiError("Login diperlukan"); return; }
-    const desc = window.prompt("Deskripsi gambar yang ingin digenerate:");
+    const desc = window.prompt("Deskripsi ilustrasi SVG (contoh: diagram alur SEO, infografis langkah-langkah, ilustrasi konsep):");
     if (!desc) return;
     setIsAIGenerating(true); setAiError(null);
     try {
-      const res = await fetch("/api/generate-image", {
+      const res = await fetch("/api/generate-svg", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: desc, userId }),
+        body: JSON.stringify({ prompt: desc, keyword }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      const src = `data:${data.mimeType || "image/png"};base64,${data.image}`;
-      editor?.chain().focus().setImage({ src, alt: desc }).run();
+      // Tampilkan preview sebelum insert
+      setShowSvgPreview(data.svg);
     } catch (e: any) { setAiError(e.message); }
     setIsAIGenerating(false);
+  };
+
+  const insertSvg = (svg: string) => {
+    // Convert SVG ke data URI lalu insert sebagai image
+    const b64 = btoa(unescape(encodeURIComponent(svg)));
+    const src = `data:image/svg+xml;base64,${b64}`;
+    editor?.chain().focus().setImage({ src, alt: "Ilustrasi AI" }).run();
+    setShowSvgPreview(null);
   };
 
 
@@ -408,6 +417,30 @@ export default function ResultPanel({ content: initialContent, keyword = "", mod
         </div>
       )}
 
+      {/* SVG Preview Modal */}
+      {showSvgPreview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-2xl flex flex-col gap-4 p-5 shadow-2xl">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-bold text-white">Preview Ilustrasi SVG</p>
+              <button onClick={() => setShowSvgPreview(null)} className="text-slate-500 hover:text-white text-lg leading-none">✕</button>
+            </div>
+            <div className="bg-white rounded-xl overflow-hidden"
+              dangerouslySetInnerHTML={{ __html: showSvgPreview }} />
+            <div className="flex gap-2 justify-end">
+              <button onClick={() => setShowSvgPreview(null)}
+                className="text-xs px-4 py-2 rounded-lg border border-slate-700 text-slate-400 hover:text-white transition-colors">
+                Batal
+              </button>
+              <button onClick={() => insertSvg(showSvgPreview)}
+                className="text-xs px-4 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-white font-bold transition-colors">
+                ✓ Sisipkan ke Artikel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Content area */}
       <div className="flex-1 bg-slate-900/50 border border-slate-800 rounded-xl overflow-hidden flex flex-col min-h-0">
 
@@ -443,7 +476,7 @@ export default function ResultPanel({ content: initialContent, keyword = "", mod
               editor={editor}
               wpSite={wpSel}
               onUpload={handleUpload}
-              onAIImage={handleAIImage}
+              onAISvg={handleAISvg}
               isUploading={isUploading}
               isAIGenerating={isAIGenerating}
               uploadError={uploadError}
