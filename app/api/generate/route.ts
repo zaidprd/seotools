@@ -186,6 +186,7 @@ export async function POST(req: NextRequest) {
     if (oai[provider]) {
       const cfg = oai[provider];
       const key = process.env[cfg.envKey];
+      console.log(`[generate] provider=${provider} key_prefix=${key?.slice(0,12)} key_len=${key?.length} base=${cfg.base}`);
       if (!key) return NextResponse.json({ error: "Konfigurasi server tidak lengkap" }, { status: 500 });
       const r = await fetch(`${cfg.base.replace(/\/$/, "")}/chat/completions`, {
         method: "POST",
