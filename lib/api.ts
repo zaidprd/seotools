@@ -31,7 +31,7 @@ export async function generateTitlesAPI(keyword: string, count = 5): Promise<str
   const res = await fetch("/api/generate", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ prompt: buildTitlePrompt(keyword, count), modelId: "gemini-2.5-flash-lite" }),
+    body: JSON.stringify({ prompt: buildTitlePrompt(keyword, count), modelId: "gpt-5.4-mini" }),
   });
   const data = await res.json();
   return (data.text || "").split("\n").map((t: string) => t.trim()).filter((t: string) => t.length > 10).slice(0, count);
