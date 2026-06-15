@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
       name: user.email?.split("@")[0] || "Pelanggan",
       email: user.email || "",
       amount: plan.price,
-      description: `SEOTulis ${plan.name} — ${plan.credits} kredit (30 hari)`,
+      description: `Artikel SEO ${plan.name} — ${plan.credits} kredit (30 hari)`,
       redirectUrl: `${siteUrl}/dashboard?verify_payment=${payRow.id}`,
     });
 

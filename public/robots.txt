@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard/
+Disallow: /api/
+Disallow: /account/
+Disallow: /settings/
+Disallow: /documents/
+Disallow: /auth/
+
+Sitemap: https://seo.zaidly.com/sitemap.xml

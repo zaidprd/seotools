@@ -192,7 +192,7 @@ export default function PricingPage() {
 
       <footer className="border-t border-slate-800/60 py-8 mt-10">
         <div className="max-w-6xl mx-auto px-5 text-center text-xs text-slate-600">
-          © 2026 SEOTulis.AI · Dibuat untuk blogger Indonesia 🇮🇩
+          © 2026 Artikel SEO · Dibuat untuk blogger Indonesia 🇮🇩
         </div>
       </footer>
     </div>

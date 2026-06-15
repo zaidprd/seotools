@@ -1,7 +1,7 @@
 "use client";
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { MODELS, ModelInfo, WPSite, Config, UserData, defaultCfg, FREE_MODEL_ID, FREE_MAX_WORDS, FREE_ARTICLE_COST, CREDIT_COST } from "@/lib/constants";
+import { MODELS, ModelInfo, WPSite, Config, UserData, defaultCfg, FREE_MODEL_ID, FREE_MAX_WORDS, FREE_ARTICLE_COST, CREDIT_COST, SVG_CREDIT_COST } from "@/lib/constants";
 import { generateArticle } from "@/lib/api";
 import { Sec, Inp, RunBtn } from "@/components/ui";
 import SettingsForm from "@/components/SettingsForm";
@@ -72,7 +72,9 @@ export default function GeneratePage() {
     setWpSites(prev => { const next = prev.filter(x => x.id !== id); saveWPSites(next); return next; });
   }, []);
 
-  const cost = isPro ? (CREDIT_COST[model.id] ?? 1) : FREE_ARTICLE_COST;
+  const articleCost = isPro ? (CREDIT_COST[model.id] ?? 1) : FREE_ARTICLE_COST;
+  const imgCostExtra = isPro ? parseInt(cfg.imgCount || "0") * SVG_CREDIT_COST : 0;
+  const cost = articleCost + imgCostExtra;
 
   const handleGenerateTitle = async () => {
     if (!keyword.trim()) return;

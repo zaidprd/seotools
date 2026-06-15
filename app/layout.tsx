@@ -2,9 +2,19 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "SEOTulis.AI — Generator Konten SEO Indonesia #1",
+  title: "Artikel SEO — Generator Konten SEO Indonesia #1",
   description: "Buat artikel SEO berkualitas tinggi dalam Bahasa Indonesia dengan 1 klik. Auto-publish ke WordPress. Dipakai ratusan blogger Indonesia.",
-  keywords: "AI konten SEO Indonesia, generator artikel, WordPress auto publish, blog SEO",
+  keywords: "AI konten SEO Indonesia, generator artikel SEO, WordPress auto publish, blog SEO, artikel SEO otomatis",
+  metadataBase: new URL("https://seo.zaidly.com"),
+  alternates: { canonical: "https://seo.zaidly.com" },
+  openGraph: {
+    title: "Artikel SEO — Generator Konten SEO Indonesia #1",
+    description: "Buat artikel SEO berkualitas tinggi dalam Bahasa Indonesia dengan 1 klik. Auto-publish ke WordPress.",
+    url: "https://seo.zaidly.com",
+    siteName: "Artikel SEO",
+    locale: "id_ID",
+    type: "website",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

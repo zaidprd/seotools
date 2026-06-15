@@ -1,7 +1,7 @@
 "use client";
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { MODELS, ModelInfo, WPSite, Config, UserData, defaultCfg, FREE_MODEL_ID, FREE_MAX_WORDS, CREDIT_COST } from "@/lib/constants";
+import { MODELS, ModelInfo, WPSite, Config, UserData, defaultCfg, FREE_MODEL_ID, FREE_MAX_WORDS, CREDIT_COST, SVG_CREDIT_COST } from "@/lib/constants";
 import { generateArticle } from "@/lib/api";
 import { Sec, Inp, RunBtn, Badge } from "./ui";
 import SettingsForm from "./SettingsForm";
@@ -73,7 +73,9 @@ function SingleTab({ wpSites, addWp, removeWp, user, refreshUser }: {
   const [upgradeReason, setUpgradeReason] = useState("");
   const resultRef = useRef<HTMLDivElement>(null);
 
-  const cost = CREDIT_COST[model.id] ?? 1;
+  const articleCost = isPro ? (CREDIT_COST[model.id] ?? 1) : 1;
+  const imgCostExtra = isPro ? parseInt(cfg.imgCount || "0") * SVG_CREDIT_COST : 0;
+  const cost = articleCost + imgCostExtra;
 
   const handleGenerateTitle = async () => {
     if (!keyword.trim()) return;
@@ -281,7 +283,7 @@ function BulkTab({ wpSites, addWp, removeWp, user, refreshUser }: {
   const [showUpgrade, setShowUpgrade] = useState(false);
   const router = useRouter();
 
-  const cost = CREDIT_COST[model.id] ?? 1;
+  const cost = CREDIT_COST[model.id] ?? 1;  // BulkTab: biaya per artikel (tanpa gambar untuk bulk)
   const validRows = rows.filter(r => r.status === "idle" && r.selectedTitle);
 
   const generateTitlesForAll = async () => {
@@ -415,8 +417,8 @@ export default function Dashboard() {
         <div className="max-w-screen-2xl mx-auto px-5 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <a href="/" className="flex items-center gap-1.5">
-              <div className="w-7 h-7 rounded-lg bg-amber-500 flex items-center justify-center font-black text-[#0c0e14] text-sm">S</div>
-              <span className="font-black tracking-tight"><span className="text-white">SEO</span><span className="text-amber-400 font-light">Tulis</span><span className="text-amber-500">.AI</span></span>
+              <div className="w-7 h-7 rounded-lg bg-amber-500 flex items-center justify-center font-black text-[#0c0e14] text-sm">A</div>
+              <span className="font-black tracking-tight"><span className="text-white">Artikel</span><span className="text-amber-400"> SEO</span></span>
             </a>
             {wpSites.length > 0 && <span className="text-[10px] text-blue-400 border border-blue-800/50 bg-blue-950/30 px-2.5 py-0.5 rounded-full">🌐 {wpSites.length} situs</span>}
             {user && (

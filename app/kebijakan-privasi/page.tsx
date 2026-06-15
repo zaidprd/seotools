@@ -1,8 +1,8 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Kebijakan Privasi — SEOTulis.AI",
-  description: "Kebijakan privasi dan perlindungan data pengguna SEOTulis.AI",
+  title: "Kebijakan Privasi — Artikel SEO",
+  description: "Kebijakan privasi dan perlindungan data pengguna Artikel SEO",
 };
 
 export default function KebijakanPrivasi() {
@@ -11,9 +11,9 @@ export default function KebijakanPrivasi() {
       <header className="border-b border-slate-800/60 px-6 py-4">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-amber-500 flex items-center justify-center font-black text-[#0c0e14] text-sm">S</div>
+            <div className="w-7 h-7 rounded-lg bg-amber-500 flex items-center justify-center font-black text-[#0c0e14] text-sm">A</div>
             <span className="font-black tracking-tight" style={{ fontFamily: "Sora,sans-serif" }}>
-              <span className="text-white">SEO</span><span className="text-amber-400 font-light">Tulis</span><span className="text-amber-500">.AI</span>
+              <span className="text-white">Artikel</span><span className="text-amber-400"> SEO</span>
             </span>
           </Link>
           <Link href="/" className="text-sm text-slate-500 hover:text-white transition-colors">← Kembali</Link>
@@ -30,7 +30,7 @@ export default function KebijakanPrivasi() {
 
           <section>
             <h2 className="text-lg font-bold text-white mb-3">1. Pendahuluan</h2>
-            <p>SEOTulis.AI ("kami", "kita") menghormati privasi Anda dan berkomitmen melindungi data pribadi yang Anda berikan. Kebijakan Privasi ini menjelaskan bagaimana kami mengumpulkan, menggunakan, menyimpan, dan melindungi informasi Anda.</p>
+            <p>Artikel SEO ("kami", "kita") menghormati privasi Anda dan berkomitmen melindungi data pribadi yang Anda berikan. Kebijakan Privasi ini menjelaskan bagaimana kami mengumpulkan, menggunakan, menyimpan, dan melindungi informasi Anda.</p>
           </section>
 
           <section>
@@ -51,7 +51,7 @@ export default function KebijakanPrivasi() {
             </ul>
 
             <h3 className="text-base font-semibold text-slate-200 mt-4 mb-2">2.3 Konten yang Dihasilkan</h3>
-            <p className="text-slate-400">Prompt dan artikel yang dihasilkan mungkin diproses oleh penyedia AI pihak ketiga (JoinBareng sebagai proxy AI, serta Google Gemini untuk gambar). Lihat kebijakan privasi masing-masing penyedia untuk detail lebih lanjut.</p>
+            <p className="text-slate-400">Prompt dan artikel yang dihasilkan mungkin diproses oleh penyedia AI pihak ketiga (JoinBareng sebagai proxy AI). Lihat kebijakan privasi masing-masing penyedia untuk detail lebih lanjut.</p>
           </section>
 
           <section>
@@ -73,7 +73,6 @@ export default function KebijakanPrivasi() {
               <li><strong className="text-white">Supabase</strong> — penyimpanan database dan autentikasi (server di region Singapore)</li>
               <li><strong className="text-white">Mayar</strong> — pemrosesan pembayaran (tidak menyimpan data kartu di server kami)</li>
               <li><strong className="text-white">JoinBareng</strong> — proxy AI utama untuk generate teks artikel (model GPT-5.x)</li>
-              <li><strong className="text-white">Google (Gemini / Imagen)</strong> — untuk generate gambar AI</li>
               <li><strong className="text-white">Resend</strong> — pengiriman email notifikasi</li>
             </ul>
             <p className="mt-2">Semua penyedia layanan pihak ketiga terikat perjanjian kerahasiaan dan hanya dapat menggunakan data untuk layanan yang kami minta.</p>
@@ -112,7 +111,7 @@ export default function KebijakanPrivasi() {
               <li><strong className="text-white">Portabilitas:</strong> Mengekspor riwayat artikel Anda</li>
               <li><strong className="text-white">Pembatasan:</strong> Membatasi pemrosesan data dalam kondisi tertentu</li>
             </ul>
-            <p className="mt-2">Ajukan permintaan melalui <a href="mailto:support@seotulis.ai" className="text-amber-400 hover:underline">support@seotulis.ai</a>. Kami akan merespons dalam 7 hari kerja.</p>
+            <p className="mt-2">Ajukan permintaan melalui <a href="mailto:support@zaidly.com" className="text-amber-400 hover:underline">support@zaidly.com</a>. Kami akan merespons dalam 7 hari kerja.</p>
           </section>
 
           <section>
@@ -133,14 +132,14 @@ export default function KebijakanPrivasi() {
           <section>
             <h2 className="text-lg font-bold text-white mb-3">10. Kontak</h2>
             <p>Untuk pertanyaan, permintaan data, atau laporan pelanggaran privasi, hubungi kami di:</p>
-            <p className="mt-2"><a href="mailto:support@seotulis.ai" className="text-amber-400 hover:underline">support@seotulis.ai</a></p>
+            <p className="mt-2"><a href="mailto:support@zaidly.com" className="text-amber-400 hover:underline">support@zaidly.com</a></p>
           </section>
         </div>
       </main>
 
       <footer className="border-t border-slate-800/60 py-8 mt-8">
         <div className="max-w-4xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-3">
-          <p className="text-xs text-slate-600">© 2026 SEOTulis.AI</p>
+          <p className="text-xs text-slate-600">© 2026 Artikel SEO</p>
           <div className="flex gap-4 text-xs text-slate-500">
             <Link href="/syarat-ketentuan" className="hover:text-white transition-colors">Syarat & Ketentuan</Link>
             <Link href="/kebijakan-privasi" className="hover:text-white transition-colors">Kebijakan Privasi</Link>

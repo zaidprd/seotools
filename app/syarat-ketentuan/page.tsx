@@ -1,8 +1,8 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Syarat & Ketentuan — SEOTulis.AI",
-  description: "Syarat dan ketentuan penggunaan layanan SEOTulis.AI",
+  title: "Syarat & Ketentuan — Artikel SEO",
+  description: "Syarat dan ketentuan penggunaan layanan Artikel SEO",
 };
 
 export default function SyaratKetentuan() {
@@ -12,9 +12,9 @@ export default function SyaratKetentuan() {
       <header className="border-b border-slate-800/60 px-6 py-4">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-amber-500 flex items-center justify-center font-black text-[#0c0e14] text-sm">S</div>
+            <div className="w-7 h-7 rounded-lg bg-amber-500 flex items-center justify-center font-black text-[#0c0e14] text-sm">A</div>
             <span className="font-black tracking-tight" style={{ fontFamily: "Sora,sans-serif" }}>
-              <span className="text-white">SEO</span><span className="text-amber-400 font-light">Tulis</span><span className="text-amber-500">.AI</span>
+              <span className="text-white">Artikel</span><span className="text-amber-400"> SEO</span>
             </span>
           </Link>
           <Link href="/" className="text-sm text-slate-500 hover:text-white transition-colors">← Kembali</Link>
@@ -31,15 +31,15 @@ export default function SyaratKetentuan() {
 
           <section>
             <h2 className="text-lg font-bold text-white mb-3">1. Penerimaan Syarat</h2>
-            <p>Dengan mengakses atau menggunakan layanan SEOTulis.AI ("Layanan"), Anda menyetujui untuk terikat oleh Syarat & Ketentuan ini. Jika Anda tidak menyetujui syarat ini, harap hentikan penggunaan Layanan.</p>
+            <p>Dengan mengakses atau menggunakan layanan Artikel SEO ("Layanan"), Anda menyetujui untuk terikat oleh Syarat & Ketentuan ini. Jika Anda tidak menyetujui syarat ini, harap hentikan penggunaan Layanan.</p>
           </section>
 
           <section>
             <h2 className="text-lg font-bold text-white mb-3">2. Deskripsi Layanan</h2>
-            <p>SEOTulis.AI adalah platform berbasis kecerdasan buatan (AI) yang membantu pengguna membuat konten artikel SEO berbahasa Indonesia. Layanan meliputi:</p>
+            <p>Artikel SEO adalah platform berbasis kecerdasan buatan (AI) yang membantu pengguna membuat konten artikel SEO berbahasa Indonesia. Layanan meliputi:</p>
             <ul className="list-disc pl-5 mt-2 space-y-1 text-slate-400">
               <li>Generator artikel SEO otomatis dengan berbagai model AI</li>
-              <li>Generator gambar AI (Starter, Pro)</li>
+              <li>Generator ilustrasi SVG AI (Starter, Pro)</li>
               <li>Bulk article generation (Starter, Pro)</li>
               <li>Integrasi publish langsung ke WordPress</li>
               <li>SEO Checker dan analisis konten</li>
@@ -59,7 +59,7 @@ export default function SyaratKetentuan() {
 
           <section>
             <h2 className="text-lg font-bold text-white mb-3">4. Sistem Kredit</h2>
-            <p>SEOTulis.AI menggunakan sistem kredit (💎) untuk mengakses fitur generate. Ketentuan kredit:</p>
+            <p>Artikel SEO menggunakan sistem kredit (💎) untuk mengakses fitur generate. Ketentuan kredit:</p>
             <ul className="list-disc pl-5 mt-2 space-y-1 text-slate-400">
               <li>Setiap generate artikel membutuhkan sejumlah kredit sesuai model AI yang dipilih</li>
               <li>Kredit yang sudah digunakan tidak dapat dikembalikan kecuali terjadi kegagalan teknis dari pihak kami</li>
@@ -76,7 +76,7 @@ export default function SyaratKetentuan() {
               <li><strong className="text-white">Refund penuh</strong> tersedia dalam 3 hari pertama sejak pembelian, jika Anda belum menggunakan lebih dari 20% kredit paket</li>
               <li><strong className="text-white">Refund parsial</strong> dapat dikonsultasikan jika terjadi gangguan teknis dari pihak kami yang menyebabkan kredit berkurang tidak wajar</li>
               <li>Refund tidak berlaku untuk kredit yang sudah digunakan untuk generate konten</li>
-              <li>Ajukan refund melalui email ke <a href="mailto:support@seotulis.ai" className="text-amber-400 hover:underline">support@seotulis.ai</a> dengan menyertakan bukti transaksi</li>
+              <li>Ajukan refund melalui email ke <a href="mailto:support@zaidly.com" className="text-amber-400 hover:underline">support@zaidly.com</a> dengan menyertakan bukti transaksi</li>
             </ul>
           </section>
 
@@ -106,12 +106,12 @@ export default function SyaratKetentuan() {
 
           <section>
             <h2 className="text-lg font-bold text-white mb-3">8. Kekayaan Intelektual</h2>
-            <p>Konten yang dihasilkan oleh Layanan menjadi hak milik Anda. Namun, SEOTulis.AI memiliki hak untuk menggunakan konten yang dihasilkan secara anonim untuk meningkatkan kualitas layanan. Platform, desain, kode, dan merek SEOTulis.AI adalah milik kami dan dilindungi hukum hak cipta.</p>
+            <p>Konten yang dihasilkan oleh Layanan menjadi hak milik Anda. Namun, Artikel SEO memiliki hak untuk menggunakan konten yang dihasilkan secara anonim untuk meningkatkan kualitas layanan. Platform, desain, kode, dan merek Artikel SEO adalah milik kami dan dilindungi hukum hak cipta.</p>
           </section>
 
           <section>
             <h2 className="text-lg font-bold text-white mb-3">9. Batasan Tanggung Jawab</h2>
-            <p>SEOTulis.AI tidak bertanggung jawab atas:</p>
+            <p>Artikel SEO tidak bertanggung jawab atas:</p>
             <ul className="list-disc pl-5 mt-2 space-y-1 text-slate-400">
               <li>Kerugian yang timbul dari konten yang dihasilkan AI (selalu review sebelum publikasi)</li>
               <li>Gangguan layanan yang disebabkan oleh faktor di luar kendali kami (force majeure, gangguan pihak ketiga)</li>
@@ -133,14 +133,14 @@ export default function SyaratKetentuan() {
           <section>
             <h2 className="text-lg font-bold text-white mb-3">12. Kontak</h2>
             <p>Pertanyaan mengenai Syarat & Ketentuan ini dapat dikirimkan ke:</p>
-            <p className="mt-2"><a href="mailto:support@seotulis.ai" className="text-amber-400 hover:underline">support@seotulis.ai</a></p>
+            <p className="mt-2"><a href="mailto:support@zaidly.com" className="text-amber-400 hover:underline">support@zaidly.com</a></p>
           </section>
         </div>
       </main>
 
       <footer className="border-t border-slate-800/60 py-8 mt-8">
         <div className="max-w-4xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-3">
-          <p className="text-xs text-slate-600">© 2026 SEOTulis.AI</p>
+          <p className="text-xs text-slate-600">© 2026 Artikel SEO</p>
           <div className="flex gap-4 text-xs text-slate-500">
             <Link href="/syarat-ketentuan" className="hover:text-white transition-colors">Syarat & Ketentuan</Link>
             <Link href="/kebijakan-privasi" className="hover:text-white transition-colors">Kebijakan Privasi</Link>

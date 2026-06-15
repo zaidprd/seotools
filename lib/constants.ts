@@ -33,6 +33,8 @@ export const CREDIT_COST: Record<string, number> = {
   "custom":       3,
 };
 
+export const SVG_CREDIT_COST = 3; // kredit per gambar AI SVG
+
 export const LANGUAGES     = ["Indonesia","English (US)","English (UK)","Melayu","Jawa","Sunda","Arabic","Spanish","French","German","Japanese","Korean","Chinese"];
 export const ARTICLE_TYPES = ["Blog Post","Artikel Berita","Review Produk","Panduan (How-to)","Listicle","Opini","Produk Roundup","Press Release","Landing Page","Email"];
 export const ARTICLE_SIZES = ["Mini (300–500 kata)","Pendek (500–800 kata)","Standar (800–1.000 kata)","Sedang (1.000–1.500 kata)","Panjang (1.500–2.000 kata)","Maksimal (2.000–2.500 kata)"];

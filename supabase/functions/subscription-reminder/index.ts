@@ -18,8 +18,8 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") ?? "";
-const SITE_URL       = Deno.env.get("SITE_URL")       ?? "https://seotulis.ai";
-const FROM_EMAIL     = "SEOTulis.AI <noreply@seotulis.ai>";
+const SITE_URL       = Deno.env.get("SITE_URL")       ?? "https://seo.zaidly.com";
+const FROM_EMAIL     = "Artikel SEO <noreply@zaidly.com>";
 
 async function sendEmail(to: string, subject: string, html: string) {
   if (!RESEND_API_KEY) { console.warn("RESEND_API_KEY tidak di-set, skip email"); return; }
@@ -68,9 +68,8 @@ Deno.serve(async (req) => {
       `
         <div style="font-family:'DM Sans',sans-serif;max-width:520px;margin:0 auto;background:#0c0e14;color:#e2e8f0;padding:32px;border-radius:16px;">
           <div style="margin-bottom:24px;">
-            <span style="font-size:24px;font-weight:900;color:#f59e0b;">SEO</span>
-            <span style="font-size:24px;font-weight:300;color:#fbbf24;">Tulis</span>
-            <span style="font-size:24px;font-weight:900;color:#f59e0b;">.AI</span>
+            <span style="font-size:24px;font-weight:900;color:#f59e0b;">Artikel</span>
+            <span style="font-size:24px;font-weight:300;color:#fbbf24;"> SEO</span>
           </div>
           <h1 style="font-size:20px;font-weight:800;margin-bottom:8px;">Hai ${name}!</h1>
           <p style="color:#94a3b8;margin-bottom:16px;">Paket <strong style="color:#fbbf24;">${(user.plan || "").toUpperCase()}</strong> kamu akan berakhir pada <strong style="color:#ffffff;">${expiry}</strong>.</p>
@@ -79,7 +78,7 @@ Deno.serve(async (req) => {
             🔄 Perpanjang Sekarang
           </a>
           <p style="margin-top:32px;color:#475569;font-size:12px;">
-            Butuh bantuan? Email kami di <a href="mailto:support@seotulis.ai" style="color:#f59e0b;">support@seotulis.ai</a>
+            Butuh bantuan? Email kami di <a href="mailto:support@zaidly.com" style="color:#f59e0b;">support@zaidly.com</a>
           </p>
         </div>
       `
@@ -108,9 +107,8 @@ Deno.serve(async (req) => {
       `
         <div style="font-family:'DM Sans',sans-serif;max-width:520px;margin:0 auto;background:#0c0e14;color:#e2e8f0;padding:32px;border-radius:16px;">
           <div style="margin-bottom:24px;">
-            <span style="font-size:24px;font-weight:900;color:#f59e0b;">SEO</span>
-            <span style="font-size:24px;font-weight:300;color:#fbbf24;">Tulis</span>
-            <span style="font-size:24px;font-weight:900;color:#f59e0b;">.AI</span>
+            <span style="font-size:24px;font-weight:900;color:#f59e0b;">Artikel</span>
+            <span style="font-size:24px;font-weight:300;color:#fbbf24;"> SEO</span>
           </div>
           <h1 style="font-size:20px;font-weight:800;margin-bottom:8px;">Hai ${name}!</h1>
           <p style="color:#94a3b8;margin-bottom:16px;">Paket <strong style="color:#fbbf24;">${(user.plan || "").toUpperCase()}</strong> kamu sudah berakhir hari ini.</p>
@@ -120,7 +118,7 @@ Deno.serve(async (req) => {
             ⚡ Aktifkan Kembali
           </a>
           <p style="margin-top:32px;color:#475569;font-size:12px;">
-            Butuh bantuan? Email kami di <a href="mailto:support@seotulis.ai" style="color:#f59e0b;">support@seotulis.ai</a>
+            Butuh bantuan? Email kami di <a href="mailto:support@zaidly.com" style="color:#f59e0b;">support@zaidly.com</a>
           </p>
         </div>
       `

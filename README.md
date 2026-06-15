@@ -1,29 +1,28 @@
-# SEOTulis.AI 🇮🇩
+# Artikel SEO 🇮🇩
 
-SaaS generator konten SEO Bahasa Indonesia. Generate artikel berkualitas dengan AI lalu auto-publish ke WordPress.
+SaaS generator konten SEO Bahasa Indonesia berbasis AI — generate artikel berkualitas, auto-publish ke WordPress.
 
-Dibangun dengan **Next.js 14 + TypeScript + Tailwind CSS**.
+Dibangun dengan **Next.js 14 + TypeScript + Tailwind CSS + Supabase**.
+
+🌐 Live: [seo.zaidly.com](https://seo.zaidly.com)
 
 ## ✨ Fitur
 
-- **1-Click Blog Post** — generate artikel SEO lengkap dari keyword
-- **Bulk Article Generation** — buat banyak artikel sekaligus
-- **Auto-Publish WordPress** — publish langsung via REST API (Application Password)
-- **Multi-Model AI** — Gratis (OpenRouter: Mistral, Llama, Gemma) & Premium (Claude Opus, Gemini, GPT)
-- **13 Section pengaturan** — Core Settings, Brand Voice, Media Hub, Structure, Outline Editor, Syndication, dll
-- **Landing page + Login + Dashboard** lengkap
+- **1-Click Article Generator** — generate artikel SEO lengkap dari keyword (judul, struktur H2/H3, FAQ, meta description)
+- **Bulk Article Generation** — input puluhan keyword sekaligus, AI suggest judul, generate semua sekaligus
+- **Ilustrasi SVG AI** — generate dan sisipkan ilustrasi SVG otomatis ke dalam artikel
+- **Auto-Publish WordPress** — publish langsung via WordPress REST API (Application Password, tanpa plugin)
+- **Multi-Model AI** — GPT-5.4 Mini (gratis), GPT-5.2, GPT-5.4, GPT-5.5 (premium)
+- **Sistem Kredit 💎** — kredit per artikel sesuai model AI, 3 kredit per gambar SVG
+- **SEO Checker** — analisis real-time keyword density, heading structure, dll
+- **13 Bahasa** — Indonesia, English, Melayu, Jawa, Sunda, dll
 
 ## 🚀 Cara Menjalankan
 
 ```bash
-# 1. Install dependencies
 npm install
-
-# 2. Setup environment variables
 cp .env.example .env
-# lalu isi API key di file .env
-
-# 3. Jalankan development server
+# isi env vars (lihat seksi di bawah)
 npm run dev
 ```
 
@@ -31,51 +30,67 @@ Buka http://localhost:3000
 
 ## 🔑 Environment Variables
 
-Edit file `.env`:
+```env
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJxxx
+SUPABASE_SERVICE_ROLE_KEY=eyJxxx
 
+# AI (JoinBareng — OpenAI-compatible proxy)
+JOINBARENG_BASE_URL=https://api.joinbareng.com/v1
+JOINBARENG_API_KEY=jb-xxx
+
+# Payment (Mayar)
+MAYAR_API_KEY=xxx
+MAYAR_WEBHOOK_SECRET=xxx
 ```
-ANTHROPIC_API_KEY=sk-ant-xxxxx      # untuk Claude Opus (model default premium)
-OPENROUTER_API_KEY=sk-or-xxxxx      # untuk model gratis
-GOOGLE_API_KEY=xxxxx                # opsional, untuk Gemini
-OPENAI_API_KEY=sk-xxxxx             # opsional, untuk GPT
-```
 
-> ⚠️ API key disimpan di server (API routes), TIDAK pernah ter-expose ke browser.
-
-## 📁 Struktur
+## 📁 Struktur Penting
 
 ```
 app/
-  page.tsx                    Landing page
-  login/page.tsx              Login & register
-  dashboard/page.tsx          Dashboard generator
+  page.tsx                        Landing page
+  login/page.tsx                  Login & register (Supabase Auth)
+  dashboard/                      Dashboard utama
+  account/page.tsx                Manajemen akun & paket
+  pricing/page.tsx                Halaman harga
   api/
-    generate/route.ts         Panggil AI (Anthropic/OpenRouter/Google/OpenAI)
-    publish/wordpress/route.ts Publish ke WordPress
-components/                   Komponen UI (Dashboard, SettingsForm, dll)
-lib/                          Constants, prompt builder, API client
+    generate/route.ts             Generate artikel + SVG AI
+    generate-svg/route.ts         Generate SVG standalone
+    publish/wordpress/route.ts    Publish ke WordPress
+    payment/                      Integrasi Mayar
+components/
+  Dashboard.tsx                   Dashboard UI (single & bulk)
+  SettingsForm.tsx                Form pengaturan artikel
+  ResultPanel.tsx                 Panel hasil artikel + editor
+  WPPanel.tsx                     Panel WordPress
+lib/
+  constants.ts                    Model AI, plan, kredit
+  prompt.ts                       Builder prompt artikel
+  wp-sites.ts                     Simpan WP sites ke localStorage
+supabase/
+  functions/subscription-reminder/ Edge function email reminder
 ```
 
 ## 🌐 Publish ke WordPress
 
-1. User buka WP Admin → Users → Profile → **Application Passwords**
-2. Buat password baru, copy
-3. Di dashboard: Publishing to Website → Sambungkan Situs
-4. Masukkan URL, username, application password
-5. Uji Koneksi → Simpan → siap publish!
-
-## 📝 TODO untuk Produksi
-
-- [ ] Integrasi auth (NextAuth / Clerk / Supabase) — saat ini login langsung redirect
-- [ ] Database untuk simpan dokumen & user (Postgres/Supabase)
-- [ ] Generate gambar AI (DALL-E / Stable Diffusion)
-- [ ] Rate limiting per user
+1. WP Admin → Users → Profile → Application Passwords → buat password baru
+2. Di dashboard Artikel SEO → Publishing → Sambungkan Situs
+3. Masukkan URL situs, username, application password
+4. Uji Koneksi → Simpan → siap publish
 
 ## 📦 Deploy
 
-Paling mudah ke **Vercel**:
+Deploy ke Vercel, set env vars di dashboard Vercel.
+
 ```bash
-npm i -g vercel
-vercel
+vercel --prod
 ```
-Jangan lupa set environment variables di dashboard Vercel.
+
+## 📬 Kontak
+
+- Email: support@zaidly.com
+- Instagram: [@zaidprd](https://www.instagram.com/zaidprd)
+- TikTok: [@zaidprd99](https://www.tiktok.com/@zaidprd99)
+- YouTube: [@dhodprd](https://www.youtube.com/@dhodprd)
+- X: [@zaidprd](https://www.x.com/zaidprd)

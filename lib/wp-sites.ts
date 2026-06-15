@@ -1,6 +1,6 @@
 import type { WPSite } from "./constants";
 
-const KEY = "seotulis_wp_sites";
+const KEY = "artikel_seo_wp_sites";
 
 export function getWPSites(): WPSite[] {
   if (typeof window === "undefined") return [];
