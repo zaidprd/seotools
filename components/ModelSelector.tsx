@@ -19,13 +19,13 @@ export default function ModelSelector({ sel, set, credits, isPro }: Props) {
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-3 flex flex-col gap-2">
           <div className="flex items-center justify-between px-2 py-2 rounded-lg bg-slate-800/60 border border-slate-700">
             <div className="flex items-center gap-2">
-              <span className={`text-[9px] px-1.5 py-0.5 rounded border ${PROVIDER_COLORS["JoinBareng"]}`}>JoinBareng</span>
+              <span className={`text-[9px] px-1.5 py-0.5 rounded border ${PROVIDER_COLORS["SumoPod"]}`}>SumoPod</span>
               <span className="text-xs text-slate-300">{FREE_MODEL_LABEL}</span>
             </div>
             <span className="text-[10px] bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 px-2 py-0.5 rounded-full font-bold">1 💎</span>
           </div>
           <p className="text-[10px] text-slate-600 text-center leading-relaxed">
-            Upgrade untuk akses GPT-5.2, GPT-5.4, dan GPT-5.5
+            Upgrade untuk akses GPT-5.4, Claude Haiku 4.5, dan Claude Sonnet 4.6
           </p>
           <button onClick={() => setShowUpgrade(true)}
             className="text-[10px] text-amber-400 hover:text-amber-300 border border-amber-500/20 hover:border-amber-500/40 py-1.5 rounded-lg transition-colors">

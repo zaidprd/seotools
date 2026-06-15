@@ -175,7 +175,7 @@ export default function PricingPage() {
         <div className="mt-16 max-w-2xl mx-auto">
           <h2 className="text-2xl font-black text-center mb-8" style={{ fontFamily: "Sora,sans-serif" }}>Pertanyaan Umum</h2>
           {[
-            { q: "Apa itu kredit?", a: "Kredit adalah satuan penggunaan AI. Setiap kali generate artikel, kredit berkurang sesuai model yang dipilih. GPT-5.4 Mini = 1 kredit, GPT-5.5 = 5 kredit." },
+            { q: "Apa itu kredit?", a: "Kredit adalah satuan penggunaan AI. Setiap kali generate artikel, kredit berkurang sesuai model yang dipilih. Gemini 2.5 Flash = gratis, GPT-5.4 = 3 kredit, Claude Haiku 4.5 = 5 kredit, Claude Sonnet 4.6 = 7 kredit." },
             { q: "Sudah bayar tapi kredit belum masuk?", a: "Klik tombol 'Verifikasi Pembayaran' di atas. Sistem akan mengecek pembayaran terakhirmu ke Mayar dan langsung menambahkan kredit jika sudah lunas." },
             { q: "Apakah kredit kadaluarsa?", a: "Kredit berbayar tidak kadaluarsa. Kredit gratis (1 kredit) juga selamanya, tapi tidak di-reset." },
             { q: "Bisa ganti paket kapan saja?", a: "Ya, bisa upgrade kapan saja. Kredit langsung ditambahkan setelah pembayaran berhasil." },

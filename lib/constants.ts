@@ -6,31 +6,27 @@ export interface ModelInfo {
   credits: number;
 }
 
-// Model yang tersedia — lewat proxy OpenAI-compatible.
-// JoinBareng = provider utama (fixed). "Custom" = slot bebas yang dikonfigurasi
-// via env (CUSTOM_AI_BASE_URL / CUSTOM_AI_KEY / CUSTOM_AI_MODEL) — mis. SumoPod,
-// OpenRouter, atau provider lain. Ganti model cukup ubah env + redeploy.
+// Model yang tersedia — lewat SumoPod (proxy OpenAI-compatible, 1 key untuk semua).
+// id = nama model asli di SumoPod (lihat tab Models / GET /v1/models).
 export const MODELS: ModelInfo[] = [
-  { id: "gpt-5.4-mini", label: "GPT-5.4 Mini", provider: "JoinBareng", badge: "GRATIS", credits: 1 },
-  { id: "gpt-5.2",      label: "GPT-5.2",      provider: "JoinBareng", badge: "PRO",    credits: 2 },
-  { id: "gpt-5.4",      label: "GPT-5.4",      provider: "JoinBareng", badge: "PRO",    credits: 3 },
-  { id: "gpt-5.5",      label: "GPT-5.5",      provider: "JoinBareng", badge: "MAX",    credits: 5 },
-  { id: "custom",       label: "Custom (env)", provider: "Custom",     badge: "PRO",    credits: 3 },
+  { id: "gemini/gemini-2.5-flash", label: "Gemini 2.5 Flash",  provider: "SumoPod", badge: "GRATIS", credits: 0 },
+  { id: "gpt-5.4",                 label: "GPT-5.4",           provider: "SumoPod", badge: "PRO",    credits: 3 },
+  { id: "claude-haiku-4-5",        label: "Claude Haiku 4.5",  provider: "SumoPod", badge: "PRO",    credits: 5 },
+  { id: "claude-sonnet-4-6",       label: "Claude Sonnet 4.6", provider: "SumoPod", badge: "MAX",    credits: 7 },
 ];
 
-export const FREE_MODEL_ID    = "gpt-5.5";
-export const FREE_MODEL_LABEL = "GPT-5.5";
+export const FREE_MODEL_ID    = "gemini/gemini-2.5-flash";
+export const FREE_MODEL_LABEL = "Gemini 2.5 Flash";
 export const FREE_CREDITS     = 1;
 export const FREE_ARTICLE_COST = 1;          // kredit yg dicharge free user, terlepas dari harga model
 export const FREE_MAX_WORDS   = "Pendek (500–800 kata)";
 
 // Biaya kredit per model
 export const CREDIT_COST: Record<string, number> = {
-  "gpt-5.4-mini": 1,
-  "gpt-5.2":      2,
-  "gpt-5.4":      3,
-  "gpt-5.5":      5,
-  "custom":       3,
+  "gemini/gemini-2.5-flash": 0,
+  "gpt-5.4":                 3,
+  "claude-haiku-4-5":        5,
+  "claude-sonnet-4-6":       7,
 };
 
 export const LANGUAGES     = ["Indonesia","English (US)","English (UK)","Melayu","Jawa","Sunda","Arabic","Spanish","French","German","Japanese","Korean","Chinese"];
@@ -48,10 +44,10 @@ export const YT_COUNTS     = ["0","1","2","3"];
 export const LAYOUT_OPTS   = ["Satu Gambar & Satu Teks","Gambar di Kiri","Gambar di Kanan","Gambar Penuh"];
 
 export const PROVIDER_COLORS: Record<string, string> = {
-  JoinBareng: "text-amber-400 bg-amber-500/10 border-amber-500/20",
-  Custom:     "text-violet-400 bg-violet-500/10 border-violet-500/20",
+  SumoPod:    "text-sky-400 bg-sky-500/10 border-sky-500/20",
   Google:     "text-blue-400 bg-blue-500/10 border-blue-500/20",
   OpenAI:     "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
+  Anthropic:  "text-orange-400 bg-orange-500/10 border-orange-500/20",
   DeepSeek:   "text-cyan-400 bg-cyan-500/10 border-cyan-500/20",
 };
 
@@ -105,7 +101,7 @@ export const PLANS = [
     id: "free", name: "Gratis", price: 0, priceLabel: "Rp 0", period: "sekali coba",
     credits: 1, maxWords: "1.000 kata", maxSites: 0, maxBulk: 0,
     canSchedule: false, canSyndicate: false, priority: false, imageSource: "upload",
-    features: ["1 artikel uji gratis", "Maks 1.000 kata", "Model GPT-5.4 Mini", "Editor artikel built-in", "Export manual"],
+    features: ["1 artikel uji gratis", "Maks 1.000 kata", "Model Gemini 2.5 Flash", "Editor artikel built-in", "Export manual"],
     cta: "Coba Gratis", highlight: false,
   },
   {
