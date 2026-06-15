@@ -21,6 +21,10 @@ export const FREE_CREDITS     = 1;
 export const FREE_ARTICLE_COST = 1;          // kredit yg dicharge free user, terlepas dari harga model
 export const FREE_MAX_WORDS   = "Pendek (500–800 kata)";
 
+// Biaya kredit per 1 gambar AI (SVG via SumoPod) — di body artikel & tombol AI SVG di editor.
+// Upload gambar sendiri tetap gratis (bukan AI).
+export const IMAGE_CREDIT_COST = 3;
+
 // Biaya kredit per model
 export const CREDIT_COST: Record<string, number> = {
   "gemini/gemini-2.5-flash": 0,

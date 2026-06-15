@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { CREDIT_COST, FREE_MODEL_ID, FREE_ARTICLE_COST } from "@/lib/constants";
+import { CREDIT_COST, FREE_MODEL_ID, FREE_ARTICLE_COST, IMAGE_CREDIT_COST } from "@/lib/constants";
 import { createClient } from "@supabase/supabase-js";
 import { requireAuth } from "@/lib/supabase/require-auth";
 

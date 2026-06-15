@@ -7,6 +7,7 @@ import { Sec, Inp, RunBtn } from "@/components/ui";
 import SettingsForm from "@/components/SettingsForm";
 import OutlineEditor from "@/components/OutlineEditor";
 import ResultPanel from "@/components/ResultPanel";
+import WritingLoader from "@/components/WritingLoader";
 import UpgradePopup from "@/components/UpgradePopup";
 import { createClient } from "@/lib/supabase/client";
 import { getWPSites, saveWPSites } from "@/lib/wp-sites";
@@ -215,18 +216,7 @@ export default function GeneratePage() {
               </div>
             </div>
           )}
-          {loading && (
-            <div className="flex-1 flex flex-col items-center justify-center gap-5">
-              <div className="relative w-14 h-14">
-                <div className="absolute inset-0 rounded-full border-2 border-amber-500/20 animate-ping" />
-                <div className="absolute inset-0 rounded-full border-2 border-amber-500 border-t-transparent animate-spin" />
-              </div>
-              <div className="text-center">
-                <p className="text-slate-200 text-sm font-semibold">AI sedang menulis...</p>
-                <p className="text-slate-600 text-xs mt-1">{currentModel.label} · {cost} 💎</p>
-              </div>
-            </div>
-          )}
+          {loading && <WritingLoader />}
           {error && (
             <div className="flex-1 flex flex-col items-center justify-center gap-3">
               <div className="bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 text-red-300 text-sm max-w-md">✗ {error}</div>
