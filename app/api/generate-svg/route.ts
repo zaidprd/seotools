@@ -26,23 +26,23 @@ export async function POST(req: NextRequest) {
   const { prompt, keyword } = await req.json();
   if (!prompt) return NextResponse.json({ error: "Deskripsi gambar diperlukan" }, { status: 400 });
 
-  const baseUrl = process.env.JOINBARENG_BASE_URL;
-  const apiKey = process.env.JOINBARENG_API_KEY;
-  if (!baseUrl || !apiKey) return NextResponse.json({ error: "Konfigurasi server tidak lengkap" }, { status: 500 });
+  const baseUrl = process.env.SUMOPOD_BASE_URL || "https://ai.sumopod.com/v1";
+  const apiKey = process.env.SUMOPOD_API_KEY;
+  if (!apiKey) return NextResponse.json({ error: "Konfigurasi server tidak lengkap" }, { status: 500 });
 
   const userPrompt = keyword
     ? `Buat ilustrasi SVG untuk artikel tentang "${keyword}". Gambar: ${prompt}`
     : `Buat ilustrasi SVG: ${prompt}`;
 
   try {
-    const r = await fetch(`${baseUrl}/chat/completions`, {
+    const r = await fetch(`${baseUrl.replace(/\/$/, "")}/chat/completions`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "gpt-5.4-mini",
+        model: "gpt-4.1-mini",
         messages: [
           { role: "system", content: SVG_SYSTEM_PROMPT },
           { role: "user", content: userPrompt },

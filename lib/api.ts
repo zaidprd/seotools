@@ -1,4 +1,4 @@
-import { Config } from "./constants";
+import { Config, FREE_MODEL_ID } from "./constants";
 import { buildPrompt, buildTitlePrompt } from "./prompt";
 
 export async function generateArticle(cfg: Config & { modelId?: string; userId?: string }): Promise<string> {
@@ -31,7 +31,7 @@ export async function generateTitlesAPI(keyword: string, count = 5): Promise<str
   const res = await fetch("/api/generate", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ prompt: buildTitlePrompt(keyword, count), modelId: "gpt-5.4-mini" }),
+    body: JSON.stringify({ prompt: buildTitlePrompt(keyword, count), modelId: FREE_MODEL_ID }),
   });
   const data = await res.json();
   return (data.text || "").split("\n").map((t: string) => t.trim()).filter((t: string) => t.length > 10).slice(0, count);

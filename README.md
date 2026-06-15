@@ -9,7 +9,7 @@ Dibangun dengan **Next.js 14 + TypeScript + Tailwind CSS**.
 - **1-Click Blog Post** — generate artikel SEO lengkap dari keyword
 - **Bulk Article Generation** — buat banyak artikel sekaligus
 - **Auto-Publish WordPress** — publish langsung via REST API (Application Password)
-- **Multi-Model AI** — Gratis (OpenRouter: Mistral, Llama, Gemma) & Premium (Claude Opus, Gemini, GPT)
+- **Multi-Model AI** — via SumoPod: Gratis (Gemini 2.5 Flash) & Premium (GPT-5.4, Claude Haiku 4.5, Claude Sonnet 4.6)
 - **13 Section pengaturan** — Core Settings, Brand Voice, Media Hub, Structure, Outline Editor, Syndication, dll
 - **Landing page + Login + Dashboard** lengkap
 
@@ -34,11 +34,14 @@ Buka http://localhost:3000
 Edit file `.env`:
 
 ```
-ANTHROPIC_API_KEY=sk-ant-xxxxx      # untuk Claude Opus (model default premium)
-OPENROUTER_API_KEY=sk-or-xxxxx      # untuk model gratis
-GOOGLE_API_KEY=xxxxx                # opsional, untuk Gemini
-OPENAI_API_KEY=sk-xxxxx             # opsional, untuk GPT
+SUMOPOD_API_KEY=sk-xxxxx            # provider AI utama (teks artikel + SVG)
+SUMOPOD_BASE_URL=https://ai.sumopod.com/v1
+GOOGLE_API_KEY=xxxxx                # opsional, untuk generate gambar AI raster
+OPENROUTER_API_KEY=sk-or-xxxxx      # opsional, fallback
+OPENAI_API_KEY=sk-xxxxx             # opsional, fallback
 ```
+
+Lihat `.env.example` untuk daftar lengkap (Supabase, Mayar, dll).
 
 > ⚠️ API key disimpan di server (API routes), TIDAK pernah ter-expose ke browser.
 

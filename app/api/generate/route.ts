@@ -18,32 +18,17 @@ interface ImageConfig {
 interface OAIProvider { base: string; envKey: string; models: Set<string>; apiModel?: string; }
 
 function oaiProviders(): Record<string, OAIProvider> {
-  const providers: Record<string, OAIProvider> = {
-    joinbareng: {
-      base: process.env.JOINBARENG_BASE_URL || "https://joinbareng.com/api/ai-proxy-v2/v1",
-      envKey: "JOINBARENG_API_KEY",
-      models: new Set(["gpt-5.5", "gpt-5.4", "gpt-5.4-mini", "gpt-5.2", "gpt-5.3-codex", "gpt-5.3-codex-spark"]),
+  return {
+    // SumoPod = provider utama (OpenAI-compatible, 1 key untuk semua model).
+    sumopod: {
+      base: process.env.SUMOPOD_BASE_URL || "https://ai.sumopod.com/v1",
+      envKey: "SUMOPOD_API_KEY",
+      models: new Set(["gemini/gemini-2.5-flash", "gpt-5.4", "claude-haiku-4-5", "claude-sonnet-4-6"]),
     },
   };
-
-  // Slot "custom" — provider bebas (SumoPod/OpenRouter/dll). Aktif jika env lengkap.
-  // CUSTOM_AI_BASE_URL + CUSTOM_AI_KEY + CUSTOM_AI_MODEL.
-  const cBase = process.env.CUSTOM_AI_BASE_URL;
-  const cModel = process.env.CUSTOM_AI_MODEL;
-  if (cBase && cModel && process.env.CUSTOM_AI_KEY) {
-    providers.custom = {
-      base: cBase,
-      envKey: "CUSTOM_AI_KEY",
-      apiModel: cModel,
-      models: new Set(["custom"]),
-    };
-  }
-
-  return providers;
 }
 
 function getProvider(modelId: string): string {
-  if (modelId === "custom") return "custom";
   const oai = oaiProviders();
   for (const [name, p] of Object.entries(oai)) {
     if (p.models.has(modelId)) return name;
@@ -181,9 +166,6 @@ export async function POST(req: NextRequest) {
     let text = "";
 
     const oai = oaiProviders();
-    if (provider === "custom" && !oai.custom) {
-      return NextResponse.json({ error: "Model Custom belum dikonfigurasi di server. Set CUSTOM_AI_BASE_URL, CUSTOM_AI_KEY, dan CUSTOM_AI_MODEL." }, { status: 500 });
-    }
     if (oai[provider]) {
       const cfg = oai[provider];
       const key = process.env[cfg.envKey];
