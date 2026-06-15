@@ -3,7 +3,7 @@ import { Config } from "./constants";
 export function buildPrompt(cfg: Config): string {
   const { keyword, title, extraKeywords, outline, language, articleType, articleSize, tone, pov,
     readability, country, brandVoice, details, withConclusion, withTables, withH3, withLists,
-    withNotes, withQuotes, withKeyTakeaways, withFAQ, withBold, connectWeb, seoKeywords,
+    withNotes, withQuotes, withKeyTakeaways, withFAQ, withBold, seoKeywords,
     internalLinkBaseUrl, internalLinkPages, extLinkType, extLinkUrls } = cfg;
 
   // Sanitasi base URL: hapus trailing slash dan pastikan tidak ada duplikasi
@@ -46,7 +46,6 @@ ${withKeyTakeaways ? "- Seksi Key Takeaways di bagian akhir sebelum FAQ" : ""}
 ${withFAQ ? "- ## FAQ: 3-5 pertanyaan & jawaban (WAJIB)" : "- ## FAQ: 3-5 pertanyaan & jawaban (WAJIB untuk SEO)"}
 ${withConclusion ? "- ## Kesimpulan dengan CTA (WAJIB)" : "- ## Kesimpulan atau ## Penutup (WAJIB untuk SEO)"}
 ${withBold ? "- Bold kata-kata penting dan keyword" : ""}
-${connectWeb ? "- Sertakan data, statistik, atau fakta terkini yang relevan" : ""}
 
 ${hasInternalLink ? `=== INTERNAL LINKING ===
 Sisipkan 2-4 internal link ke situs: ${baseUrl}

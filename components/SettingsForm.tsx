@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { Config, WPSite, ModelInfo, LANGUAGES, ARTICLE_TYPES, ARTICLE_SIZES, TONES, POVS, READABILITY, COUNTRIES, LINK_TYPES, IMG_STYLES, IMG_SIZES, IMG_COUNTS, YT_COUNTS, LAYOUT_OPTS, FREE_MAX_WORDS, CREDIT_COST } from "@/lib/constants";
+import { Config, WPSite, ModelInfo, LANGUAGES, ARTICLE_TYPES, ARTICLE_SIZES, TONES, POVS, READABILITY, COUNTRIES, IMG_STYLES, IMG_SIZES, IMG_COUNTS, FREE_MAX_WORDS, CREDIT_COST, IMAGE_CREDIT_COST } from "@/lib/constants";
 import { Sec, Sel, Inp, Tog } from "./ui";
 import ModelSelector from "./ModelSelector";
 import WPPanel from "./WPPanel";
@@ -125,12 +125,12 @@ export default function SettingsForm({ cfg, set, model, setModel, wpSites, addWp
             {isPro && parseInt(cfg.imgCount || "0") > 0 && (
               <div className="mt-2 pt-2 border-t border-slate-800/60">
                 <p className="text-[10px] text-slate-500">
-                  💡 Gambar disisipkan otomatis saat artikel dibuat. Setiap gambar = <span className="text-amber-400 font-bold">1 💎</span>
+                  💡 Gambar SVG disisipkan otomatis saat artikel dibuat. Setiap gambar = <span className="text-amber-400 font-bold">{IMAGE_CREDIT_COST} 💎</span>
                 </p>
                 <div className="mt-1.5 bg-slate-900/60 border border-slate-700/50 rounded-lg px-2.5 py-1.5">
                   <p className="text-[10px] text-slate-400">
-                    Estimasi kredit: <span className="text-white font-bold">{(CREDIT_COST[model.id] ?? 1) + parseInt(cfg.imgCount || "0")} 💎</span>
-                    <span className="text-slate-600 ml-1">(artikel {CREDIT_COST[model.id] ?? 1} + {cfg.imgCount} gambar)</span>
+                    Estimasi kredit: <span className="text-white font-bold">{(CREDIT_COST[model.id] ?? 0) + parseInt(cfg.imgCount || "0") * IMAGE_CREDIT_COST} 💎</span>
+                    <span className="text-slate-600 ml-1">(artikel {CREDIT_COST[model.id] ?? 0} + {cfg.imgCount} gambar)</span>
                   </p>
                   <p className="text-[10px] text-slate-600 mt-0.5">Kamu punya {credits} 💎 tersisa</p>
                 </div>
@@ -145,13 +145,6 @@ export default function SettingsForm({ cfg, set, model, setModel, wpSites, addWp
               </div>
             </div>
           )}
-        </div>
-        <div className="bg-slate-900/80 border border-slate-800 rounded-lg px-3 py-2">
-          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">▶ YouTube Videos</p>
-          <div className="grid grid-cols-2 gap-2">
-            <Sel label="Jumlah" opts={YT_COUNTS} val={cfg.ytCount} set={v => f("ytCount", v)} />
-            <Sel label="Layout" opts={LAYOUT_OPTS} val={cfg.ytLayout} set={v => f("ytLayout", v)} />
-          </div>
         </div>
       </Sec>
 
@@ -226,9 +219,10 @@ export default function SettingsForm({ cfg, set, model, setModel, wpSites, addWp
       </Sec>
 
       <Sec title="External Linking" icon="↗" defaultOpen={true}>
+        <p className="text-[10px] text-slate-600 mb-1.5">Sertakan URL sumber terpercaya agar AI menyisipkannya sebagai referensi.</p>
         <div className="flex flex-col gap-2">
           <div className="flex gap-1">
-            {LINK_TYPES.map(t => (
+            {["Tidak Ada", "Manual"].map(t => (
               <button key={t} onClick={() => f("extLinkType", t)}
                 className={`text-[10px] px-2 py-1 rounded-lg border transition-all flex-1 ${cfg.extLinkType === t ? "bg-amber-500/15 border-amber-500/40 text-amber-300" : "border-slate-700 text-slate-500 hover:border-slate-600"}`}>
                 {t}
@@ -251,20 +245,7 @@ export default function SettingsForm({ cfg, set, model, setModel, wpSites, addWp
         </div>
       </Sec>
 
-      <Sec title="Connect to Web" icon="🌐" defaultOpen={true}>
-        <div className="relative">
-          <div className={!isPro ? "opacity-40 pointer-events-none select-none" : ""}>
-            <Sel label="Akses Real-time" opts={["Tidak","Ya"]} val={cfg.connectWeb?"Ya":"Tidak"} set={v=>f("connectWeb",v==="Ya")} />
-          </div>
-          {!isPro && (
-            <div className="absolute inset-0 flex items-center justify-end pr-1">
-              <span className="text-[10px] text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">🔒 Pro</span>
-            </div>
-          )}
-        </div>
-      </Sec>
-
-      <Sec title="Sindikasi" icon="📡" defaultOpen={true}>
+<Sec title="Sindikasi" icon="📡" defaultOpen={true}>
         <div className="relative">
           <div className={`grid grid-cols-2 gap-2 ${!isPro ? "opacity-40 pointer-events-none select-none" : ""}`}>
             {([["𝕏 Twitter","twitter"],["in LinkedIn","linkedin"],["f Facebook","facebook"],["✉ Email","email"],["📱 WhatsApp","wa"],["📌 Pinterest","pinterest"]] as [string,keyof Config["synds"]][]).map(([l,k]) => (
