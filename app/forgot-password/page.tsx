@@ -28,7 +28,7 @@ export default function ForgotPasswordPage() {
         <a href="/" className="flex items-center justify-center gap-2 mb-8">
           <div className="w-9 h-9 rounded-xl bg-amber-500 flex items-center justify-center font-black text-[#0c0e14] text-lg">S</div>
           <span className="font-black text-xl tracking-tight" style={{ fontFamily: "Sora,sans-serif" }}>
-            <span className="text-white">SEO</span><span className="text-amber-400 font-light">Tulis</span><span className="text-amber-500">.AI</span>
+            <span className="text-white">Artikel</span><span className="text-amber-400"> SEO</span>
           </span>
         </a>
 

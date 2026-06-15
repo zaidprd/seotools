@@ -66,7 +66,7 @@ export default function PricingPage() {
         <div className="max-w-6xl mx-auto px-5 py-4 flex items-center justify-between">
           <a href="/" className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center font-black text-[#0c0e14]">S</div>
-            <span className="font-black text-lg tracking-tight"><span className="text-white">SEO</span><span className="text-amber-400 font-light">Tulis</span><span className="text-amber-500">.AI</span></span>
+            <span className="font-black text-lg tracking-tight"><span className="text-white">Artikel</span><span className="text-amber-400"> SEO</span></span>
           </a>
           <div className="flex items-center gap-3">
             {user

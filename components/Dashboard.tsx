@@ -406,7 +406,7 @@ export default function Dashboard() {
           <div className="flex items-center gap-3">
             <a href="/" className="flex items-center gap-1.5">
               <div className="w-7 h-7 rounded-lg bg-amber-500 flex items-center justify-center font-black text-[#0c0e14] text-sm">S</div>
-              <span className="font-black tracking-tight"><span className="text-white">SEO</span><span className="text-amber-400 font-light">Tulis</span><span className="text-amber-500">.AI</span></span>
+              <span className="font-black tracking-tight"><span className="text-white">Artikel</span><span className="text-amber-400"> SEO</span></span>
             </a>
             {wpSites.length > 0 && <span className="text-[10px] text-blue-400 border border-blue-800/50 bg-blue-950/30 px-2.5 py-0.5 rounded-full">🌐 {wpSites.length} situs</span>}
             {user && (

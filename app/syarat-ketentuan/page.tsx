@@ -14,7 +14,7 @@ export default function SyaratKetentuan() {
           <Link href="/" className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg bg-amber-500 flex items-center justify-center font-black text-[#0c0e14] text-sm">S</div>
             <span className="font-black tracking-tight" style={{ fontFamily: "Sora,sans-serif" }}>
-              <span className="text-white">SEO</span><span className="text-amber-400 font-light">Tulis</span><span className="text-amber-500">.AI</span>
+              <span className="text-white">Artikel</span><span className="text-amber-400"> SEO</span>
             </span>
           </Link>
           <Link href="/" className="text-sm text-slate-500 hover:text-white transition-colors">← Kembali</Link>
