@@ -146,7 +146,7 @@ function TipTapToolbar({ editor, wpSite, onUpload, onAISvg, isUploading, isAIGen
 
 
       {/* AI SVG */}
-      <button onClick={onAISvg} disabled={isAIGenerating} title="Generate ilustrasi SVG dengan AI (gratis)"
+      <button onClick={onAISvg} disabled={isAIGenerating} title="Generate ilustrasi SVG dengan AI (3 💎 per gambar)"
         className="text-[11px] px-2 py-1.5 rounded-lg border border-violet-500/30 text-violet-400 hover:bg-violet-500/5 disabled:opacity-50 transition-all flex items-center gap-1">
         {isAIGenerating ? <><span className="w-2.5 h-2.5 border border-violet-400 border-t-transparent rounded-full animate-spin" />Generating...</> : "✨ AI SVG"}
       </button>
@@ -157,8 +157,8 @@ function TipTapToolbar({ editor, wpSite, onUpload, onAISvg, isUploading, isAIGen
 }
 
 // ─── Main ResultPanel ──────────────────────────────────────────────────────────
-export default function ResultPanel({ content: initialContent, keyword = "", model, wpSites, synds, userId }: {
-  content: string; keyword?: string; model: ModelInfo; wpSites: WPSite[]; synds: Synds; userId?: string;
+export default function ResultPanel({ content: initialContent, keyword = "", model, wpSites, synds, userId, onCreditsUsed }: {
+  content: string; keyword?: string; model: ModelInfo; wpSites: WPSite[]; synds: Synds; userId?: string; onCreditsUsed?: () => void;
 }) {
   const [mode, setMode] = useState<"preview" | "edit">("preview");
   const [htmlContent, setHtmlContent] = useState(() => {
@@ -273,6 +273,7 @@ export default function ResultPanel({ content: initialContent, keyword = "", mod
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
+      onCreditsUsed?.();
       // Tampilkan preview sebelum insert
       setShowSvgPreview(data.svg);
     } catch (e: any) { setAiError(e.message); }

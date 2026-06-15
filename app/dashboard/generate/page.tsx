@@ -228,7 +228,7 @@ export default function GeneratePage() {
               )}
             </div>
           )}
-          {result && <ResultPanel content={result} keyword={keyword} model={currentModel} wpSites={wpSel ? [wpSel] : wpSites} synds={cfg.synds} userId={user?.id} />}
+          {result && <ResultPanel content={result} keyword={keyword} model={currentModel} wpSites={wpSel ? [wpSel] : wpSites} synds={cfg.synds} userId={user?.id} onCreditsUsed={() => authUser && fetchUser(authUser.id)} />}
         </div>
       </div>
     </div>

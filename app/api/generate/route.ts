@@ -48,14 +48,61 @@ function cleanAIContent(text: string): string {
     .trim();
 }
 
-function makeImgTag(b64: string, alt: string, size: string): string {
-  const m = size?.match(/(\d+)px/);
-  const w = m ? ` width="${m[1]}"` : "";
-  return `<img src="data:image/png;base64,${b64}" alt="${alt}"${w} style="max-width:100%;height:auto;display:block;margin:1em auto;border-radius:8px" />`;
+const SVG_SYSTEM_PROMPT = `Kamu adalah generator ilustrasi SVG profesional untuk artikel blog.
+Tugasmu: buat ilustrasi SVG yang relevan, bersih, dan menarik berdasarkan deskripsi pengguna.
+
+ATURAN KETAT:
+- Kembalikan HANYA kode SVG mentah, mulai dari <svg dan diakhiri </svg>
+- JANGAN ada markdown, penjelasan, atau teks lain di luar SVG
+- Gunakan viewBox="0 0 800 450" (landscape 16:9)
+- Gunakan warna yang harmonis dan modern (hindari terlalu mencolok)
+- Buat ilustrasi yang informatif dan relevan dengan topik
+- Sertakan teks/label dalam bahasa Indonesia jika perlu
+- Gunakan shapes sederhana tapi estetis: rect, circle, path, text, polygon
+- Tambahkan <title> dan <desc> untuk aksesibilitas
+- Gunakan gradient jika sesuai untuk tampilan lebih modern
+- Ukuran font minimal 14px agar terbaca`;
+
+async function generateSvg(keyword: string, instructions: string, apiBase: string, apiKey: string): Promise<string | null> {
+  const userPrompt = keyword
+    ? `Buat ilustrasi SVG untuk artikel tentang "${keyword}". ${instructions}`
+    : `Buat ilustrasi SVG: ${instructions}`;
+  try {
+    const r = await fetch(`${apiBase.replace(/\/$/, "")}/chat/completions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${apiKey}` },
+      body: JSON.stringify({
+        model: "gpt-4.1-mini",
+        messages: [
+          { role: "system", content: SVG_SYSTEM_PROMPT },
+          { role: "user", content: userPrompt },
+        ],
+        temperature: 0.7,
+        max_tokens: 4000,
+      }),
+    });
+    if (!r.ok) return null;
+    const data = await r.json();
+    let svg: string = data.choices?.[0]?.message?.content ?? "";
+    svg = svg.replace(/^```(?:svg|xml)?\s*/i, "").replace(/\s*```$/, "").trim();
+    if (!svg.startsWith("<svg")) {
+      const m = svg.match(/<svg[\s\S]*<\/svg>/i);
+      if (!m) return null;
+      svg = m[0];
+    }
+    return svg;
+  } catch { return null; }
 }
 
-function insertImages(content: string, images: string[], cfg: ImageConfig): string {
-  if (!images.length) return content;
+function makeSvgTag(svg: string, alt: string, size: string): string {
+  const m = size?.match(/(\d+)px/);
+  const w = m ? ` width="${m[1]}"` : "";
+  const b64 = Buffer.from(svg).toString("base64");
+  return `<img src="data:image/svg+xml;base64,${b64}" alt="${alt}"${w} style="max-width:100%;height:auto;display:block;margin:1em auto;border-radius:8px" />`;
+}
+
+function insertSvgs(content: string, svgs: string[], cfg: ImageConfig): string {
+  if (!svgs.length) return content;
   const lines = content.split("\n");
   const result: string[] = [];
   let idx = 0;
@@ -67,18 +114,18 @@ function insertImages(content: string, images: string[], cfg: ImageConfig): stri
 
     if (isH2) {
       h2Count++;
-      if (h2Count === 1 && idx < images.length) {
+      if (h2Count === 1 && idx < svgs.length) {
         const alt = cfg.firstKeyword ? cfg.keyword : cfg.altText ? `${cfg.keyword} ilustrasi` : "";
-        result.push("", makeImgTag(images[idx++], alt, cfg.size), "");
+        result.push("", makeSvgTag(svgs[idx++], alt, cfg.size), "");
       }
     }
 
     result.push(line);
 
-    if (isH2 && h2Count >= 2 && idx < images.length) {
+    if (isH2 && h2Count >= 2 && idx < svgs.length) {
       const heading = line.replace(/^##\s*/, "");
       const alt = cfg.altText ? `${cfg.keyword} - ${heading}` : "";
-      result.push("", makeImgTag(images[idx++], alt, cfg.size), "");
+      result.push("", makeSvgTag(svgs[idx++], alt, cfg.size), "");
     }
   }
 
@@ -125,7 +172,7 @@ export async function POST(req: NextRequest) {
 
     const isFreePlan = effectivePlan === "free";
     const effectiveCost = isFreePlan ? FREE_ARTICLE_COST : cost;
-    const imageCost = (!isFreePlan && imgCount > 0) ? imgCount : 0;
+    const imageCost = (!isFreePlan && imgCount > 0) ? imgCount * IMAGE_CREDIT_COST : 0;
     const totalCost = effectiveCost + imageCost;
 
     if (!isAdmin) {
@@ -255,37 +302,21 @@ export async function POST(req: NextRequest) {
 
     if (aiCleaning) text = cleanAIContent(text);
 
-    // Generate & insert images (paid plans only)
+    // Generate & insert AI SVG images (paid plans only)
     if (imgCount > 0 && !isFreePlan && text) {
       try {
-        const key = process.env.GOOGLE_API_KEY;
-        if (key) {
-          const images: string[] = [];
+        const apiKey = process.env.SUMOPOD_API_KEY;
+        const apiBase = process.env.SUMOPOD_BASE_URL || "https://ai.sumopod.com/v1";
+        if (apiKey) {
+          const svgs: string[] = [];
           for (let i = 0; i < imgCount; i++) {
-            const imgPrompt = imgCfg.userPrompt
-              ? `Professional photo of ${imgCfg.keyword}, ${imgCfg.userPrompt}, high quality, blog article`
-              : [imgCfg.keyword, imgCfg.style, "high quality blog illustration", imgCfg.instructions].filter(Boolean).join(", ");
-            try {
-              const r = await fetch(
-                `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${key}`,
-                {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    instances: [{ prompt: imgPrompt }],
-                    parameters: { sampleCount: 1, aspectRatio: "4:3" },
-                  }),
-                }
-              );
-              const d = await r.json();
-              if (r.ok && d.predictions?.[0]?.bytesBase64Encoded) {
-                images.push(d.predictions[0].bytesBase64Encoded);
-              }
-            } catch { /* skip failed individual image */ }
+            const instructions = imgCfg.userPrompt
+              ? imgCfg.userPrompt
+              : [imgCfg.style, imgCfg.instructions].filter(Boolean).join(", ") || "ilustrasi informatif";
+            const svg = await generateSvg(imgCfg.keyword, instructions, apiBase, apiKey);
+            if (svg) svgs.push(svg);
           }
-          if (images.length > 0) {
-            text = insertImages(text, images, imgCfg);
-          }
+          if (svgs.length > 0) text = insertSvgs(text, svgs, imgCfg);
         }
       } catch { /* silently skip image errors */ }
     }
