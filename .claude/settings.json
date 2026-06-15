@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git fetch *)",
+      "Bash(powershell -Command \"\\(Get-Content package-lock.json\\) -replace '\\\\\"name\\\\\": \\\\\"seotulis-ai\\\\\"', '\\\\\"name\\\\\": \\\\\"artikel-seo\\\\\"' | Set-Content package-lock.json -Encoding utf8\")",
+      "Bash(git pull *)",
+      "Bash(git stash *)",
+      "Bash(git checkout *)"
+    ]
+  }
+}

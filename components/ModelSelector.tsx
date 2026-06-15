@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { MODELS, ModelInfo, PROVIDER_COLORS, FREE_MODEL_ID, FREE_MODEL_LABEL } from "@/lib/constants";
+import { MODELS, ModelInfo, FREE_MODEL_ID, FREE_MODEL_LABEL } from "@/lib/constants";
 
 interface Props {
   sel: ModelInfo;
@@ -19,13 +19,12 @@ export default function ModelSelector({ sel, set, credits, isPro }: Props) {
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-3 flex flex-col gap-2">
           <div className="flex items-center justify-between px-2 py-2 rounded-lg bg-slate-800/60 border border-slate-700">
             <div className="flex items-center gap-2">
-              <span className={`text-[9px] px-1.5 py-0.5 rounded border ${PROVIDER_COLORS["JoinBareng"]}`}>JoinBareng</span>
               <span className="text-xs text-slate-300">{FREE_MODEL_LABEL}</span>
             </div>
             <span className="text-[10px] bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 px-2 py-0.5 rounded-full font-bold">1 💎</span>
           </div>
           <p className="text-[10px] text-slate-600 text-center leading-relaxed">
-            Upgrade untuk akses GPT-5.2, GPT-5.4, dan GPT-5.5
+            Upgrade untuk akses GPT-5.4, Claude Haiku 4.5, dan Claude Sonnet 4.6
           </p>
           <button onClick={() => setShowUpgrade(true)}
             className="text-[10px] text-amber-400 hover:text-amber-300 border border-amber-500/20 hover:border-amber-500/40 py-1.5 rounded-lg transition-colors">
@@ -44,7 +43,6 @@ export default function ModelSelector({ sel, set, credits, isPro }: Props) {
                   <div key={m.id} className="flex items-center justify-between px-3 py-2 rounded-lg bg-slate-800 border border-slate-700">
                     <span className="flex items-center gap-2 text-xs text-slate-300">
                       {m.label}
-                      <span className={`text-[9px] px-1.5 py-0.5 rounded border ${PROVIDER_COLORS[m.provider]}`}>{m.provider}</span>
                     </span>
                     <span className="text-[10px] text-amber-400 font-bold">{m.credits} 💎</span>
                   </div>
@@ -83,7 +81,6 @@ export default function ModelSelector({ sel, set, credits, isPro }: Props) {
               }`}>
               <span className="flex items-center gap-1.5">
                 {m.label}
-                <span className={`text-[9px] px-1.5 py-0.5 rounded border ${PROVIDER_COLORS[m.provider] || "text-slate-400 bg-slate-700 border-slate-600"}`}>{m.provider}</span>
               </span>
               <span className={`text-[10px] font-bold ${canAfford ? "text-amber-400" : "text-slate-600"}`}>{m.credits} 💎</span>
             </button>
