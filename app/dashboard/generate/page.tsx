@@ -44,6 +44,7 @@ export default function GeneratePage() {
   const [genTitleLoading, setGenTitleLoading] = useState(false);
   const [titleSuggestions, setTitleSuggestions] = useState<string[]>([]);
   const [result, setResult] = useState<string | null>(null);
+  const [svgNotice, setSvgNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [upgradeReason, setUpgradeReason] = useState("");
@@ -86,17 +87,25 @@ export default function GeneratePage() {
   const generate = async () => {
     if (!keyword.trim()) return;
     if (credits < cost) { setUpgradeReason(`Butuh ${cost} 💎 untuk model ini, kamu punya ${credits} 💎`); setShowUpgrade(true); return; }
-    setLoading(true); setResult(null); setError(null);
+    setLoading(true); setResult(null); setError(null); setSvgNotice(null);
     setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 100);
     try {
       const outline = outlineRows.map(r => `${r.type}: ${r.text}`).join("\n");
       const effectiveCfg = !isPro ? { ...cfg, articleSize: FREE_MAX_WORDS } : cfg;
-      const text = await generateArticle({
+      const imgCount = parseInt(cfg.imgCount || "0");
+      const res = await generateArticle({
         ...effectiveCfg, keyword, title, outline,
         modelId: !isPro ? FREE_MODEL_ID : model.id,
         userId: user?.id,
       } as any);
-      setResult(text);
+      setResult(res.text);
+      if (imgCount > 0 && isPro) {
+        if (res.svgsGenerated && res.svgsGenerated > 0) {
+          setSvgNotice(`✓ ${res.svgsGenerated} gambar AI berhasil disisipkan ke artikel`);
+        } else {
+          setSvgNotice(`⚠ Gambar AI gagal: ${res.svgError || "Coba generate ulang"}`);
+        }
+      }
       setMobileTab("result");
       if (authUser) fetchUser(authUser.id);
     } catch (e: any) {
@@ -226,6 +235,11 @@ export default function GeneratePage() {
                   <button onClick={() => setShowModelTip(false)} className="ml-2 text-amber-500 hover:text-amber-400 underline">Tutup</button>
                 </div>
               )}
+            </div>
+          )}
+          {svgNotice && (
+            <div className={`flex-shrink-0 mx-1 mb-2 px-3 py-2 rounded-lg text-xs ${svgNotice.startsWith("✓") ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-300" : "bg-amber-500/10 border border-amber-500/20 text-amber-300"}`}>
+              {svgNotice}
             </div>
           )}
           {result && <ResultPanel content={result} keyword={keyword} model={currentModel} wpSites={wpSel ? [wpSel] : wpSites} synds={cfg.synds} userId={user?.id} onCreditsUsed={() => authUser && fetchUser(authUser.id)} />}

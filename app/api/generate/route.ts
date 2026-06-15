@@ -303,22 +303,28 @@ export async function POST(req: NextRequest) {
     if (aiCleaning) text = cleanAIContent(text);
 
     // Generate & insert AI SVG images (paid plans only)
+    let svgsGenerated = 0;
+    let svgError = "";
     if (imgCount > 0 && !isFreePlan && text) {
-      try {
-        const apiKey = process.env.SUMOPOD_API_KEY;
-        const apiBase = process.env.SUMOPOD_BASE_URL || "https://ai.sumopod.com/v1";
-        if (apiKey) {
-          const svgs: string[] = [];
-          for (let i = 0; i < imgCount; i++) {
-            const instructions = imgCfg.userPrompt
-              ? imgCfg.userPrompt
-              : [imgCfg.style, imgCfg.instructions].filter(Boolean).join(", ") || "ilustrasi informatif";
-            const svg = await generateSvg(imgCfg.keyword, instructions, apiBase, apiKey);
-            if (svg) svgs.push(svg);
-          }
-          if (svgs.length > 0) text = insertSvgs(text, svgs, imgCfg);
+      const apiKey = process.env.SUMOPOD_API_KEY;
+      const apiBase = process.env.SUMOPOD_BASE_URL || "https://ai.sumopod.com/v1";
+      if (!apiKey) {
+        svgError = "SUMOPOD_API_KEY belum dikonfigurasi di server";
+      } else {
+        const svgs: string[] = [];
+        for (let i = 0; i < imgCount; i++) {
+          const instructions = imgCfg.userPrompt
+            ? imgCfg.userPrompt
+            : [imgCfg.style, imgCfg.instructions].filter(Boolean).join(", ") || "ilustrasi informatif";
+          const svg = await generateSvg(imgCfg.keyword, instructions, apiBase, apiKey);
+          if (svg) svgs.push(svg);
+          else svgError = "AI tidak berhasil menghasilkan SVG yang valid";
         }
-      } catch { /* silently skip image errors */ }
+        if (svgs.length > 0) {
+          text = insertSvgs(text, svgs, imgCfg);
+          svgsGenerated = svgs.length;
+        }
+      }
     }
 
     // Save article history
@@ -338,7 +344,12 @@ export async function POST(req: NextRequest) {
       } catch { /* silently ignore history save errors */ }
     }
 
-    return NextResponse.json({ text, creditsUsed: isAdmin ? 0 : totalCost });
+    return NextResponse.json({
+      text,
+      creditsUsed: isAdmin ? 0 : totalCost,
+      svgsGenerated,
+      ...(svgError && { svgError }),
+    });
 
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);

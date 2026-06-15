@@ -1,7 +1,13 @@
 import { Config, FREE_MODEL_ID } from "./constants";
 import { buildPrompt, buildTitlePrompt } from "./prompt";
 
-export async function generateArticle(cfg: Config & { modelId?: string; userId?: string }): Promise<string> {
+export interface GenerateResult {
+  text: string;
+  svgsGenerated?: number;
+  svgError?: string;
+}
+
+export async function generateArticle(cfg: Config & { modelId?: string; userId?: string }): Promise<GenerateResult> {
   const res = await fetch("/api/generate", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -24,7 +30,11 @@ export async function generateArticle(cfg: Config & { modelId?: string; userId?:
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || `Error ${res.status}`);
-  return data.text || "Gagal menghasilkan konten.";
+  return {
+    text: data.text || "Gagal menghasilkan konten.",
+    svgsGenerated: data.svgsGenerated ?? 0,
+    svgError: data.svgError,
+  };
 }
 
 export async function generateTitlesAPI(keyword: string, count = 5): Promise<string[]> {
