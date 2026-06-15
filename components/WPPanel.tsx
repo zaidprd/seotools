@@ -17,7 +17,7 @@ export default function WPPanel({ sites, addSite, removeSite, selected, setSelec
     try {
       const r = await fetch("/api/publish/wordpress", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ site: f, post: { title: "Test Koneksi SEOTulis", content: "Tes koneksi.", status: "draft" } }),
+        body: JSON.stringify({ site: f, post: { title: "Test Koneksi Artikel SEO", content: "Tes koneksi.", status: "draft" } }),
       });
       setTestOk(r.ok);
     } catch { setTestOk(false); }

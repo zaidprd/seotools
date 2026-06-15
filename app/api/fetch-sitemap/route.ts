@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
     if (!urlCheck.safe) return NextResponse.json({ error: `URL tidak valid: ${urlCheck.reason}` }, { status: 400 });
 
     const r = await fetch(sitemapUrl, {
-      headers: { "User-Agent": "SEOTulis/1.0 (sitemap fetcher)" },
+      headers: { "User-Agent": "Artikel SEO/1.0 (sitemap fetcher)" },
       signal: AbortSignal.timeout(10000),
     });
 

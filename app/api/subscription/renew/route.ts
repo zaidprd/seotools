@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
       name: email.split("@")[0] || "Pelanggan",
       email,
       amount: plan.price,
-      description: `SEOTulis ${plan.name} (Perpanjang) — ${plan.credits} kredit (30 hari)`,
+      description: `Artikel SEO ${plan.name} (Perpanjang) — ${plan.credits} kredit (30 hari)`,
       redirectUrl: `${siteUrl}/account?verify_payment=${payRow.id}`,
     });
 

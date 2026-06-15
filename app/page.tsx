@@ -41,7 +41,7 @@ const TESTIMONIALS = [
     site: "teknotips.id",
     avatar: "AF",
     color: "from-blue-500 to-blue-700",
-    text: "Artikel pertama yang saya buat pakai SEOTulis ranking halaman 1 Google dalam 2 minggu. Keyword density-nya pas, tidak over-optimized seperti tools lain.",
+    text: "Artikel pertama yang saya buat pakai Artikel SEO ranking halaman 1 Google dalam 2 minggu. Keyword density-nya pas, tidak over-optimized seperti tools lain.",
     stars: 5,
   },
   {
@@ -77,7 +77,7 @@ const TESTIMONIALS = [
     site: "reviewgadgetid.com",
     avatar: "RM",
     color: "from-amber-500 to-orange-600",
-    text: "Traffic organik naik 3x dalam 2 bulan setelah pakai SEOTulis konsisten. Harganya juga jauh lebih murah dibanding hire content writer.",
+    text: "Traffic organik naik 3x dalam 2 bulan setelah pakai Artikel SEO konsisten. Harganya juga jauh lebih murah dibanding hire content writer.",
     stars: 5,
   },
   {
@@ -94,11 +94,11 @@ const TESTIMONIALS = [
 const FAQS = [
   {
     q: "Apakah artikel terdeteksi AI checker?",
-    a: "Artikel yang dihasilkan SEOTulis dirancang agar natural seperti tulisan manusia. Dalam pengujian internal, skor human-written rata-rata 85-95% di tools seperti Originality.ai dan GPTZero. Namun kami tetap menyarankan review singkat sebelum publish untuk hasil terbaik.",
+    a: "Artikel yang dihasilkan Artikel SEO dirancang agar natural seperti tulisan manusia. Dalam pengujian internal, skor human-written rata-rata 85-95% di tools seperti Originality.ai dan GPTZero. Namun kami tetap menyarankan review singkat sebelum publish untuk hasil terbaik.",
   },
   {
     q: "Apakah bisa langsung ranking di Google?",
-    a: "SEOTulis mengoptimasi semua faktor on-page SEO: keyword density 1-2%, struktur heading yang benar, paragraf pembuka mengandung keyword, meta description yang menarik, dan konten E-E-A-T. Pengguna beta melaporkan banyak artikel ranking halaman 1-2 dalam 2-4 minggu untuk keyword long-tail.",
+    a: "Artikel SEO mengoptimasi semua faktor on-page SEO: keyword density 1-2%, struktur heading yang benar, paragraf pembuka mengandung keyword, meta description yang menarik, dan konten E-E-A-T. Pengguna beta melaporkan banyak artikel ranking halaman 1-2 dalam 2-4 minggu untuk keyword long-tail.",
   },
   {
     q: "Berapa lama generate 1 artikel?",
@@ -106,7 +106,7 @@ const FAQS = [
   },
   {
     q: "Apakah perlu install plugin WordPress?",
-    a: "Tidak perlu! Kami menggunakan WordPress REST API yang sudah built-in di semua WordPress modern. Cukup buat Application Password di WP Admin > Users > Profile, masukkan ke SEOTulis, dan siap publish.",
+    a: "Tidak perlu! Kami menggunakan WordPress REST API yang sudah built-in di semua WordPress modern. Cukup buat Application Password di WP Admin > Users > Profile, masukkan ke Artikel SEO, dan siap publish.",
   },
   {
     q: "Apakah kredit kadaluarsa?",
@@ -118,7 +118,7 @@ const FAQS = [
   },
   {
     q: "Bisa generate dalam bahasa lain selain Indonesia?",
-    a: "Ya! SEOTulis mendukung 13 bahasa: Indonesia, English (US/UK), Melayu, Jawa, Sunda, Arabic, Spanish, French, German, Japanese, Korean, dan Chinese.",
+    a: "Ya! Artikel SEO mendukung 13 bahasa: Indonesia, English (US/UK), Melayu, Jawa, Sunda, Arabic, Spanish, French, German, Japanese, Korean, dan Chinese.",
   },
 ];
 
@@ -191,7 +191,7 @@ export default function LandingPage() {
           </h1>
 
           <p className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto mb-3 leading-relaxed">
-            Bukan robot writing biasa. SEOTulis menganalisis konten terbaik di Google,
+            Bukan robot writing biasa. Artikel SEO menganalisis konten terbaik di Google,
             lalu menulis artikel yang <span className="text-slate-200 font-semibold">natural, informatif, dan ranking.</span>
           </p>
           <p className="text-sm text-slate-500 mb-10">
@@ -299,7 +299,7 @@ export default function LandingPage() {
           <div className="bg-slate-900/40 border border-emerald-500/30 rounded-2xl p-6 relative shadow-xl shadow-emerald-500/5">
             <div className="absolute -top-3 left-6">
               <span className="bg-emerald-500 text-slate-900 text-[11px] font-black px-3 py-1 rounded-full uppercase tracking-wide">
-                ✅ SEOTulis.AI
+                ✅ Artikel SEO
               </span>
             </div>
             <div className="mt-3 space-y-3">
@@ -408,7 +408,7 @@ export default function LandingPage() {
               Perbandingan
             </span>
             <h2 className="text-3xl md:text-4xl font-black mt-4 mb-3" style={{ fontFamily: "Sora,sans-serif" }}>
-              Kenapa SEOTulis?
+              Kenapa Artikel SEO?
             </h2>
             <p className="text-slate-400">Dibanding menulis manual dan tools AI lain</p>
           </div>
@@ -419,7 +419,7 @@ export default function LandingPage() {
                 <tr className="bg-slate-900/80">
                   <th className="text-left px-5 py-4 text-slate-400 font-semibold">Fitur</th>
                   <th className="px-5 py-4 text-center">
-                    <span className="text-amber-400 font-black">SEOTulis</span>
+                    <span className="text-amber-400 font-black">Artikel SEO</span>
                   </th>
                   <th className="px-5 py-4 text-center text-slate-400 font-semibold">Nulis Manual</th>
                   <th className="px-5 py-4 text-center text-slate-400 font-semibold">SEOWriting.ai</th>
@@ -603,7 +603,7 @@ export default function LandingPage() {
               <div className="flex flex-col gap-2 text-sm text-slate-500">
                 <Link href="/tentang-kami" className="hover:text-white transition-colors">Tentang Kami</Link>
                 <Link href="/blog" className="hover:text-white transition-colors">Blog</Link>
-                <a href="mailto:support@seotulis.ai" className="hover:text-white transition-colors">Afiliasi (30%)</a>
+                <a href="mailto:support@seo.zaidly.com" className="hover:text-white transition-colors">Afiliasi (30%)</a>
               </div>
             </div>
             <div>
@@ -616,7 +616,7 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="border-t border-slate-800 pt-6 flex flex-col md:flex-row items-center justify-between gap-3">
-            <p className="text-xs text-slate-600">© 2026 SEOTulis.AI · Dibuat dengan ❤️ untuk blogger Indonesia 🇮🇩</p>
+            <p className="text-xs text-slate-600">© 2026 Artikel SEO · Dibuat dengan ❤️ untuk blogger Indonesia 🇮🇩</p>
             <div className="flex gap-4 text-slate-600 text-sm">
               <a href="#" className="hover:text-white transition-colors">Twitter</a>
               <a href="#" className="hover:text-white transition-colors">Instagram</a>
@@ -637,7 +637,7 @@ export default function LandingPage() {
               <span className="text-lg">🔥</span>
               <div>
                 <p className="font-bold text-white text-sm">Coba 1 artikel GRATIS sekarang — tanpa kartu kredit</p>
-                <p className="text-xs text-slate-400">Bergabung dengan 500+ blogger Indonesia yang sudah pakai SEOTulis.AI</p>
+                <p className="text-xs text-slate-400">Bergabung dengan 500+ blogger Indonesia yang sudah pakai Artikel SEO</p>
               </div>
             </div>
             <Link href="/login"

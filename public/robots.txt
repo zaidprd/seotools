@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Block dashboard (private pages)
+Disallow: /dashboard/
+Disallow: /api/
+
+Sitemap: https://seo.zaidly.com/sitemap.xml

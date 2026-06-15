@@ -20,7 +20,7 @@ export default function DashboardHome() {
   }, []);
 
   useEffect(() => {
-    setShowBanner(!localStorage.getItem("seotulis_banner_dismissed"));
+    setShowBanner(!localStorage.getItem("artikelseo_banner_dismissed"));
 
     // Check payment redirect param (Mayar verify_payment=<id> atau payment=success)
     const params = new URLSearchParams(window.location.search);
@@ -68,7 +68,7 @@ export default function DashboardHome() {
   }, [paymentToast, authUser]);
 
   const dismissBanner = () => {
-    localStorage.setItem("seotulis_banner_dismissed", "1");
+    localStorage.setItem("artikelseo_banner_dismissed", "1");
     setShowBanner(false);
   };
 

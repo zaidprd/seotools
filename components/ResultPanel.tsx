@@ -305,7 +305,7 @@ export default function ResultPanel({ content: initialContent, keyword = "", mod
         for (let i = 0; i < byteStr.length; i++) bytes[i] = byteStr.charCodeAt(i);
         const blob = new Blob([bytes], { type: img.mime });
         const ext = img.mime.split("/")[1]?.replace("jpeg", "jpg") || "png";
-        const file = new File([blob], `seotulis-img-${Date.now()}.${ext}`, { type: img.mime });
+        const file = new File([blob], `artikelseo-img-${Date.now()}.${ext}`, { type: img.mime });
         const fd = new FormData();
         fd.append("file", file);
         const r = await fetch(`${site.url.replace(/\/+$/, "")}/wp-json/wp/v2/media`, {

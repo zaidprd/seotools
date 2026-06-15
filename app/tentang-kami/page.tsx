@@ -1,8 +1,8 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Tentang Kami — SEOTulis.AI",
-  description: "Tentang SEOTulis.AI — platform generator konten SEO terbaik untuk blogger Indonesia",
+  title: "Tentang Kami — Artikel SEO",
+  description: "Tentang Artikel SEO — platform generator konten SEO terbaik untuk blogger Indonesia",
 };
 
 export default function TentangKami() {
@@ -28,7 +28,7 @@ export default function TentangKami() {
             <div className="w-14 h-14 rounded-2xl bg-amber-500 flex items-center justify-center font-black text-[#0c0e14] text-2xl">S</div>
           </div>
           <h1 className="text-4xl font-black text-white mb-4" style={{ fontFamily: "Sora,sans-serif" }}>
-            Tentang <span className="text-amber-400">SEOTulis</span>.AI
+            Tentang <span className="text-amber-400">Artikel SEO</span>.AI
           </h1>
           <p className="text-slate-400 text-lg max-w-2xl mx-auto leading-relaxed">
             Platform AI untuk membuat konten SEO Bahasa Indonesia berkualitas tinggi — lebih cepat, lebih konsisten, lebih mudah.
@@ -39,13 +39,13 @@ export default function TentangKami() {
         <div className="bg-slate-900/40 border border-slate-800 rounded-2xl p-8 mb-8">
           <h2 className="text-2xl font-black text-white mb-4" style={{ fontFamily: "Sora,sans-serif" }}>Misi Kami</h2>
           <p className="text-slate-400 leading-relaxed mb-4">
-            SEOTulis.AI lahir dari satu permasalahan nyata: <strong className="text-white">membuat konten SEO Bahasa Indonesia yang berkualitas itu sulit dan memakan waktu</strong>. Blogger, digital marketer, dan pemilik website sering terjebak antara kualitas tulisan dan kecepatan produksi.
+            Artikel SEO lahir dari satu permasalahan nyata: <strong className="text-white">membuat konten SEO Bahasa Indonesia yang berkualitas itu sulit dan memakan waktu</strong>. Blogger, digital marketer, dan pemilik website sering terjebak antara kualitas tulisan dan kecepatan produksi.
           </p>
           <p className="text-slate-400 leading-relaxed mb-4">
             Kami percaya bahwa teknologi AI dapat menjadi asisten terbaik untuk content creator Indonesia — bukan untuk menggantikan kreativitas manusia, tapi untuk mengakselerasi proses kreatif.
           </p>
           <p className="text-slate-400 leading-relaxed">
-            Dengan SEOTulis.AI, Anda bisa fokus pada strategi dan ide, sementara kami membantu menulis struktur artikel yang dioptimasi untuk mesin pencari.
+            Dengan Artikel SEO, Anda bisa fokus pada strategi dan ide, sementara kami membantu menulis struktur artikel yang dioptimasi untuk mesin pencari.
           </p>
         </div>
 
@@ -97,7 +97,7 @@ export default function TentangKami() {
               <span className="text-amber-400 text-lg">📧</span>
               <div>
                 <p className="text-xs text-slate-500 mb-0.5">Email Support</p>
-                <a href="mailto:support@seotulis.ai" className="text-amber-400 hover:text-amber-300 font-semibold transition-colors">support@seotulis.ai</a>
+                <a href="mailto:support@zaidly.com" className="text-amber-400 hover:text-amber-300 font-semibold transition-colors">support@zaidly.com</a>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -145,7 +145,7 @@ export default function TentangKami() {
 
       <footer className="border-t border-slate-800/60 py-8 mt-4">
         <div className="max-w-4xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-3">
-          <p className="text-xs text-slate-600">© 2026 SEOTulis.AI · Dibuat dengan ❤️ untuk blogger Indonesia 🇮🇩</p>
+          <p className="text-xs text-slate-600">© 2026 Artikel SEO · Dibuat dengan ❤️ untuk blogger Indonesia 🇮🇩</p>
           <div className="flex gap-4 text-xs text-slate-500">
             <Link href="/syarat-ketentuan" className="hover:text-white transition-colors">Syarat & Ketentuan</Link>
             <Link href="/kebijakan-privasi" className="hover:text-white transition-colors">Kebijakan Privasi</Link>

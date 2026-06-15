@@ -284,7 +284,7 @@ export async function POST(req: NextRequest) {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${key}`,
           "HTTP-Referer": process.env.SITE_URL || "http://localhost:3000",
-          "X-Title": "SEOTulis.AI",
+          "X-Title": "Artikel SEO",
         },
         body: JSON.stringify({
           model: safeModelId, max_tokens: 4000,

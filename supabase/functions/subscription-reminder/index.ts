@@ -18,8 +18,8 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") ?? "";
-const SITE_URL       = Deno.env.get("SITE_URL")       ?? "https://seotulis.ai";
-const FROM_EMAIL     = "SEOTulis.AI <noreply@seotulis.ai>";
+const SITE_URL       = Deno.env.get("SITE_URL")       ?? "https://seo.zaidly.com";
+const FROM_EMAIL     = "Artikel SEO <noreply@seo.zaidly.com>";
 
 async function sendEmail(to: string, subject: string, html: string) {
   if (!RESEND_API_KEY) { console.warn("RESEND_API_KEY tidak di-set, skip email"); return; }
@@ -79,7 +79,7 @@ Deno.serve(async (req) => {
             🔄 Perpanjang Sekarang
           </a>
           <p style="margin-top:32px;color:#475569;font-size:12px;">
-            Butuh bantuan? Email kami di <a href="mailto:support@seotulis.ai" style="color:#f59e0b;">support@seotulis.ai</a>
+            Butuh bantuan? Email kami di <a href="mailto:support@zaidly.com" style="color:#f59e0b;">support@zaidly.com</a>
           </p>
         </div>
       `
@@ -120,7 +120,7 @@ Deno.serve(async (req) => {
             ⚡ Aktifkan Kembali
           </a>
           <p style="margin-top:32px;color:#475569;font-size:12px;">
-            Butuh bantuan? Email kami di <a href="mailto:support@seotulis.ai" style="color:#f59e0b;">support@seotulis.ai</a>
+            Butuh bantuan? Email kami di <a href="mailto:support@zaidly.com" style="color:#f59e0b;">support@zaidly.com</a>
           </p>
         </div>
       `

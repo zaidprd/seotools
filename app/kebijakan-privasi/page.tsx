@@ -1,8 +1,8 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Kebijakan Privasi — SEOTulis.AI",
-  description: "Kebijakan privasi dan perlindungan data pengguna SEOTulis.AI",
+  title: "Kebijakan Privasi — Artikel SEO",
+  description: "Kebijakan privasi dan perlindungan data pengguna Artikel SEO",
 };
 
 export default function KebijakanPrivasi() {
@@ -30,7 +30,7 @@ export default function KebijakanPrivasi() {
 
           <section>
             <h2 className="text-lg font-bold text-white mb-3">1. Pendahuluan</h2>
-            <p>SEOTulis.AI ("kami", "kita") menghormati privasi Anda dan berkomitmen melindungi data pribadi yang Anda berikan. Kebijakan Privasi ini menjelaskan bagaimana kami mengumpulkan, menggunakan, menyimpan, dan melindungi informasi Anda.</p>
+            <p>Artikel SEO ("kami", "kita") menghormati privasi Anda dan berkomitmen melindungi data pribadi yang Anda berikan. Kebijakan Privasi ini menjelaskan bagaimana kami mengumpulkan, menggunakan, menyimpan, dan melindungi informasi Anda.</p>
           </section>
 
           <section>
@@ -112,7 +112,7 @@ export default function KebijakanPrivasi() {
               <li><strong className="text-white">Portabilitas:</strong> Mengekspor riwayat artikel Anda</li>
               <li><strong className="text-white">Pembatasan:</strong> Membatasi pemrosesan data dalam kondisi tertentu</li>
             </ul>
-            <p className="mt-2">Ajukan permintaan melalui <a href="mailto:support@seotulis.ai" className="text-amber-400 hover:underline">support@seotulis.ai</a>. Kami akan merespons dalam 7 hari kerja.</p>
+            <p className="mt-2">Ajukan permintaan melalui <a href="mailto:support@zaidly.com" className="text-amber-400 hover:underline">support@zaidly.com</a>. Kami akan merespons dalam 7 hari kerja.</p>
           </section>
 
           <section>
@@ -133,14 +133,14 @@ export default function KebijakanPrivasi() {
           <section>
             <h2 className="text-lg font-bold text-white mb-3">10. Kontak</h2>
             <p>Untuk pertanyaan, permintaan data, atau laporan pelanggaran privasi, hubungi kami di:</p>
-            <p className="mt-2"><a href="mailto:support@seotulis.ai" className="text-amber-400 hover:underline">support@seotulis.ai</a></p>
+            <p className="mt-2"><a href="mailto:support@zaidly.com" className="text-amber-400 hover:underline">support@zaidly.com</a></p>
           </section>
         </div>
       </main>
 
       <footer className="border-t border-slate-800/60 py-8 mt-8">
         <div className="max-w-4xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-3">
-          <p className="text-xs text-slate-600">© 2026 SEOTulis.AI</p>
+          <p className="text-xs text-slate-600">© 2026 Artikel SEO</p>
           <div className="flex gap-4 text-xs text-slate-500">
             <Link href="/syarat-ketentuan" className="hover:text-white transition-colors">Syarat & Ketentuan</Link>
             <Link href="/kebijakan-privasi" className="hover:text-white transition-colors">Kebijakan Privasi</Link>

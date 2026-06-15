@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
       headers: {
         "Authorization": `Basic ${Buffer.from(`${user}:${pass}`).toString("base64")}`,
         "Content-Type": "application/json",
-        "User-Agent": "SEOTulis/1.0",
+        "User-Agent": "Artikel SEO/1.0",
       },
     });
 
