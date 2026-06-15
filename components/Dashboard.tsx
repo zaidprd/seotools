@@ -98,12 +98,12 @@ function SingleTab({ wpSites, addWp, removeWp, user, refreshUser }: {
       const effectiveCfg = !isPro
         ? { ...cfg, articleSize: FREE_MAX_WORDS }
         : cfg;
-      const text = await generateArticle({
+      const res = await generateArticle({
         ...effectiveCfg, keyword, title, outline,
         modelId: !isPro ? FREE_MODEL_ID : model.id,
         userId: user?.id,
       } as any);
-      setResult(text);
+      setResult(res.text);
       refreshUser(); // refresh kredit
     } catch (e: any) {
       if (e.message?.includes("Kredit")) { setUpgradeReason(e.message); setShowUpgrade(true); }
@@ -301,13 +301,13 @@ function BulkTab({ wpSites, addWp, removeWp, user, refreshUser }: {
       if (rows[i].status !== "idle" || !rows[i].selectedTitle) continue;
       if (remainingCredits < cost) { setShowUpgrade(true); break; }
       try {
-        const text = await generateArticle({
+        const res = await generateArticle({
           ...cfg, keyword: rows[i].topic, title: rows[i].selectedTitle,
           extraKeywords: rows[i].keywords,
           modelId: !isPro ? FREE_MODEL_ID : model.id,
           userId: user?.id,
         } as any);
-        setRows(prev => prev.map((r, idx) => idx === i ? { ...r, status: "selesai", content: text } : r));
+        setRows(prev => prev.map((r, idx) => idx === i ? { ...r, status: "selesai", content: res.text } : r));
         remainingCredits -= cost;
         if (!isPro) break; // gratis hanya 1x
       } catch {
