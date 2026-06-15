@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { requireAuth } from "@/lib/supabase/require-auth";
+import { IMAGE_CREDIT_COST } from "@/lib/constants";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
-
-const SVG_CREDIT_COST = 3;
 
 const SVG_SYSTEM_PROMPT = `Kamu adalah generator ilustrasi SVG profesional untuk artikel blog.
 Tugasmu: buat ilustrasi SVG yang relevan, bersih, dan menarik berdasarkan deskripsi pengguna.
@@ -30,76 +29,54 @@ export async function POST(req: NextRequest) {
   const { prompt, keyword } = await req.json();
   if (!prompt) return NextResponse.json({ error: "Deskripsi gambar diperlukan" }, { status: 400 });
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
+  const baseUrl = process.env.SUMOPOD_BASE_URL || "https://ai.sumopod.com/v1";
+  const apiKey = process.env.SUMOPOD_API_KEY;
+  if (!apiKey) return NextResponse.json({ error: "Konfigurasi server tidak lengkap" }, { status: 500 });
 
-  const { data: userData } = await supabase
-    .from("users")
-    .select("credits, credits_used, plan, plan_expires_at, role")
-    .eq("id", userId)
-    .single();
-
-  if (!userData) return NextResponse.json({ error: "User tidak ditemukan" }, { status: 404 });
-
-  const isAdmin = userData.role === "admin";
+  // ── Potong kredit (gambar AI = IMAGE_CREDIT_COST). Admin bypass. ──
+  const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+  const { data: userData } = await sb.from("users").select("credits, role").eq("id", userId).single();
+  const isAdmin = userData?.role === "admin";
 
   if (!isAdmin) {
-    const planIsActive = !userData.plan_expires_at || new Date(userData.plan_expires_at) > new Date();
-    const effectivePlan = (userData.plan && userData.plan !== "free" && planIsActive) ? userData.plan : "free";
-
-    if (effectivePlan === "free") {
-      return NextResponse.json(
-        { error: "AI SVG hanya tersedia untuk paket berbayar. Upgrade untuk menggunakan fitur ini." },
-        { status: 403 }
-      );
-    }
-
-    const { data: deductResult, error: rpcError } = await supabase.rpc("deduct_credits", {
+    const { data: deductResult, error: rpcError } = await sb.rpc("deduct_credits", {
       p_user_id: userId,
-      p_amount: SVG_CREDIT_COST,
+      p_amount: IMAGE_CREDIT_COST,
     });
-
     if (rpcError) {
-      if ((userData.credits ?? 0) < SVG_CREDIT_COST) {
-        return NextResponse.json(
-          { error: `Kredit tidak cukup. Generate SVG butuh ${SVG_CREDIT_COST} 💎, kamu punya ${userData.credits ?? 0} 💎.` },
-          { status: 402 }
-        );
+      // Fallback jika RPC belum diinstall
+      if ((userData?.credits ?? 0) < IMAGE_CREDIT_COST) {
+        return NextResponse.json({ error: `Kredit tidak cukup (butuh ${IMAGE_CREDIT_COST} 💎 untuk gambar AI)` }, { status: 402 });
       }
-      await supabase.from("users").update({
-        credits: userData.credits - SVG_CREDIT_COST,
-        credits_used: (userData.credits_used ?? 0) + SVG_CREDIT_COST,
-      }).eq("id", userId);
+      await sb.from("users").update({ credits: (userData?.credits ?? 0) - IMAGE_CREDIT_COST }).eq("id", userId);
     } else {
       const result = deductResult as { success: boolean; credits: number };
       if (!result?.success) {
-        return NextResponse.json(
-          { error: `Kredit tidak cukup. Generate SVG butuh ${SVG_CREDIT_COST} 💎, kamu punya ${result?.credits ?? 0} 💎.` },
-          { status: 402 }
-        );
+        return NextResponse.json({ error: `Kredit tidak cukup (butuh ${IMAGE_CREDIT_COST} 💎 untuk gambar AI)` }, { status: 402 });
       }
     }
   }
 
-  const baseUrl = process.env.JOINBARENG_BASE_URL;
-  const apiKey = process.env.JOINBARENG_API_KEY;
-  if (!baseUrl || !apiKey) return NextResponse.json({ error: "Konfigurasi server tidak lengkap" }, { status: 500 });
+  // Refund kredit kalau generate gagal (best effort)
+  const refund = async () => {
+    if (isAdmin) return;
+    try { await sb.rpc("refund_credit", { p_user_id: userId, p_amount: IMAGE_CREDIT_COST }); }
+    catch { await sb.from("users").update({ credits: (userData?.credits ?? IMAGE_CREDIT_COST) }).eq("id", userId); }
+  };
 
   const userPrompt = keyword
     ? `Buat ilustrasi SVG untuk artikel tentang "${keyword}". Gambar: ${prompt}`
     : `Buat ilustrasi SVG: ${prompt}`;
 
   try {
-    const r = await fetch(`${baseUrl}/chat/completions`, {
+    const r = await fetch(`${baseUrl.replace(/\/$/, "")}/chat/completions`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "gpt-5.4-mini",
+        model: "gpt-4.1-mini",
         messages: [
           { role: "system", content: SVG_SYSTEM_PROMPT },
           { role: "user", content: userPrompt },
@@ -112,26 +89,31 @@ export async function POST(req: NextRequest) {
     if (!r.ok) {
       const errText = await r.text().catch(() => "(no body)");
       console.error("[generate-svg] provider error:", r.status, errText);
+      await refund();
       return NextResponse.json({ error: `Provider error (${r.status})` }, { status: 502 });
     }
 
     const data = await r.json();
     let svgText: string = data.choices?.[0]?.message?.content ?? "";
 
+    // Bersihkan jika AI menambahkan markdown code block
     svgText = svgText.replace(/^```(?:svg|xml)?\s*/i, "").replace(/\s*```$/, "").trim();
 
     if (!svgText.startsWith("<svg")) {
+      // Coba extract SVG dari dalam teks
       const match = svgText.match(/<svg[\s\S]*<\/svg>/i);
       if (!match) {
+        await refund();
         return NextResponse.json({ error: "AI tidak menghasilkan SVG yang valid, coba deskripsi yang berbeda" }, { status: 422 });
       }
       svgText = match[0];
     }
 
-    return NextResponse.json({ svg: svgText, creditsUsed: isAdmin ? 0 : SVG_CREDIT_COST });
+    return NextResponse.json({ svg: svgText, creditsUsed: isAdmin ? 0 : IMAGE_CREDIT_COST });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error("[generate-svg] error:", msg);
+    await refund();
     return NextResponse.json({ error: `Gagal generate SVG: ${msg}` }, { status: 500 });
   }
 }

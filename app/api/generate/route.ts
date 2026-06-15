@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { CREDIT_COST, FREE_MODEL_ID, FREE_ARTICLE_COST, SVG_CREDIT_COST } from "@/lib/constants";
+import { CREDIT_COST, FREE_MODEL_ID, FREE_ARTICLE_COST, IMAGE_CREDIT_COST } from "@/lib/constants";
 import { createClient } from "@supabase/supabase-js";
 import { requireAuth } from "@/lib/supabase/require-auth";
 
@@ -7,11 +7,6 @@ export const runtime  = "nodejs";
 export const maxDuration = 90;
 
 const SYSTEM = "Kamu adalah penulis konten SEO profesional Indonesia terbaik. Tulis konten berkualitas tinggi, informatif, terstruktur dengan baik, dan dioptimasi untuk mesin pencari.";
-
-const SVG_SYSTEM = `Kamu adalah generator ilustrasi SVG profesional untuk artikel blog.
-Buat ilustrasi SVG yang relevan, bersih, dan menarik berdasarkan deskripsi.
-ATURAN: Kembalikan HANYA kode SVG mentah, mulai dari <svg dan diakhiri </svg>.
-Gunakan viewBox="0 0 800 450". Warna harmonis dan modern. Jangan ada markdown atau penjelasan di luar SVG.`;
 
 interface ImageConfig {
   count: number; style: string; instructions: string; userPrompt: string;
@@ -23,32 +18,17 @@ interface ImageConfig {
 interface OAIProvider { base: string; envKey: string; models: Set<string>; apiModel?: string; }
 
 function oaiProviders(): Record<string, OAIProvider> {
-  const providers: Record<string, OAIProvider> = {
-    joinbareng: {
-      base: process.env.JOINBARENG_BASE_URL || "https://joinbareng.com/api/ai-proxy-v2/v1",
-      envKey: "JOINBARENG_API_KEY",
-      models: new Set(["gpt-5.5", "gpt-5.4", "gpt-5.4-mini", "gpt-5.2", "gpt-5.3-codex", "gpt-5.3-codex-spark"]),
+  return {
+    // SumoPod = provider utama (OpenAI-compatible, 1 key untuk semua model).
+    sumopod: {
+      base: process.env.SUMOPOD_BASE_URL || "https://ai.sumopod.com/v1",
+      envKey: "SUMOPOD_API_KEY",
+      models: new Set(["gemini/gemini-2.5-flash", "gpt-5.4", "claude-haiku-4-5", "claude-sonnet-4-6"]),
     },
   };
-
-  // Slot "custom" — provider bebas (SumoPod/OpenRouter/dll). Aktif jika env lengkap.
-  // CUSTOM_AI_BASE_URL + CUSTOM_AI_KEY + CUSTOM_AI_MODEL.
-  const cBase = process.env.CUSTOM_AI_BASE_URL;
-  const cModel = process.env.CUSTOM_AI_MODEL;
-  if (cBase && cModel && process.env.CUSTOM_AI_KEY) {
-    providers.custom = {
-      base: cBase,
-      envKey: "CUSTOM_AI_KEY",
-      apiModel: cModel,
-      models: new Set(["custom"]),
-    };
-  }
-
-  return providers;
 }
 
 function getProvider(modelId: string): string {
-  if (modelId === "custom") return "custom";
   const oai = oaiProviders();
   for (const [name, p] of Object.entries(oai)) {
     if (p.models.has(modelId)) return name;
@@ -68,35 +48,37 @@ function cleanAIContent(text: string): string {
     .trim();
 }
 
-function makeSvgTag(svgText: string, alt: string): string {
-  const b64 = Buffer.from(svgText, "utf-8").toString("base64");
-  return `<img src="data:image/svg+xml;base64,${b64}" alt="${alt}" style="max-width:100%;height:auto;display:block;margin:1em auto;border-radius:8px" />`;
+function makeImgTag(b64: string, alt: string, size: string): string {
+  const m = size?.match(/(\d+)px/);
+  const w = m ? ` width="${m[1]}"` : "";
+  return `<img src="data:image/png;base64,${b64}" alt="${alt}"${w} style="max-width:100%;height:auto;display:block;margin:1em auto;border-radius:8px" />`;
 }
 
-function insertSvgImages(content: string, svgs: string[], cfg: ImageConfig): string {
-  if (!svgs.length) return content;
+function insertImages(content: string, images: string[], cfg: ImageConfig): string {
+  if (!images.length) return content;
   const lines = content.split("\n");
   const result: string[] = [];
   let idx = 0;
   let h2Count = 0;
 
-  for (const line of lines) {
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
     const isH2 = /^## /.test(line);
 
     if (isH2) {
       h2Count++;
-      if (h2Count === 1 && idx < svgs.length) {
-        const alt = cfg.firstKeyword ? cfg.keyword : `${cfg.keyword} ilustrasi`;
-        result.push("", makeSvgTag(svgs[idx++], alt), "");
+      if (h2Count === 1 && idx < images.length) {
+        const alt = cfg.firstKeyword ? cfg.keyword : cfg.altText ? `${cfg.keyword} ilustrasi` : "";
+        result.push("", makeImgTag(images[idx++], alt, cfg.size), "");
       }
     }
 
     result.push(line);
 
-    if (isH2 && h2Count >= 2 && idx < svgs.length) {
+    if (isH2 && h2Count >= 2 && idx < images.length) {
       const heading = line.replace(/^##\s*/, "");
-      const alt = cfg.altText ? `${cfg.keyword} - ${heading}` : cfg.keyword;
-      result.push("", makeSvgTag(svgs[idx++], alt), "");
+      const alt = cfg.altText ? `${cfg.keyword} - ${heading}` : "";
+      result.push("", makeImgTag(images[idx++], alt, cfg.size), "");
     }
   }
 
@@ -143,7 +125,7 @@ export async function POST(req: NextRequest) {
 
     const isFreePlan = effectivePlan === "free";
     const effectiveCost = isFreePlan ? FREE_ARTICLE_COST : cost;
-    const imageCost = (!isFreePlan && imgCount > 0) ? imgCount * SVG_CREDIT_COST : 0;
+    const imageCost = (!isFreePlan && imgCount > 0) ? imgCount : 0;
     const totalCost = effectiveCost + imageCost;
 
     if (!isAdmin) {
@@ -184,9 +166,6 @@ export async function POST(req: NextRequest) {
     let text = "";
 
     const oai = oaiProviders();
-    if (provider === "custom" && !oai.custom) {
-      return NextResponse.json({ error: "Model Custom belum dikonfigurasi di server. Set CUSTOM_AI_BASE_URL, CUSTOM_AI_KEY, dan CUSTOM_AI_MODEL." }, { status: 500 });
-    }
     if (oai[provider]) {
       const cfg = oai[provider];
       const key = process.env[cfg.envKey];
@@ -276,46 +255,39 @@ export async function POST(req: NextRequest) {
 
     if (aiCleaning) text = cleanAIContent(text);
 
-    // Generate & insert SVG images via JoinBareng (paid plans only)
+    // Generate & insert images (paid plans only)
     if (imgCount > 0 && !isFreePlan && text) {
       try {
-        const jbBase = process.env.JOINBARENG_BASE_URL || "https://joinbareng.com/api/ai-proxy-v2/v1";
-        const jbKey = process.env.JOINBARENG_API_KEY;
-        if (jbKey) {
-          const svgs: string[] = [];
+        const key = process.env.GOOGLE_API_KEY;
+        if (key) {
+          const images: string[] = [];
           for (let i = 0; i < imgCount; i++) {
-            const svgPrompt = imgCfg.userPrompt
-              ? `Buat ilustrasi SVG untuk artikel tentang "${imgCfg.keyword}". Gambar: ${imgCfg.userPrompt}`
-              : `Buat ilustrasi SVG yang informatif dan relevan untuk artikel tentang "${imgCfg.keyword}", gaya visual: ${imgCfg.style}`;
+            const imgPrompt = imgCfg.userPrompt
+              ? `Professional photo of ${imgCfg.keyword}, ${imgCfg.userPrompt}, high quality, blog article`
+              : [imgCfg.keyword, imgCfg.style, "high quality blog illustration", imgCfg.instructions].filter(Boolean).join(", ");
             try {
-              const r = await fetch(`${jbBase.replace(/\/$/, "")}/chat/completions`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${jbKey}` },
-                body: JSON.stringify({
-                  model: "gpt-5.4-mini",
-                  messages: [
-                    { role: "system", content: SVG_SYSTEM },
-                    { role: "user", content: svgPrompt },
-                  ],
-                  temperature: 0.7,
-                  max_tokens: 4000,
-                }),
-              });
+              const r = await fetch(
+                `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${key}`,
+                {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    instances: [{ prompt: imgPrompt }],
+                    parameters: { sampleCount: 1, aspectRatio: "4:3" },
+                  }),
+                }
+              );
               const d = await r.json();
-              let svgText: string = d.choices?.[0]?.message?.content ?? "";
-              svgText = svgText.replace(/^```(?:svg|xml)?\s*/i, "").replace(/\s*```$/, "").trim();
-              if (!svgText.startsWith("<svg")) {
-                const match = svgText.match(/<svg[\s\S]*<\/svg>/i);
-                if (match) svgText = match[0];
+              if (r.ok && d.predictions?.[0]?.bytesBase64Encoded) {
+                images.push(d.predictions[0].bytesBase64Encoded);
               }
-              if (svgText.startsWith("<svg")) svgs.push(svgText);
-            } catch { /* skip failed individual SVG */ }
+            } catch { /* skip failed individual image */ }
           }
-          if (svgs.length > 0) {
-            text = insertSvgImages(text, svgs, imgCfg);
+          if (images.length > 0) {
+            text = insertImages(text, images, imgCfg);
           }
         }
-      } catch { /* silently skip SVG errors */ }
+      } catch { /* silently skip image errors */ }
     }
 
     // Save article history

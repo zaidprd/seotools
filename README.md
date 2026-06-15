@@ -1,23 +1,23 @@
-# Artikel SEO 🇮🇩
+﻿# Artikel SEO ðŸ‡®ðŸ‡©
 
-SaaS generator konten SEO Bahasa Indonesia berbasis AI — generate artikel berkualitas, auto-publish ke WordPress.
+SaaS generator konten SEO Bahasa Indonesia berbasis AI â€” generate artikel berkualitas, auto-publish ke WordPress.
 
 Dibangun dengan **Next.js 14 + TypeScript + Tailwind CSS + Supabase**.
 
-🌐 Live: [seo.zaidly.com](https://seo.zaidly.com)
+ðŸŒ Live: [seo.zaidly.com](https://seo.zaidly.com)
 
-## ✨ Fitur
+## âœ¨ Fitur
 
-- **1-Click Article Generator** — generate artikel SEO lengkap dari keyword (judul, struktur H2/H3, FAQ, meta description)
-- **Bulk Article Generation** — input puluhan keyword sekaligus, AI suggest judul, generate semua sekaligus
-- **Ilustrasi SVG AI** — generate dan sisipkan ilustrasi SVG otomatis ke dalam artikel
-- **Auto-Publish WordPress** — publish langsung via WordPress REST API (Application Password, tanpa plugin)
-- **Multi-Model AI** — GPT-5.4 Mini (gratis), GPT-5.2, GPT-5.4, GPT-5.5 (premium)
-- **Sistem Kredit 💎** — kredit per artikel sesuai model AI, 3 kredit per gambar SVG
-- **SEO Checker** — analisis real-time keyword density, heading structure, dll
-- **13 Bahasa** — Indonesia, English, Melayu, Jawa, Sunda, dll
+- **1-Click Article Generator** â€” generate artikel SEO lengkap dari keyword (judul, struktur H2/H3, FAQ, meta description)
+- **Bulk Article Generation** â€” input puluhan keyword sekaligus, AI suggest judul, generate semua sekaligus
+- **Ilustrasi SVG AI** â€” generate dan sisipkan ilustrasi SVG otomatis ke dalam artikel
+- **Auto-Publish WordPress** â€” publish langsung via WordPress REST API (Application Password, tanpa plugin)
+- **Multi-Model AI** â€” GPT-5.4 Mini (gratis), GPT-5.2, GPT-5.4, GPT-5.5 (premium)
+- **Sistem Kredit ðŸ’Ž** â€” kredit per artikel sesuai model AI, 3 kredit per gambar SVG
+- **SEO Checker** â€” analisis real-time keyword density, heading structure, dll
+- **13 Bahasa** â€” Indonesia, English, Melayu, Jawa, Sunda, dll
 
-## 🚀 Cara Menjalankan
+## ðŸš€ Cara Menjalankan
 
 ```bash
 npm install
@@ -28,7 +28,7 @@ npm run dev
 
 Buka http://localhost:3000
 
-## 🔑 Environment Variables
+## ðŸ”‘ Environment Variables
 
 ```env
 # Supabase
@@ -36,16 +36,16 @@ NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJxxx
 SUPABASE_SERVICE_ROLE_KEY=eyJxxx
 
-# AI (JoinBareng — OpenAI-compatible proxy)
-JOINBARENG_BASE_URL=https://api.joinbareng.com/v1
-JOINBARENG_API_KEY=jb-xxx
+# AI (JoinBareng â€” OpenAI-compatible proxy)
+SUMOPOD_BASE_URL=https://ai.sumopod.com/v1
+SUMOPOD_API_KEY=sk-xxx
 
 # Payment (Mayar)
 MAYAR_API_KEY=xxx
 MAYAR_WEBHOOK_SECRET=xxx
 ```
 
-## 📁 Struktur Penting
+## ðŸ“ Struktur Penting
 
 ```
 app/
@@ -72,14 +72,14 @@ supabase/
   functions/subscription-reminder/ Edge function email reminder
 ```
 
-## 🌐 Publish ke WordPress
+## ðŸŒ Publish ke WordPress
 
-1. WP Admin → Users → Profile → Application Passwords → buat password baru
-2. Di dashboard Artikel SEO → Publishing → Sambungkan Situs
+1. WP Admin â†’ Users â†’ Profile â†’ Application Passwords â†’ buat password baru
+2. Di dashboard Artikel SEO â†’ Publishing â†’ Sambungkan Situs
 3. Masukkan URL situs, username, application password
-4. Uji Koneksi → Simpan → siap publish
+4. Uji Koneksi â†’ Simpan â†’ siap publish
 
-## 📦 Deploy
+## ðŸ“¦ Deploy
 
 Deploy ke Vercel, set env vars di dashboard Vercel.
 
@@ -87,7 +87,7 @@ Deploy ke Vercel, set env vars di dashboard Vercel.
 vercel --prod
 ```
 
-## 📬 Kontak
+## ðŸ“¬ Kontak
 
 - Email: support@zaidly.com
 - Instagram: [@zaidprd](https://www.instagram.com/zaidprd)

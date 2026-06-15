@@ -51,7 +51,7 @@ export default function KebijakanPrivasi() {
             </ul>
 
             <h3 className="text-base font-semibold text-slate-200 mt-4 mb-2">2.3 Konten yang Dihasilkan</h3>
-            <p className="text-slate-400">Prompt dan artikel yang dihasilkan mungkin diproses oleh penyedia AI pihak ketiga (JoinBareng sebagai proxy AI). Lihat kebijakan privasi masing-masing penyedia untuk detail lebih lanjut.</p>
+            <p className="text-slate-400">Prompt dan artikel yang dihasilkan mungkin diproses oleh penyedia AI pihak ketiga (SumoPod sebagai proxy AI untuk teks &amp; gambar). Lihat kebijakan privasi masing-masing penyedia untuk detail lebih lanjut.</p>
           </section>
 
           <section>
@@ -72,7 +72,7 @@ export default function KebijakanPrivasi() {
             <ul className="list-disc pl-5 mt-2 space-y-2 text-slate-400">
               <li><strong className="text-white">Supabase</strong> — penyimpanan database dan autentikasi (server di region Singapore)</li>
               <li><strong className="text-white">Mayar</strong> — pemrosesan pembayaran (tidak menyimpan data kartu di server kami)</li>
-              <li><strong className="text-white">JoinBareng</strong> — proxy AI utama untuk generate teks artikel (model GPT-5.x)</li>
+              <li><strong className="text-white">SumoPod</strong> — proxy AI utama untuk generate teks artikel &amp; gambar</li>
               <li><strong className="text-white">Resend</strong> — pengiriman email notifikasi</li>
             </ul>
             <p className="mt-2">Semua penyedia layanan pihak ketiga terikat perjanjian kerahasiaan dan hanya dapat menggunakan data untuk layanan yang kami minta.</p>
