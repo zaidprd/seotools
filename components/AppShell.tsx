@@ -99,9 +99,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         {/* Logo */}
         <div className="px-4 py-4 border-b border-slate-800/60 flex items-center justify-between">
           <a href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center font-black text-[#0c0e14] text-sm">S</div>
+            <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center font-black text-[#0c0e14] text-sm">A</div>
             <span className="font-black text-base tracking-tight" style={{ fontFamily: "Sora,sans-serif" }}>
-              <span className="text-white">SEO</span><span className="text-amber-400 font-light">Tulis</span><span className="text-amber-500">.AI</span>
+              <span className="text-white">Artikel</span><span className="text-amber-400"> SEO</span>
             </span>
           </a>
           {/* Close button inside sidebar — mobile only */}
