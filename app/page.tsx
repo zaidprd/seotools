@@ -438,7 +438,7 @@ export default function LandingPage() {
                   { feature: "Generate < 60 detik", seo: true, manual: false, other: "Kadang" },
                   { feature: "Struktur E-E-A-T", seo: true, manual: "Tergantung", other: false },
                   { feature: "Bulk Generation", seo: "✅ Starter+", manual: false, other: false },
-                  { feature: "Harga per artikel", seo: "Rp 990–4.950", manual: "Rp 50.000+", other: "Rp 3.000+" },
+                  { feature: "Harga per artikel", seo: "Rp 1.400–5.950", manual: "Rp 50.000+", other: "Rp 3.000+" },
                 ].map((row, i) => (
                   <tr key={row.feature} className={`border-t border-slate-800/60 ${i % 2 === 0 ? "bg-slate-900/20" : ""}`}>
                     <td className="px-5 py-3.5 text-slate-300">{row.feature}</td>
@@ -462,7 +462,7 @@ export default function LandingPage() {
               </tbody>
             </table>
           </div>
-          <p className="text-xs text-slate-600 text-center mt-4">*Harga dihitung berdasarkan paket Starter 100 kredit/bulan Rp 99.000. Harga freelance rata-rata Rp 50.000–200.000/artikel.</p>
+          <p className="text-xs text-slate-600 text-center mt-4">*Harga dihitung berdasarkan paket Starter 35 kredit/bulan Rp 49.000. Harga freelance rata-rata Rp 50.000–200.000/artikel.</p>
         </div>
       </section>
 
