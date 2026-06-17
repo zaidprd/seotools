@@ -24,7 +24,7 @@ export default function ModelSelector({ sel, set, credits, isPro }: Props) {
             <span className="text-[10px] bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 px-2 py-0.5 rounded-full font-bold">{CREDIT_COST[FREE_MODEL_ID]} 💎</span>
           </div>
           <p className="text-[10px] text-slate-600 text-center leading-relaxed">
-            Upgrade untuk akses GPT-5.4, Claude Haiku 4.5, dan Claude Sonnet 4.6
+            Upgrade untuk akses DeepSeek V3, GPT-5.4, Claude Sonnet 4.6, dan lebih banyak model
           </p>
           <button onClick={() => setShowUpgrade(true)}
             className="text-[10px] text-amber-400 hover:text-amber-300 border border-amber-500/20 hover:border-amber-500/40 py-1.5 rounded-lg transition-colors">

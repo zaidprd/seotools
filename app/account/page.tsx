@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { PLANS } from "@/lib/constants";
+import { PLANS, TOPUP_PACKS } from "@/lib/constants";
 import AppShell from "@/components/AppShell";
 
 interface UserProfile {
@@ -21,6 +21,7 @@ export default function AccountPage() {
   const [loading, setLoading] = useState(true);
   const [renewLoading, setRenewLoading] = useState(false);
   const [renewMsg, setRenewMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+  const [topupLoading, setTopupLoading] = useState<string | null>(null);
 
   const fetchProfile = useCallback(async () => {
     const res = await fetch(`/api/user`);
@@ -54,7 +55,7 @@ export default function AccountPage() {
       })
         .then(r => r.json())
         .then(d => {
-          if (d.success) setRenewMsg({ type: "ok", text: d.alreadyApplied ? "Paket sudah aktif." : "Perpanjangan berhasil! Paket aktif 30 hari lagi." });
+          if (d.success) setRenewMsg({ type: "ok", text: d.alreadyApplied ? "Pembayaran sudah diproses sebelumnya." : d.planId?.startsWith("topup_") ? `Topup berhasil! ${d.creditsAdded} kredit telah ditambahkan.` : "Perpanjangan berhasil! Paket aktif 30 hari lagi." });
           else setRenewMsg({ type: "ok", text: "Pembayaran sedang diproses. Kredit akan masuk dalam beberapa menit." });
           fetchProfile();
         })
@@ -65,6 +66,24 @@ export default function AccountPage() {
       window.history.replaceState({}, "", "/account");
     }
   }, []);
+
+  const handleTopup = async (packId: string) => {
+    setTopupLoading(packId);
+    setRenewMsg(null);
+    try {
+      const res = await fetch("/api/payment/topup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ packId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      window.location.href = data.paymentUrl;
+    } catch (e: any) {
+      setRenewMsg({ type: "err", text: e.message || "Gagal memulai pembayaran topup" });
+      setTopupLoading(null);
+    }
+  };
 
   const logout = async () => {
     await createClient().auth.signOut();
@@ -302,6 +321,34 @@ export default function AccountPage() {
                     <p className="text-xs text-red-300">Kredit habis — <Link href="/pricing" className="underline font-semibold">upgrade sekarang</Link> untuk lanjutkan</p>
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* Topup Kredit */}
+            {!isAdmin && (
+              <div className="bg-slate-900/40 border border-slate-800 rounded-2xl p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-300">Topup Kredit</h3>
+                    <p className="text-[11px] text-slate-600 mt-0.5">Kredit tidak expired — beli kapan saja, pakai kapan saja</p>
+                  </div>
+                  <span className="text-amber-400 font-black text-base">💎</span>
+                </div>
+                <div className="grid grid-cols-3 gap-3">
+                  {TOPUP_PACKS.map(pack => (
+                    <button key={pack.id} onClick={() => handleTopup(pack.id)} disabled={!!topupLoading}
+                      className="flex flex-col items-center gap-1.5 p-4 rounded-xl border border-slate-700 hover:border-amber-500/40 hover:bg-amber-500/5 transition-all disabled:opacity-50 disabled:cursor-not-allowed group">
+                      <span className="text-lg font-black text-amber-400">{pack.credits}</span>
+                      <span className="text-[10px] text-slate-500">kredit</span>
+                      <span className="text-xs font-bold text-white mt-1">{pack.priceLabel}</span>
+                      <span className="text-[10px] text-slate-600">{pack.perCredit}</span>
+                      {topupLoading === pack.id
+                        ? <span className="text-[10px] text-amber-400 mt-1">Memproses...</span>
+                        : <span className="text-[10px] text-slate-700 group-hover:text-amber-400 transition-colors mt-1">{pack.name}</span>
+                      }
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
 
