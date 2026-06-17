@@ -1,4 +1,4 @@
-# SEOTulis.AI 🇮🇩
+# Artikel SEO 🇮🇩
 
 SaaS generator konten SEO Bahasa Indonesia. Generate artikel berkualitas dengan AI lalu auto-publish ke WordPress.
 
