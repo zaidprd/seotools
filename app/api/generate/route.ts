@@ -144,6 +144,8 @@ export async function POST(req: NextRequest) {
 
     const { prompt, modelId = FREE_MODEL_ID, aiCleaning = false, imageConfig } = await req.json();
     if (!prompt) return NextResponse.json({ error: "Prompt kosong" }, { status: 400 });
+    if (typeof prompt !== "string" || prompt.length > 8000)
+      return NextResponse.json({ error: "Prompt terlalu panjang (maks 8.000 karakter)" }, { status: 400 });
 
     // Validasi model ID
     const safeModelId = ALLOWED_MODELS.has(modelId) ? modelId : FREE_MODEL_ID;
@@ -222,7 +224,7 @@ export async function POST(req: NextRequest) {
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${key}` },
         body: JSON.stringify({
           model: cfg.apiModel || safeModelId, max_tokens: 4000,
-          messages: [{ role: "system", content: SYSTEM }, { role: "user", content: prompt }],
+          messages: [{ role: "system", content: SYSTEM }, { role: "user", content: `[PERMINTAAN PENGGUNA]\n${prompt}\n[/PERMINTAAN PENGGUNA]` }],
         }),
       });
       if (!r.ok) {

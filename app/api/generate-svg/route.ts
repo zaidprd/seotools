@@ -28,6 +28,8 @@ export async function POST(req: NextRequest) {
 
   const { prompt, keyword } = await req.json();
   if (!prompt) return NextResponse.json({ error: "Deskripsi gambar diperlukan" }, { status: 400 });
+  if (typeof prompt !== "string" || prompt.length > 500)
+    return NextResponse.json({ error: "Deskripsi terlalu panjang (maks 500 karakter)" }, { status: 400 });
 
   const baseUrl = process.env.SUMOPOD_BASE_URL || "https://ai.sumopod.com/v1";
   const apiKey = process.env.SUMOPOD_API_KEY;
