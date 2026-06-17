@@ -117,24 +117,24 @@ export interface UserData {
 
 export const PLANS = [
   {
-    id: "free", name: "Gratis", price: 0, priceLabel: "Rp 0", period: "sekali coba",
+    id: "free", name: "Coba Gratis", price: 0, priceLabel: "Rp 0", period: "sekali",
     credits: 1, maxWords: "1.000 kata", maxSites: 0, maxBulk: 0,
     canSchedule: false, canSyndicate: false, priority: false, imageSource: "upload",
-    features: ["1 artikel uji gratis", "Maks 1.000 kata", "Model Gemini 2.5 Flash", "Editor artikel built-in", "Export manual"],
+    features: ["1 kredit gratis (selamanya)", "Maks 1.000 kata", "Model Gemini 2.5 Flash", "Editor artikel built-in", "Export manual"],
     cta: "Coba Gratis", highlight: false,
   },
   {
     id: "starter", name: "Starter", price: 49000, priceLabel: "Rp 49rb", period: "/bulan",
-    credits: 25, maxWords: "2.000 kata", maxSites: 1, maxBulk: 10,
+    credits: 25, maxWords: "2.000 kata", maxSites: 0, maxBulk: 10,
     canSchedule: true, canSyndicate: false, priority: false, imageSource: "imagen",
-    features: ["25 kredit/bulan", "Maks 2.000 kata", "Semua model AI", "Unlimited situs WordPress", "Bulk max 10 artikel", "Schedule publish", "Generate gambar AI otomatis", "Editor artikel built-in", "Email support"],
+    features: ["25 kredit per perpanjangan", "Kredit tidak expired, sisa terbawa", "Maks 2.000 kata", "Semua model AI", "Unlimited situs WordPress", "Bulk max 10 artikel", "Schedule publish", "Generate gambar AI otomatis", "Editor artikel built-in", "Email support"],
     cta: "Pilih Starter", highlight: false,
   },
   {
     id: "pro", name: "Pro", price: 99000, priceLabel: "Rp 99rb", period: "/bulan",
-    credits: 60, maxWords: "2.500 kata", maxSites: 3, maxBulk: 30,
+    credits: 60, maxWords: "2.500 kata", maxSites: 0, maxBulk: 30,
     canSchedule: true, canSyndicate: true, priority: true, imageSource: "imagen",
-    features: ["60 kredit/bulan", "Maks 2.500 kata", "Semua model AI", "Unlimited situs WordPress", "Bulk max 30 artikel", "Schedule publish", "Sindikasi konten", "Generate gambar AI otomatis", "Editor artikel + SEO checker", "Priority generate", "Priority support"],
+    features: ["60 kredit per perpanjangan", "Kredit tidak expired, sisa terbawa", "Maks 2.500 kata", "Semua model AI", "Unlimited situs WordPress", "Bulk max 30 artikel", "Schedule publish", "Sindikasi konten", "Generate gambar AI otomatis", "Editor artikel + SEO checker", "Priority generate", "Priority support"],
     cta: "Pilih Pro", highlight: true,
   },
 ];

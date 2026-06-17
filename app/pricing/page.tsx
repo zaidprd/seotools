@@ -113,19 +113,39 @@ export default function PricingPage() {
           </div>
         )}
 
-        {/* Kredit explanation */}
-        <div className="bg-slate-900/40 border border-slate-800 rounded-2xl p-5 mb-10 max-w-3xl mx-auto">
-          <p className="text-sm font-bold text-white mb-3 text-center">💎 Sistem Kredit — Pilih Model Sesuai Kebutuhan</p>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-            {MODELS.map(m => (
-              <div key={m.id} className={`text-center p-2.5 rounded-xl border ${m.id===FREE_MODEL_ID?"border-emerald-500/30 bg-emerald-500/5":"border-slate-700 bg-slate-900/60"}`}>
-                <p className="text-xs font-semibold text-slate-200 mb-1">{m.label}</p>
-                <p className="font-black text-amber-400">{m.credits} 💎</p>
-                <p className="text-[10px] text-slate-600">per artikel</p>
-              </div>
-            ))}
+        {/* How credits work */}
+        <div className="bg-slate-900/40 border border-amber-500/20 rounded-2xl p-6 mb-10 max-w-3xl mx-auto">
+          <p className="text-sm font-black text-white mb-1 text-center">💎 Bagaimana Kredit Bekerja?</p>
+          <p className="text-xs text-slate-500 text-center mb-5">Kredit = satuan generate artikel. Bukan langganan konten — kamu beli kredit, pakai kapan mau.</p>
+          <div className="grid md:grid-cols-3 gap-4 mb-5">
+            <div className="bg-slate-900/60 rounded-xl p-4 border border-slate-800">
+              <p className="text-amber-400 text-xl mb-2">📦</p>
+              <p className="text-sm font-bold text-white mb-1">Perpanjang = dapat kredit baru</p>
+              <p className="text-xs text-slate-500 leading-relaxed">Bayar Rp 49rb/bulan → langsung masuk 25 kredit ke akun. Kredit ditambah ke saldo yang sudah ada.</p>
+            </div>
+            <div className="bg-slate-900/60 rounded-xl p-4 border border-slate-800">
+              <p className="text-emerald-400 text-xl mb-2">♾️</p>
+              <p className="text-sm font-bold text-white mb-1">Kredit tidak expired</p>
+              <p className="text-xs text-slate-500 leading-relaxed">Sisa kredit bulan ini terbawa ke bulan depan. Beli banyak sekarang, pakai pelan-pelan — tidak hangus.</p>
+            </div>
+            <div className="bg-slate-900/60 rounded-xl p-4 border border-slate-800">
+              <p className="text-blue-400 text-xl mb-2">⚡</p>
+              <p className="text-sm font-bold text-white mb-1">Tidak perpanjang? Aman</p>
+              <p className="text-xs text-slate-500 leading-relaxed">Sisa kredit tetap bisa dipakai. Fitur premium (bulk, schedule) non-aktif, tapi kredit kamu tidak hilang.</p>
+            </div>
           </div>
-          <p className="text-[11px] text-slate-600 text-center mt-3">Model lebih canggih = kredit lebih banyak terpakai</p>
+          <div className="border-t border-slate-800 pt-4">
+            <p className="text-[11px] text-slate-500 text-center mb-3">Biaya per artikel berdasarkan model AI yang dipilih:</p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+              {MODELS.map(m => (
+                <div key={m.id} className={`text-center p-2.5 rounded-xl border ${m.id===FREE_MODEL_ID?"border-emerald-500/30 bg-emerald-500/5":"border-slate-700 bg-slate-900/60"}`}>
+                  <p className="text-xs font-semibold text-slate-200 mb-1">{m.label}</p>
+                  <p className="font-black text-amber-400">{m.credits} 💎</p>
+                  <p className="text-[10px] text-slate-600">per artikel</p>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* Plans */}
@@ -145,10 +165,13 @@ export default function PricingPage() {
                   {billing === "yearly" && plan.price > 0 && (
                     <p className="text-[11px] text-emerald-400 mb-1">Hemat Rp {(plan.price * 12 * yearlyDiscount).toLocaleString("id-ID")}/tahun</p>
                   )}
-                  <div className="flex items-center gap-1.5 mb-4">
+                  <div className="flex items-center gap-1.5 mb-1">
                     <span className="text-2xl font-black text-amber-400">{plan.credits}</span>
-                    <span className="text-slate-400 text-sm">💎 kredit {plan.id==="free"?"selamanya":"/bulan"}</span>
+                    <span className="text-slate-400 text-sm">💎 kredit</span>
                   </div>
+                  <p className="text-[11px] text-slate-600 mb-4">
+                    {plan.id === "free" ? "sekali, selamanya" : "per perpanjangan · tidak expired"}
+                  </p>
                   <ul className="flex flex-col gap-2 mb-6">
                     {plan.features.map(f => (
                       <li key={f} className="flex items-start gap-2 text-sm text-slate-300">

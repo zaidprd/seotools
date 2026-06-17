@@ -109,8 +109,8 @@ const FAQS = [
     a: "Tidak perlu! Kami menggunakan WordPress REST API yang sudah built-in di semua WordPress modern. Cukup buat Application Password di WP Admin > Users > Profile, masukkan ke Artikel SEO, dan siap publish.",
   },
   {
-    q: "Apakah kredit kadaluarsa?",
-    a: "Kredit berbayar tidak kadaluarsa. Kredit gratis (1 kredit) juga selamanya dan tidak di-reset. Beli kapan perlu, pakai kapan mau.",
+    q: "Lalu apa bedanya langganan bulanan dengan topup kredit?",
+    a: "Sama-sama dapat kredit — tapi langganan bulanan juga mengaktifkan fitur premium (bulk generation, schedule publish, dll). Kalau hanya butuh kredit tambahan tanpa fitur premium, cukup topup. Kredit dari dua sumber ini digabung jadi satu saldo dan tidak ada yang expired.",
   },
   {
     q: "Model AI mana yang paling bagus untuk blog Indonesia?",
@@ -537,7 +537,12 @@ export default function LandingPage() {
                 <div className={`p-6 ${p.highlight ? "bg-gradient-to-b from-amber-500/10 to-slate-900/60" : "bg-slate-900/40"}`}>
                   <h3 className="font-black text-xl mb-1" style={{ fontFamily: "Sora,sans-serif" }}>{p.name}</h3>
                   <div className="mb-1"><span className="text-2xl font-black">{p.priceLabel}</span><span className="text-slate-500 text-sm">{p.period}</span></div>
-                  <p className="text-amber-400 font-bold text-sm mb-4">{p.credits} 💎 kredit {p.id === "free" ? "selamanya" : "/bulan"}</p>
+                  <div className="mb-1">
+                    <span className="text-amber-400 font-bold text-sm">{p.credits} 💎 kredit</span>
+                  </div>
+                  <p className="text-[11px] text-slate-600 mb-4">
+                    {p.id === "free" ? "sekali · selamanya" : "per perpanjangan · tidak expired"}
+                  </p>
                   <ul className="flex flex-col gap-1.5 mb-5">
                     {p.features.map(f => <li key={f} className="flex items-center gap-2 text-xs text-slate-300"><span className="text-emerald-400 flex-shrink-0">✓</span>{f}</li>)}
                   </ul>
