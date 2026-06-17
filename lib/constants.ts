@@ -9,29 +9,38 @@ export interface ModelInfo {
 // Model yang tersedia — lewat SumoPod (proxy OpenAI-compatible, 1 key untuk semua).
 // id = nama model asli di SumoPod (lihat tab Models / GET /v1/models).
 export const MODELS: ModelInfo[] = [
-  { id: "gemini/gemini-2.5-flash", label: "Gemini 2.5 Flash",  provider: "SumoPod", badge: "GRATIS", credits: 0 },
-  { id: "gpt-5.4",                 label: "GPT-5.4",           provider: "SumoPod", badge: "PRO",    credits: 3 },
-  { id: "claude-haiku-4-5",        label: "Claude Haiku 4.5",  provider: "SumoPod", badge: "PRO",    credits: 5 },
-  { id: "claude-sonnet-4-6",       label: "Claude Sonnet 4.6", provider: "SumoPod", badge: "MAX",    credits: 7 },
+  { id: "gemini/gemini-2.5-flash", label: "Gemini 2.5 Flash",  provider: "SumoPod", badge: "HEMAT", credits: 1 },
+  { id: "gpt-5.4",                 label: "GPT-5.4",           provider: "SumoPod", badge: "PRO",   credits: 3 },
+  { id: "claude-haiku-4-5",        label: "Claude Haiku 4.5",  provider: "SumoPod", badge: "PRO",   credits: 5 },
+  { id: "claude-sonnet-4-6",       label: "Claude Sonnet 4.6", provider: "SumoPod", badge: "MAX",   credits: 7 },
 ];
 
 export const FREE_MODEL_ID    = "gemini/gemini-2.5-flash";
 export const FREE_MODEL_LABEL = "Gemini 2.5 Flash";
 export const FREE_CREDITS     = 1;
-export const FREE_ARTICLE_COST = 1;          // kredit yg dicharge free user, terlepas dari harga model
+// Free user: 1 artikel percobaan, pakai 1 kredit. Setelah habis tidak bisa lagi.
+export const FREE_ARTICLE_COST = 1;
 export const FREE_MAX_WORDS   = "Pendek (500–800 kata)";
 
-// Biaya kredit per 1 gambar AI (SVG via SumoPod) — di body artikel & tombol AI SVG di editor.
+// Biaya kredit per 1 gambar AI (SVG via SumoPod).
 // Upload gambar sendiri tetap gratis (bukan AI).
 export const IMAGE_CREDIT_COST = 3;
 
-// Biaya kredit per model
+// Biaya kredit per model (berlaku untuk user berbayar).
+// Kredit TIDAK expired — sisa kredit tetap ada meski plan habis, bisa dipakai kapan saja.
 export const CREDIT_COST: Record<string, number> = {
-  "gemini/gemini-2.5-flash": 0,
+  "gemini/gemini-2.5-flash": 1,   // 1 kredit/artikel (bukan gratis, untuk cegah abuse)
   "gpt-5.4":                 3,
   "claude-haiku-4-5":        5,
   "claude-sonnet-4-6":       7,
 };
+
+// Paket topup kredit — bisa dibeli kapan saja, tidak expired, bisa dicampur plan bulanan.
+export const TOPUP_PACKS = [
+  { id: "topup_10",  name: "Mini",     credits: 10, price: 19000,  priceLabel: "Rp 19rb",  perCredit: "Rp 1.900/kr" },
+  { id: "topup_25",  name: "Standard", credits: 25, price: 45000,  priceLabel: "Rp 45rb",  perCredit: "Rp 1.800/kr" },
+  { id: "topup_50",  name: "Bulk",     credits: 50, price: 85000,  priceLabel: "Rp 85rb",  perCredit: "Rp 1.700/kr" },
+];
 
 export const LANGUAGES     = ["Indonesia","English (US)","English (UK)","Melayu","Jawa","Sunda","Arabic","Spanish","French","German","Japanese","Korean","Chinese"];
 export const ARTICLE_TYPES = ["Blog Post","Artikel Berita","Review Produk","Panduan (How-to)","Listicle","Opini","Produk Roundup","Press Release","Landing Page","Email"];

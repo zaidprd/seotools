@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { MODELS, ModelInfo, FREE_MODEL_ID, FREE_MODEL_LABEL } from "@/lib/constants";
+import { MODELS, ModelInfo, FREE_MODEL_ID, FREE_MODEL_LABEL, CREDIT_COST } from "@/lib/constants";
 
 interface Props {
   sel: ModelInfo;
@@ -21,7 +21,7 @@ export default function ModelSelector({ sel, set, credits, isPro }: Props) {
             <div className="flex items-center gap-2">
               <span className="text-xs text-slate-300">{FREE_MODEL_LABEL}</span>
             </div>
-            <span className="text-[10px] bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 px-2 py-0.5 rounded-full font-bold">1 💎</span>
+            <span className="text-[10px] bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 px-2 py-0.5 rounded-full font-bold">{CREDIT_COST[FREE_MODEL_ID]} 💎</span>
           </div>
           <p className="text-[10px] text-slate-600 text-center leading-relaxed">
             Upgrade untuk akses GPT-5.4, Claude Haiku 4.5, dan Claude Sonnet 4.6

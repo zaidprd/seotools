@@ -81,7 +81,7 @@ export const Sec = ({ title, icon, children, collapsible = true, defaultOpen }: 
 };
 
 export const Badge = ({ text, v = "default" }: { text: string; v?: string }) => {
-  const s: Record<string, string> = { GRATIS: "bg-emerald-500/15 text-emerald-400 border-emerald-500/25", PRO: "bg-amber-500/15 text-amber-400 border-amber-500/25", success: "bg-emerald-500/15 text-emerald-400 border-emerald-500/25", error: "bg-red-500/15 text-red-400 border-red-500/25", loading: "bg-blue-500/15 text-blue-400 border-blue-500/25", default: "bg-slate-800 text-slate-400 border-slate-700" };
+  const s: Record<string, string> = { GRATIS: "bg-emerald-500/15 text-emerald-400 border-emerald-500/25", HEMAT: "bg-emerald-500/15 text-emerald-400 border-emerald-500/25", PRO: "bg-amber-500/15 text-amber-400 border-amber-500/25", MAX: "bg-violet-500/15 text-violet-400 border-violet-500/25", success: "bg-emerald-500/15 text-emerald-400 border-emerald-500/25", error: "bg-red-500/15 text-red-400 border-red-500/25", loading: "bg-blue-500/15 text-blue-400 border-blue-500/25", default: "bg-slate-800 text-slate-400 border-slate-700" };
   return <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${s[v] || s[text] || s.default}`}>{text}</span>;
 };
 
