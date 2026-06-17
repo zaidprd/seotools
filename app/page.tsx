@@ -500,7 +500,7 @@ export default function LandingPage() {
               </div>
             ))}
           </div>
-          <p className="text-[11px] text-slate-600 text-center">Contoh: dengan 25 kredit → 25 artikel Gemini Flash, atau 8 artikel GPT-5.4, atau 3 artikel Claude Sonnet 4.6</p>
+          <p className="text-[11px] text-slate-600 text-center">Contoh: dengan 20 kredit → 20 artikel Gemini Flash, atau 10 artikel GPT-5.4, atau 4 artikel Claude Sonnet 4.6</p>
         </div>
 
         {/* Model cards */}

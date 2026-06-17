@@ -12,10 +12,10 @@ export const MODELS: ModelInfo[] = [
   { id: "gemini/gemini-2.5-flash",      label: "Gemini 2.5 Flash",      provider: "SumoPod", badge: "HEMAT", credits: 1 },
   { id: "deepseek/deepseek-v3-0324",    label: "DeepSeek V3",           provider: "SumoPod", badge: "HEMAT", credits: 1 },
   { id: "gpt-4.1-mini",                 label: "GPT-4.1 Mini",          provider: "SumoPod", badge: "HEMAT", credits: 2 },
-  { id: "gpt-5.4",                      label: "GPT-5.4",               provider: "SumoPod", badge: "PRO",   credits: 3 },
-  { id: "gemini/gemini-2.5-pro",        label: "Gemini 2.5 Pro",        provider: "SumoPod", badge: "PRO",   credits: 4 },
-  { id: "claude-haiku-4-5",             label: "Claude Haiku 4.5",      provider: "SumoPod", badge: "PRO",   credits: 5 },
-  { id: "claude-sonnet-4-6",            label: "Claude Sonnet 4.6",     provider: "SumoPod", badge: "MAX",   credits: 7 },
+  { id: "gpt-5.4",                      label: "GPT-5.4",               provider: "SumoPod", badge: "PRO",   credits: 2 },
+  { id: "gemini/gemini-2.5-pro",        label: "Gemini 2.5 Pro",        provider: "SumoPod", badge: "PRO",   credits: 3 },
+  { id: "claude-haiku-4-5",             label: "Claude Haiku 4.5",      provider: "SumoPod", badge: "PRO",   credits: 3 },
+  { id: "claude-sonnet-4-6",            label: "Claude Sonnet 4.6",     provider: "SumoPod", badge: "MAX",   credits: 5 },
 ];
 
 export const FREE_MODEL_ID    = "gemini/gemini-2.5-flash";
@@ -35,17 +35,17 @@ export const CREDIT_COST: Record<string, number> = {
   "gemini/gemini-2.5-flash":   1,
   "deepseek/deepseek-v3-0324": 1,
   "gpt-4.1-mini":              2,
-  "gpt-5.4":                   3,
-  "gemini/gemini-2.5-pro":     4,
-  "claude-haiku-4-5":          5,
-  "claude-sonnet-4-6":         7,
+  "gpt-5.4":                   2,
+  "gemini/gemini-2.5-pro":     3,
+  "claude-haiku-4-5":          3,
+  "claude-sonnet-4-6":         5,
 };
 
 // Paket topup kredit — bisa dibeli kapan saja, tidak expired, bisa dicampur plan bulanan.
 export const TOPUP_PACKS = [
-  { id: "topup_10",  name: "Mini",     credits: 10, price: 19000,  priceLabel: "Rp 19rb",  perCredit: "Rp 1.900/kr" },
-  { id: "topup_25",  name: "Standard", credits: 25, price: 45000,  priceLabel: "Rp 45rb",  perCredit: "Rp 1.800/kr" },
-  { id: "topup_50",  name: "Bulk",     credits: 50, price: 85000,  priceLabel: "Rp 85rb",  perCredit: "Rp 1.700/kr" },
+  { id: "topup_10",  name: "Mini",     credits: 10, price: 15000,  priceLabel: "Rp 15rb",  perCredit: "Rp 1.500/kr" },
+  { id: "topup_25",  name: "Standard", credits: 25, price: 35000,  priceLabel: "Rp 35rb",  perCredit: "Rp 1.400/kr" },
+  { id: "topup_50",  name: "Bulk",     credits: 50, price: 60000,  priceLabel: "Rp 60rb",  perCredit: "Rp 1.200/kr" },
 ];
 
 export const LANGUAGES     = ["Indonesia","English (US)","English (UK)","Melayu","Jawa","Sunda","Arabic","Spanish","French","German","Japanese","Korean","Chinese"];
@@ -124,17 +124,17 @@ export const PLANS = [
     cta: "Coba Gratis", highlight: false,
   },
   {
-    id: "starter", name: "Starter", price: 49000, priceLabel: "Rp 49rb", period: "/bulan",
-    credits: 25, maxWords: "2.000 kata", maxSites: 0, maxBulk: 10,
+    id: "starter", name: "Starter", price: 25000, priceLabel: "Rp 25rb", period: "/bulan",
+    credits: 20, maxWords: "2.000 kata", maxSites: 0, maxBulk: 10,
     canSchedule: true, canSyndicate: false, priority: false, imageSource: "imagen",
-    features: ["25 kredit per perpanjangan", "Kredit tidak expired, sisa terbawa", "Maks 2.000 kata", "Semua model AI", "Unlimited situs WordPress", "Bulk max 10 artikel", "Schedule publish", "Generate gambar AI otomatis", "Editor artikel built-in", "Email support"],
+    features: ["20 kredit per perpanjangan", "Kredit tidak expired, sisa terbawa", "Maks 2.000 kata", "Semua model AI", "Unlimited situs WordPress", "Bulk max 10 artikel", "Schedule publish", "Generate gambar AI otomatis", "Editor artikel built-in", "Email support"],
     cta: "Pilih Starter", highlight: false,
   },
   {
-    id: "pro", name: "Pro", price: 99000, priceLabel: "Rp 99rb", period: "/bulan",
-    credits: 60, maxWords: "2.500 kata", maxSites: 0, maxBulk: 30,
+    id: "pro", name: "Pro", price: 55000, priceLabel: "Rp 55rb", period: "/bulan",
+    credits: 65, maxWords: "2.500 kata", maxSites: 0, maxBulk: 30,
     canSchedule: true, canSyndicate: true, priority: true, imageSource: "imagen",
-    features: ["60 kredit per perpanjangan", "Kredit tidak expired, sisa terbawa", "Maks 2.500 kata", "Semua model AI", "Unlimited situs WordPress", "Bulk max 30 artikel", "Schedule publish", "Sindikasi konten", "Generate gambar AI otomatis", "Editor artikel + SEO checker", "Priority generate", "Priority support"],
+    features: ["65 kredit per perpanjangan", "Kredit tidak expired, sisa terbawa", "Maks 2.500 kata", "Semua model AI", "Unlimited situs WordPress", "Bulk max 30 artikel", "Schedule publish", "Sindikasi konten", "Generate gambar AI otomatis", "Editor artikel + SEO checker", "Priority generate", "Priority support"],
     cta: "Pilih Pro", highlight: true,
   },
 ];
