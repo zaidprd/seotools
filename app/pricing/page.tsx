@@ -116,11 +116,10 @@ export default function PricingPage() {
         {/* Kredit explanation */}
         <div className="bg-slate-900/40 border border-slate-800 rounded-2xl p-5 mb-10 max-w-3xl mx-auto">
           <p className="text-sm font-bold text-white mb-3 text-center">💎 Sistem Kredit — Pilih Model Sesuai Kebutuhan</p>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
             {MODELS.map(m => (
               <div key={m.id} className={`text-center p-2.5 rounded-xl border ${m.id===FREE_MODEL_ID?"border-emerald-500/30 bg-emerald-500/5":"border-slate-700 bg-slate-900/60"}`}>
-                <p className="text-xs font-semibold text-slate-200 mb-0.5">{m.label}</p>
-                <p className="text-[10px] text-slate-500 mb-1">{m.provider}</p>
+                <p className="text-xs font-semibold text-slate-200 mb-1">{m.label}</p>
                 <p className="font-black text-amber-400">{m.credits} 💎</p>
                 <p className="text-[10px] text-slate-600">per artikel</p>
               </div>
@@ -175,7 +174,7 @@ export default function PricingPage() {
         <div className="mt-16 max-w-2xl mx-auto">
           <h2 className="text-2xl font-black text-center mb-8" style={{ fontFamily: "Sora,sans-serif" }}>Pertanyaan Umum</h2>
           {[
-            { q: "Apa itu kredit?", a: "Kredit adalah satuan penggunaan AI. Setiap kali generate artikel, kredit berkurang sesuai model yang dipilih. Gemini 2.5 Flash = gratis, GPT-5.4 = 3 kredit, Claude Haiku 4.5 = 5 kredit, Claude Sonnet 4.6 = 7 kredit." },
+            { q: "Apa itu kredit?", a: "Kredit adalah satuan penggunaan AI. Setiap artikel menggunakan kredit sesuai model: Gemini 2.5 Flash & DeepSeek V3 = 1 kredit, GPT-4.1 Mini = 2 kredit, GPT-5.4 = 3 kredit, Gemini 2.5 Pro = 4 kredit, Claude Haiku 4.5 = 5 kredit, Claude Sonnet 4.6 = 7 kredit. Kredit tidak expired." },
             { q: "Sudah bayar tapi kredit belum masuk?", a: "Klik tombol 'Verifikasi Pembayaran' di atas. Sistem akan mengecek pembayaran terakhirmu ke Mayar dan langsung menambahkan kredit jika sudah lunas." },
             { q: "Apakah kredit kadaluarsa?", a: "Kredit berbayar tidak kadaluarsa. Kredit gratis (1 kredit) juga selamanya, tapi tidak di-reset." },
             { q: "Bisa ganti paket kapan saja?", a: "Ya, bisa upgrade kapan saja. Kredit langsung ditambahkan setelah pembayaran berhasil." },

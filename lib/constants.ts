@@ -127,14 +127,14 @@ export const PLANS = [
     id: "starter", name: "Starter", price: 49000, priceLabel: "Rp 49rb", period: "/bulan",
     credits: 25, maxWords: "2.000 kata", maxSites: 1, maxBulk: 10,
     canSchedule: true, canSyndicate: false, priority: false, imageSource: "imagen",
-    features: ["25 kredit/bulan", "Maks 2.000 kata", "Semua model AI", "1 situs WordPress", "Bulk max 10 artikel", "Schedule publish", "Generate gambar AI otomatis", "Editor artikel built-in", "Email support"],
+    features: ["25 kredit/bulan", "Maks 2.000 kata", "Semua model AI", "Unlimited situs WordPress", "Bulk max 10 artikel", "Schedule publish", "Generate gambar AI otomatis", "Editor artikel built-in", "Email support"],
     cta: "Pilih Starter", highlight: false,
   },
   {
     id: "pro", name: "Pro", price: 99000, priceLabel: "Rp 99rb", period: "/bulan",
     credits: 60, maxWords: "2.500 kata", maxSites: 3, maxBulk: 30,
     canSchedule: true, canSyndicate: true, priority: true, imageSource: "imagen",
-    features: ["60 kredit/bulan", "Maks 2.500 kata", "Semua model AI", "3 situs WordPress", "Bulk max 30 artikel", "Schedule publish", "Sindikasi konten", "Generate gambar AI otomatis", "Editor artikel + SEO checker", "Priority generate", "Priority support"],
+    features: ["60 kredit/bulan", "Maks 2.500 kata", "Semua model AI", "Unlimited situs WordPress", "Bulk max 30 artikel", "Schedule publish", "Sindikasi konten", "Generate gambar AI otomatis", "Editor artikel + SEO checker", "Priority generate", "Priority support"],
     cta: "Pilih Pro", highlight: true,
   },
 ];

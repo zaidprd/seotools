@@ -329,7 +329,7 @@ export default function LandingPage() {
               Bukan Sekadar Klaim — Ada Datanya
             </h2>
           </div>
-          <div className="grid md:grid-cols-5 gap-4">
+          <div className="grid md:grid-cols-5 gap-4" style={{ gridTemplateColumns: "repeat(5,1fr)" }}>
             {CLAIMS.map(c => (
               <div key={c.title} className="bg-slate-900/50 border border-slate-800 hover:border-amber-500/20 rounded-2xl p-5 text-center transition-all hover:-translate-y-0.5 group">
                 <div className="text-3xl mb-3 group-hover:scale-110 transition-transform inline-block">{c.icon}</div>
@@ -466,19 +466,51 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ─── MODEL AI ─── */}
-      <section className="max-w-4xl mx-auto px-5 py-16">
+      {/* ─── MODEL AI + CREDIT EXPLAINER ─── */}
+      <section className="max-w-5xl mx-auto px-5 py-16">
         <div className="text-center mb-10">
           <h2 className="text-2xl md:text-3xl font-black mb-2" style={{ fontFamily: "Sora,sans-serif" }}>Pilih Model AI Sesuai Kebutuhan</h2>
           <p className="text-slate-400 text-sm">Sistem kredit fleksibel — bayar sesuai kualitas yang kamu butuhkan</p>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+
+        {/* Credit explainer box */}
+        <div className="bg-slate-900/60 border border-amber-500/20 rounded-2xl p-6 mb-8">
+          <div className="flex items-start gap-4 mb-5">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-xl flex-shrink-0">💎</div>
+            <div>
+              <h3 className="font-bold text-white mb-1">Apa itu kredit?</h3>
+              <p className="text-sm text-slate-400 leading-relaxed">
+                Kredit adalah satuan pemakaian AI. Setiap artikel yang kamu generate menggunakan kredit sesuai model yang dipilih.
+                Kredit <span className="text-amber-400 font-semibold">tidak expired</span> — sisa kredit tetap ada bulan depan.
+                Topup kapan saja tanpa harus ganti paket.
+              </p>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-center mb-4">
+            {[
+              { label: "Kredit gratis", value: "1 💎", desc: "Untuk mencoba", color: "border-emerald-500/30 bg-emerald-500/5" },
+              { label: "Paket Starter", value: "25 💎", desc: "per bulan", color: "border-slate-700 bg-slate-900/60" },
+              { label: "Paket Pro", value: "60 💎", desc: "per bulan", color: "border-amber-500/20 bg-amber-500/5" },
+              { label: "Topup tambahan", value: "10–50 💎", desc: "tidak expired", color: "border-slate-700 bg-slate-900/60" },
+            ].map(item => (
+              <div key={item.label} className={`rounded-xl border p-3 ${item.color}`}>
+                <p className="text-lg font-black text-white">{item.value}</p>
+                <p className="text-[10px] text-slate-500 mt-0.5">{item.label}</p>
+                <p className="text-[10px] text-slate-600">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+          <p className="text-[11px] text-slate-600 text-center">Contoh: dengan 25 kredit → 25 artikel Gemini Flash, atau 8 artikel GPT-5.4, atau 3 artikel Claude Sonnet 4.6</p>
+        </div>
+
+        {/* Model cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {MODELS.map(m => (
             <div key={m.id} className={`text-center p-4 rounded-xl border transition-all hover:-translate-y-1 ${m.id === FREE_MODEL_ID ? "border-amber-500/40 bg-amber-500/5 shadow-lg shadow-amber-500/5" : "border-slate-800 bg-slate-900/40"}`}>
               <p className="text-sm font-bold text-white mb-0.5">{m.label}</p>
-              <p className="text-[11px] text-slate-500 mb-2">{m.provider}</p>
-              <p className="text-xl font-black text-amber-400">{m.credits} 💎</p>
-              {m.id === FREE_MODEL_ID && <p className="text-[10px] text-emerald-400 mt-1">Tersedia gratis</p>}
+              <p className="text-xl font-black text-amber-400 mt-2">{m.credits} 💎</p>
+              <p className="text-[10px] text-slate-600 mt-0.5">per artikel</p>
+              {m.id === FREE_MODEL_ID && <p className="text-[10px] text-emerald-400 mt-1 font-semibold">Tersedia gratis</p>}
             </div>
           ))}
         </div>
@@ -494,7 +526,7 @@ export default function LandingPage() {
             <h2 className="text-3xl md:text-4xl font-black mt-4 mb-3" style={{ fontFamily: "Sora,sans-serif" }}>Harga Transparan</h2>
             <p className="text-slate-400">Mulai gratis, upgrade kapan saja</p>
           </div>
-          <div className="grid md:grid-cols-4 gap-5 items-start">
+          <div className="grid md:grid-cols-3 gap-5 items-start max-w-4xl mx-auto">
             {PLANS.map(p => (
               <div key={p.id} className={`rounded-2xl border overflow-hidden transition-all ${p.highlight ? "border-amber-500/50 shadow-2xl shadow-amber-500/10 scale-[1.03]" : "border-slate-800"}`}>
                 {p.highlight && (
