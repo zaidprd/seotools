@@ -11,6 +11,13 @@ import DOMPurify from "dompurify";
 
 marked.setOptions({ breaks: true, gfm: true } as any);
 
+function slugify(text: string): string {
+  return text.toLowerCase()
+    .replace(/[àáâãäå]/g, "a").replace(/[èéêë]/g, "e")
+    .replace(/[ìíîï]/g, "i").replace(/[òóôõö]/g, "o").replace(/[ùúûü]/g, "u")
+    .replace(/[^a-z0-9\s-]/g, "").trim().replace(/\s+/g, "-").replace(/-+/g, "-").slice(0, 80);
+}
+
 function sanitizeHtml(dirty: string): string {
   if (typeof window === "undefined") return dirty;
   return DOMPurify.sanitize(dirty, { USE_PROFILES: { html: true } });
@@ -162,7 +169,9 @@ export default function ResultPanel({ content: initialContent, keyword = "", mod
 }) {
   const [mode, setMode] = useState<"preview" | "edit">("preview");
   const [htmlContent, setHtmlContent] = useState(() => {
-    try { return sanitizeHtml(marked.parse(initialContent) as string); } catch { return initialContent; }
+    // Strip baris META: dari preview — sudah diekstrak server-side saat publish ke WP
+    const clean = initialContent.replace(/\n?META:\s*.+?(?:\n|$)/gi, "").trimEnd();
+    try { return sanitizeHtml(marked.parse(clean) as string); } catch { return clean; }
   });
   // Debounced content for SEO checker — recalculates 1s after user stops typing
   const [seoContent, setSeoContent] = useState(htmlContent);
@@ -341,6 +350,7 @@ export default function ResultPanel({ content: initialContent, keyword = "", mod
         status: scheduledAt ? "future" : postStatus,
         scheduledAt: scheduledAt || undefined,
         focusKeyword: keyword || undefined,
+        slug: slugify(title),
       });
       setPubResult({ link: r.link });
     } catch (e: any) { setPubError(e.message); }

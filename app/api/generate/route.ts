@@ -163,8 +163,27 @@ export async function POST(req: NextRequest) {
 
     if (!userData) return NextResponse.json({ error: "User tidak ditemukan" }, { status: 404 });
 
-    // Admin/owner bypass — skip semua cek kredit, plan, dan expiry
     const isAdmin = userData.role === "admin";
+
+    // Rate limiting: max 1 generate per 15 detik per user (kecuali admin)
+    if (!isAdmin) {
+      const { data: lastArticle } = await supabase
+        .from("articles")
+        .select("created_at")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (lastArticle) {
+        const secsSince = (Date.now() - new Date(lastArticle.created_at).getTime()) / 1000;
+        if (secsSince < 15) {
+          return NextResponse.json(
+            { error: `Tunggu ${Math.ceil(15 - secsSince)} detik sebelum generate lagi.` },
+            { status: 429 }
+          );
+        }
+      }
+    }
 
     // Cek plan expiry — jika sudah expired, turunkan ke free
     const planIsActive = isAdmin || !userData.plan_expires_at || new Date(userData.plan_expires_at) > new Date();
