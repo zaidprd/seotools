@@ -23,7 +23,7 @@ function oaiProviders(): Record<string, OAIProvider> {
     sumopod: {
       base: process.env.SUMOPOD_BASE_URL || "https://ai.sumopod.com/v1",
       envKey: "SUMOPOD_API_KEY",
-      models: new Set(["gemini/gemini-2.5-flash", "gpt-5.4", "claude-haiku-4-5", "claude-sonnet-4-6"]),
+      models: new Set(Object.keys(CREDIT_COST)), // semua model dari constants otomatis masuk
     },
   };
 }
