@@ -1,5 +1,6 @@
-import { Config, FREE_MODEL_ID } from "./constants";
+﻿import { Config, FREE_MODEL_ID } from "./constants";
 import { buildPrompt, buildTitlePrompt } from "./prompt";
+import type { AioGenerateRequest, AioGenerateResponse } from "@/app/api/aio-generate/route";
 
 export async function generateArticle(cfg: Config & { modelId?: string; userId?: string }): Promise<string> {
   const res = await fetch("/api/generate", {
@@ -51,4 +52,21 @@ export async function publishToWordPress(
     throw new Error(err.error || `Publish gagal (${res.status})`);
   }
   return res.json();
+}
+
+/**
+ * Panggil pipeline AI Overview (7 step + loop 10x) di /api/aio-generate.
+ * Return full response AioGenerateResponse (fullMarkdown, fullHtml, schemas, meta,
+ * qaScore, stepLogs, dst) supaya caller bisa render di Tiptap + preview schema.
+ */
+export async function generateAioArticle(req: AioGenerateRequest): Promise<AioGenerateResponse> {
+  const res = await fetch("/api/aio-generate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(req),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || `Error ${res.status}`);
+  if (!data.success) throw new Error(data.error || "Pipeline AIO gagal");
+  return data as AioGenerateResponse;
 }

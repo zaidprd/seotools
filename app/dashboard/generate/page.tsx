@@ -1,8 +1,8 @@
-"use client";
+﻿"use client";
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { MODELS, ModelInfo, WPSite, Config, UserData, defaultCfg, FREE_MODEL_ID, FREE_MAX_WORDS, FREE_ARTICLE_COST, CREDIT_COST, SVG_CREDIT_COST } from "@/lib/constants";
-import { generateArticle } from "@/lib/api";
+import { generateArticle, generateAioArticle } from "@/lib/api";
 import { Sec, Inp, RunBtn } from "@/components/ui";
 import SettingsForm from "@/components/SettingsForm";
 import OutlineEditor from "@/components/OutlineEditor";
@@ -22,6 +22,16 @@ async function generateTitles(keyword: string, count = 5): Promise<string[]> {
   });
   const data = await res.json();
   return (data.text || "").split("\n").map((t: string) => t.trim()).filter((t: string) => t.length > 10).slice(0, count);
+}
+
+/** Map articleSize string (misal "Sedang (1.000-1.500 kata)") ke wordTarget number. */
+function parseWordTargetFromSize(size: string | undefined): number {
+  if (!size) return 1600;
+  const m = size.match(/\((\d+)\D+(\d+)/);
+  if (!m) return 1600;
+  const lo = parseInt(m[1], 10);
+  const hi = parseInt(m[2], 10);
+  return Math.round((lo + hi) / 2);
 }
 
 export default function GeneratePage() {
@@ -49,6 +59,7 @@ export default function GeneratePage() {
   const [upgradeReason, setUpgradeReason] = useState("");
   const [showModelTip, setShowModelTip] = useState(false);
   const [mobileTab, setMobileTab] = useState<"form" | "result">("form");
+  const [mode, setMode] = useState<"standard" | "aio">("standard");
   const resultRef = useRef<HTMLDivElement>(null);
 
   const fetchUser = useCallback(async (uid: string) => {
@@ -91,6 +102,41 @@ export default function GeneratePage() {
     setLoading(true); setResult(null); setError(null);
     setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 100);
     try {
+      // Branching: mode AIO (7-step pipeline) vs standard (1-step)
+      if (mode === "aio") {
+        // Bangun AioGenerateRequest dari state form yang ada
+        const aioReq = {
+          keyword: keyword.trim(),
+          primaryKeyword: keyword.trim(),
+          modelId: !isPro ? FREE_MODEL_ID : model.id,
+          language: cfg.language || "Indonesia",
+          tone: cfg.tone,
+          pov: cfg.pov,
+          readability: cfg.readability,
+          articleType: cfg.articleType,
+          wordTarget: parseWordTargetFromSize(cfg.articleSize) || 1600,
+          brandName: cfg.brandVoice || "Artikel SEO",
+          targetAudience: cfg.details || "Pembaca umum",
+          geo: cfg.country || "Indonesia",
+          publishDate: new Date().toISOString().slice(0, 10),
+          secondaryKeywords: cfg.seoKeywords ? cfg.seoKeywords.split(",").map(s => s.trim()).filter(Boolean) : undefined,
+          brandVoice: cfg.brandVoice,
+          mustMention: cfg.details,
+          recencyMarker: String(new Date().getFullYear()),
+          userTitle: title.trim() || undefined,
+          userOutlineOverride: outlineRows.length > 0 ? outlineRows.map(r => `${r.type}: ${r.text}`).join("\n") : undefined,
+          internalLinkBaseUrl: cfg.internalLinkBaseUrl || undefined,
+          skipCritique: false,
+          skipRefinement: false,
+        };
+        const aioRes = await generateAioArticle(aioReq as any);
+        setResult(aioRes.fullHtml || aioRes.fullMarkdown);
+        setMobileTab("result");
+        if (authUser) fetchUser(authUser.id);
+        return;
+      }
+
+      // Standard mode: 1-step pipeline lama
       const outline = outlineRows.map(r => `${r.type}: ${r.text}`).join("\n");
       const effectiveCfg = !isPro ? { ...cfg, articleSize: FREE_MAX_WORDS } : cfg;
       const text = await generateArticle({
@@ -127,6 +173,30 @@ export default function GeneratePage() {
           <span className={`ml-auto text-[10px] px-2.5 py-0.5 rounded-full border font-bold ${credits > 0 ? "text-amber-400 border-amber-800/50 bg-amber-950/30" : "text-red-400 border-red-800/50 bg-red-950/30"}`}>
             💎 {credits} kredit
           </span>
+        )}
+      </div>
+
+      {/* Mode switcher: Standard vs AI Overview */}
+      <div className="px-4 lg:px-6 pt-3 pb-1 bg-[#0c0e14] flex-shrink-0">
+        <div className="inline-flex items-center gap-1 bg-slate-900/60 border border-slate-800 rounded-xl p-1">
+          <button
+            onClick={() => setMode("standard")}
+            className={`px-3 py-1.5 rounded-lg text-[12px] font-bold transition-colors ${mode === "standard" ? "bg-amber-500 text-slate-900" : "text-slate-400 hover:text-slate-200"}`}
+            title="Generator 1-step klasik">
+            <span className="mr-1">🔧</span>Standard
+          </button>
+          <button
+            onClick={() => setMode("aio")}
+            className={`px-3 py-1.5 rounded-lg text-[12px] font-bold transition-colors flex items-center gap-1.5 ${mode === "aio" ? "bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white" : "text-slate-400 hover:text-slate-200"}`}
+            title="Pipeline 7-step untuk Google AI Overviews">
+            <span>✨</span>AI Overview
+            <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-black ${mode === "aio" ? "bg-white/20 text-white" : "bg-violet-500/20 text-violet-300"}`}>NEW</span>
+          </button>
+        </div>
+        {mode === "aio" && (
+          <p className="text-[11px] text-violet-300/80 mt-2">
+            Pipeline 7-step: riset - outline - 10 blok - quality gate - refinement - JSON-LD - meta. Cocok untuk kutipan AI Overviews.
+          </p>
         )}
       </div>
 
