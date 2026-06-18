@@ -115,70 +115,82 @@ export default function PricingPage() {
 
         {/* Kredit explanation */}
         <div className="bg-slate-900/40 border border-slate-800 rounded-2xl p-5 mb-10 max-w-3xl mx-auto">
-          <p className="text-sm font-bold text-white mb-3 text-center">💎 Sistem Kredit — Pilih Model Sesuai Kebutuhan</p>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
-            {MODELS.map(m => (
-              <div key={m.id} className={`text-center p-2.5 rounded-xl border ${m.id===FREE_MODEL_ID?"border-emerald-500/30 bg-emerald-500/5":"border-slate-700 bg-slate-900/60"}`}>
-                <p className="text-xs font-semibold text-slate-200 mb-0.5">{m.label}</p>
-                <p className="text-[10px] text-slate-500 mb-1">{m.provider}</p>
-                <p className="font-black text-amber-400">{m.credits} 💎</p>
-                <p className="text-[10px] text-slate-600">per artikel</p>
-              </div>
-            ))}
+          <p className="text-sm font-bold text-white mb-1 text-center">💎 35 Kredit Bisa Buat Berapa Artikel?</p>
+          <p className="text-xs text-slate-500 text-center mb-4">Pilih model sesuai kebutuhan — semakin canggih, semakin sedikit artikel per bulan</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {MODELS.map(m => {
+              const articles = Math.floor(35 / m.credits);
+              return (
+                <div key={m.id} className={`text-center p-3 rounded-xl border ${m.id===FREE_MODEL_ID?"border-emerald-500/30 bg-emerald-500/5":"border-amber-500/20 bg-slate-900/60"}`}>
+                  <p className="text-xs font-semibold text-slate-200 mb-2">{m.label}</p>
+                  <p className="font-black text-3xl text-amber-400 leading-none">{articles}</p>
+                  <p className="text-[11px] text-slate-400 mt-0.5">artikel/bulan</p>
+                  <p className="text-[10px] text-slate-600 mt-2 border-t border-slate-800 pt-2">{m.credits} 💎 per artikel</p>
+                </div>
+              );
+            })}
           </div>
-          <p className="text-[11px] text-slate-600 text-center mt-3">Model lebih canggih = kredit lebih banyak terpakai</p>
+          <p className="text-[11px] text-slate-600 text-center mt-3">Kredit tidak kadaluarsa · Bebas pilih model kapan saja</p>
         </div>
 
-        {/* Plans */}
-        <div className="grid md:grid-cols-3 gap-5 items-start max-w-5xl mx-auto">
-          {PLANS.map(plan => {
-            const price = billing === "yearly" && plan.price > 0 ? Math.round(plan.price * (1 - yearlyDiscount)) : plan.price;
-            const priceLabel = price === 0 ? "Rp 0" : `Rp ${price.toLocaleString("id-ID")}`;
+        {/* Plans — single paid plan */}
+        <div className="max-w-md mx-auto">
+          {PLANS.filter(p => p.id === "starter").map(plan => {
+            const price = billing === "yearly" ? Math.round(plan.price * (1 - yearlyDiscount)) : plan.price;
+            const priceLabel = `Rp ${price.toLocaleString("id-ID")}`;
+            const yearlySave = Math.round(plan.price * 12 * yearlyDiscount);
             return (
-              <div key={plan.id} className={`rounded-2xl border overflow-hidden transition-all ${plan.highlight?"border-amber-500/50 shadow-xl shadow-amber-500/10 scale-105":"border-slate-800"}`}>
-                {plan.highlight && <div className="bg-amber-500 text-slate-900 text-center text-[11px] font-black py-1.5 tracking-widest uppercase">Paling Populer</div>}
-                <div className={`p-6 ${plan.highlight?"bg-gradient-to-b from-amber-500/10 to-slate-900/60":"bg-slate-900/40"}`}>
-                  <h3 className="font-black text-xl mb-1" style={{ fontFamily: "Sora,sans-serif" }}>{plan.name}</h3>
-                  <div className="mb-1">
-                    <span className="text-3xl font-black">{priceLabel}</span>
-                    <span className="text-slate-500 text-sm">{plan.period}</span>
+              <div key={plan.id} className="rounded-2xl border border-amber-500/50 overflow-hidden shadow-2xl shadow-amber-500/10">
+                <div className="bg-amber-500 text-slate-900 text-center text-[11px] font-black py-1.5 tracking-widest uppercase">Satu Paket, Semua Fitur</div>
+                <div className="p-7 bg-gradient-to-b from-amber-500/10 to-slate-900/60">
+                  <h3 className="font-black text-2xl mb-4 text-center" style={{ fontFamily: "Sora,sans-serif" }}>Paket Aktif</h3>
+                  <div className="text-center mb-1">
+                    <span className="text-5xl font-black">{priceLabel}</span>
+                    <span className="text-slate-500 text-base">/bulan</span>
                   </div>
-                  {billing === "yearly" && plan.price > 0 && (
-                    <p className="text-[11px] text-emerald-400 mb-1">Hemat Rp {(plan.price * 12 * yearlyDiscount).toLocaleString("id-ID")}/tahun</p>
+                  {billing === "yearly" && (
+                    <p className="text-[12px] text-emerald-400 text-center mb-2">Hemat Rp {yearlySave.toLocaleString("id-ID")}/tahun</p>
                   )}
-                  <div className="flex items-center gap-1.5 mb-4">
-                    <span className="text-2xl font-black text-amber-400">{plan.credits}</span>
-                    <span className="text-slate-400 text-sm">💎 kredit {plan.id==="free"?"selamanya":"/bulan"}</span>
+                  <div className="flex items-center justify-center gap-2 mb-6 mt-3">
+                    <span className="text-3xl font-black text-amber-400">35</span>
+                    <span className="text-slate-400 text-sm">💎 kredit/bulan</span>
                   </div>
-                  <ul className="flex flex-col gap-2 mb-6">
+                  <ul className="flex flex-col gap-2.5 mb-7">
                     {plan.features.map(f => (
-                      <li key={f} className="flex items-start gap-2 text-sm text-slate-300">
+                      <li key={f} className="flex items-start gap-2.5 text-sm text-slate-300">
                         <span className="text-emerald-400 mt-0.5 flex-shrink-0">✓</span>{f}
                       </li>
                     ))}
                   </ul>
                   <button onClick={() => handleBuy(plan.id)} disabled={loading === plan.id}
-                    className={`w-full font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2 ${
-                      plan.highlight ? "bg-amber-500 hover:bg-amber-400 text-slate-900"
-                        : plan.id==="free" ? "border border-slate-700 hover:border-slate-600 text-slate-200"
-                        : "border border-amber-500/30 hover:border-amber-500/60 text-amber-400 hover:bg-amber-500/5"
-                    }`}>
-                    {loading===plan.id ? <><span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"/>Memproses...</> : plan.cta}
+                    className="w-full font-black py-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-900 transition-all flex items-center justify-center gap-2 text-base">
+                    {loading === plan.id
+                      ? <><span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"/>Memproses...</>
+                      : plan.cta}
                   </button>
+                  <p className="text-center text-xs text-slate-500 mt-3">Bayar via QRIS · Transfer Bank · GoPay · OVO · ShopeePay</p>
                 </div>
               </div>
             );
           })}
+          <div className="text-center mt-5">
+            <p className="text-sm text-slate-500">
+              Belum yakin?{" "}
+              <a href="/login" className="text-amber-400 hover:text-amber-300 underline underline-offset-2 transition-colors">
+                Coba 1 artikel gratis →
+              </a>
+            </p>
+          </div>
         </div>
 
         {/* FAQ */}
         <div className="mt-16 max-w-2xl mx-auto">
           <h2 className="text-2xl font-black text-center mb-8" style={{ fontFamily: "Sora,sans-serif" }}>Pertanyaan Umum</h2>
           {[
-            { q: "Apa itu kredit?", a: "Kredit adalah satuan penggunaan AI. Setiap kali generate artikel, kredit berkurang sesuai model yang dipilih. Gemini 2.5 Flash = gratis, GPT-5.4 = 3 kredit, Claude Haiku 4.5 = 5 kredit, Claude Sonnet 4.6 = 7 kredit." },
+            { q: "Apa itu kredit dan 35 kredit itu cukup buat apa?", a: "Kredit adalah satuan pemakaian AI. Setiap artikel yang di-generate memotong kredit sesuai model yang dipilih: Gemini 2.5 Flash = 1 kredit (35 artikel/bln), GPT-5.4 = 3 kredit (11 artikel/bln), Claude Haiku 4.5 = 5 kredit (7 artikel/bln), Claude Sonnet 4.6 = 7 kredit (5 artikel/bln). Bebas campur model setiap saat." },
+            { q: "Apakah kredit kadaluarsa?", a: "Kredit akan di-reset setiap awal bulan sesuai siklus langganan. Sisa kredit bulan lalu tidak diakumulasi — jadi usahakan dipakai habis tiap bulan." },
             { q: "Sudah bayar tapi kredit belum masuk?", a: "Klik tombol 'Verifikasi Pembayaran' di atas. Sistem akan mengecek pembayaran terakhirmu ke Mayar dan langsung menambahkan kredit jika sudah lunas." },
-            { q: "Apakah kredit kadaluarsa?", a: "Kredit berbayar tidak kadaluarsa. Kredit gratis (1 kredit) juga selamanya, tapi tidak di-reset." },
-            { q: "Bisa ganti paket kapan saja?", a: "Ya, bisa upgrade kapan saja. Kredit langsung ditambahkan setelah pembayaran berhasil." },
+            { q: "Bisa berhenti berlangganan kapan saja?", a: "Ya. Karena pembayaran per bulan, kamu cukup tidak memperpanjang bulan berikutnya. Tidak ada kontrak jangka panjang." },
             { q: "Metode pembayaran apa saja?", a: "Lewat Mayar: QRIS, Transfer Bank/Virtual Account (BCA/Mandiri/BNI/BRI), GoPay, OVO, ShopeePay, Dana, dan kartu kredit/debit." },
             { q: "Apakah perlu install plugin WordPress?", a: "Tidak perlu! Kami menggunakan WordPress REST API yang sudah built-in. Cukup buat Application Password di WP Admin." },
           ].map((faq, i) => (

@@ -9,10 +9,10 @@ export interface ModelInfo {
 // Model yang tersedia — lewat SumoPod (proxy OpenAI-compatible, 1 key untuk semua).
 // id = nama model asli di SumoPod (lihat tab Models / GET /v1/models).
 export const MODELS: ModelInfo[] = [
-  { id: "gemini/gemini-2.5-flash", label: "Gemini 2.5 Flash",  provider: "SumoPod", badge: "HEMAT", credits: 1 },
-  { id: "gpt-5.4",                 label: "GPT-5.4",           provider: "SumoPod", badge: "PRO",   credits: 3 },
-  { id: "claude-haiku-4-5",        label: "Claude Haiku 4.5",  provider: "SumoPod", badge: "PRO",   credits: 5 },
-  { id: "claude-sonnet-4-6",       label: "Claude Sonnet 4.6", provider: "SumoPod", badge: "MAX",   credits: 7 },
+  { id: "gemini/gemini-2.5-flash", label: "Gemini 2.5 Flash",  provider: "Google",    badge: "HEMAT", credits: 1 },
+  { id: "gpt-5.4",                 label: "GPT-5.4",           provider: "OpenAI",    badge: "PRO",   credits: 3 },
+  { id: "claude-haiku-4-5",        label: "Claude Haiku 4.5",  provider: "Anthropic", badge: "PRO",   credits: 5 },
+  { id: "claude-sonnet-4-6",       label: "Claude Sonnet 4.6", provider: "Anthropic", badge: "MAX",   credits: 7 },
 ];
 
 export const FREE_MODEL_ID    = "gemini/gemini-2.5-flash";
@@ -111,17 +111,10 @@ export const PLANS = [
     cta: "Coba Gratis", highlight: false,
   },
   {
-    id: "starter", name: "Starter", price: 49000, priceLabel: "Rp 49rb", period: "/bulan",
+    id: "starter", name: "Aktif", price: 25000, priceLabel: "Rp 25rb", period: "/bulan",
     credits: 35, maxWords: "2.000 kata", maxSites: 1, maxBulk: 10,
     canSchedule: true, canSyndicate: false, priority: false, imageSource: "imagen",
-    features: ["35 kredit/bulan", "Maks 2.000 kata", "Semua model AI", "1 situs WordPress", "Bulk max 10 artikel", "Schedule publish", "Generate gambar AI otomatis", "Editor artikel built-in", "Email support"],
-    cta: "Pilih Starter", highlight: false,
-  },
-  {
-    id: "pro", name: "Pro", price: 119000, priceLabel: "Rp 119rb", period: "/bulan",
-    credits: 60, maxWords: "2.500 kata", maxSites: 3, maxBulk: 30,
-    canSchedule: true, canSyndicate: true, priority: true, imageSource: "imagen",
-    features: ["60 kredit/bulan", "Maks 2.500 kata", "Semua model AI", "3 situs WordPress", "Bulk max 30 artikel", "Schedule publish", "Sindikasi konten", "Generate gambar AI otomatis", "Editor artikel + SEO checker", "Priority generate", "Priority support"],
-    cta: "Pilih Pro", highlight: true,
+    features: ["35 kredit/bulan", "Semua model AI (Gemini, GPT, Claude)", "Maks 2.000 kata per artikel", "1 situs WordPress", "Bulk hingga 10 artikel sekaligus", "Schedule publish otomatis", "Generate gambar AI otomatis", "Editor artikel built-in", "Support via email"],
+    cta: "Mulai Sekarang — Rp 25rb/bln", highlight: true,
   },
 ];
