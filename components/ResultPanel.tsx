@@ -157,8 +157,9 @@ function TipTapToolbar({ editor, wpSite, onUpload, onAISvg, isUploading, isAIGen
 }
 
 // ─── Main ResultPanel ──────────────────────────────────────────────────────────
-export default function ResultPanel({ content: initialContent, keyword = "", model, wpSites, synds, userId }: {
+export default function ResultPanel({ content: initialContent, keyword = "", model, wpSites, synds, userId, onContentChange }: {
   content: string; keyword?: string; model: ModelInfo; wpSites: WPSite[]; synds: Synds; userId?: string;
+  onContentChange?: (html: string) => void;
 }) {
   const [mode, setMode] = useState<"preview" | "edit">("preview");
   const [htmlContent, setHtmlContent] = useState(() => {
@@ -192,7 +193,7 @@ export default function ResultPanel({ content: initialContent, keyword = "", mod
       Link.configure({ openOnClick: false, HTMLAttributes: { class: "text-amber-400 underline" } }),
     ],
     content: htmlContent,
-    onUpdate: ({ editor }) => setHtmlContent(editor.getHTML()),
+    onUpdate: ({ editor }) => { const h = editor.getHTML(); setHtmlContent(h); onContentChange?.(h); },
     editorProps: {
       attributes: {
         class: "outline-none min-h-full p-4 text-slate-200 text-sm leading-relaxed",

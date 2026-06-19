@@ -1,10 +1,14 @@
 "use client";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { MODELS, ModelInfo, WPSite, Config, UserData, defaultCfg, FREE_MODEL_ID, CREDIT_COST } from "@/lib/constants";
-import { generateArticle } from "@/lib/api";
+import { generateArticle, publishToWordPress } from "@/lib/api";
+import { extractTitle, markdownToHtml, uploadImagesToWP, computeScheduleDate } from "@/lib/wp-publish";
+import { marked } from "marked";
+import DOMPurify from "dompurify";
 import { RunBtn, Badge } from "@/components/ui";
 import SettingsForm from "@/components/SettingsForm";
+import ResultPanel from "@/components/ResultPanel";
 import UpgradePopup from "@/components/UpgradePopup";
 import { createClient } from "@/lib/supabase/client";
 import { getWPSites, saveWPSites } from "@/lib/wp-sites";
@@ -21,16 +25,29 @@ async function generateTitles(keyword: string, count = 5): Promise<string[]> {
   return (data.text || "").split("\n").map((t: string) => t.trim()).filter((t: string) => t.length > 10).slice(0, count);
 }
 
-interface BulkResult { topic: string; titles: string[]; selectedTitle: string; keywords: string; status: "idle"|"genTitles"|"loading"|"selesai"|"error"; content: string; }
+interface BulkResult {
+  topic: string; titles: string[]; selectedTitle: string; keywords: string;
+  status: "idle"|"genTitles"|"loading"|"selesai"|"error"; content: string;
+  editedHtml?: string; // HTML hasil edit di modal editor (dipakai saat publish jika ada)
+  pub?: "idle"|"publishing"|"published"|"puberror"; pubLink?: string; pubError?: string; scheduledFor?: string;
+}
 
-function BulkRowCard({ row, index, onSelectTitle, onRegenTitles, onKeywordsChange, onTitleEdit, onRemove }: {
+function BulkRowCard({ row, index, onSelectTitle, onRegenTitles, onKeywordsChange, onTitleEdit, onRemove, onEdit }: {
   row: BulkResult; index: number;
   onSelectTitle: (t: string) => void; onRegenTitles: () => void; onKeywordsChange: (v: string) => void;
-  onTitleEdit: (v: string) => void; onRemove: () => void;
+  onTitleEdit: (v: string) => void; onRemove: () => void; onEdit: () => void;
 }) {
   const [open, setOpen] = useState(true);
   const [copied, setCopied] = useState(false);
   const copy = () => { navigator.clipboard.writeText(row.content); setCopied(true); setTimeout(() => setCopied(false), 2000); };
+  // Preview rapi: pakai hasil edit kalau ada, kalau tidak render markdown → HTML
+  const previewHtml = useMemo(() => {
+    if (row.editedHtml) return row.editedHtml;
+    try {
+      const html = marked.parse(row.content) as string;
+      return typeof window === "undefined" ? html : DOMPurify.sanitize(html, { USE_PROFILES: { html: true } });
+    } catch { return row.content; }
+  }, [row.content, row.editedHtml]);
   return (
     <div className="border border-slate-800 rounded-xl overflow-hidden">
       <div className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-slate-800/20 transition-colors" onClick={() => setOpen(!open)}>
@@ -83,10 +100,27 @@ function BulkRowCard({ row, index, onSelectTitle, onRegenTitles, onKeywordsChang
           )}
           {row.status === "selesai" && row.content && (
             <>
-              <button onClick={copy} className="text-[11px] px-2.5 py-1 rounded border border-slate-700 hover:border-slate-600 text-slate-400 hover:text-white transition-all w-fit">{copied ? "✓ Disalin" : "Salin"}</button>
-              <div className="max-h-56 overflow-y-auto bg-slate-900 rounded-lg p-3">
-                <pre className="text-xs text-slate-300 whitespace-pre-wrap leading-relaxed font-sans">{row.content}</pre>
+              <div className="flex items-center gap-2 flex-wrap">
+                <button onClick={onEdit} className="text-[11px] px-2.5 py-1 rounded border border-amber-500/40 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 transition-all w-fit font-semibold">✏️ Edit & Gambar</button>
+                <button onClick={copy} className="text-[11px] px-2.5 py-1 rounded border border-slate-700 hover:border-slate-600 text-slate-400 hover:text-white transition-all w-fit">{copied ? "✓ Disalin" : "Salin"}</button>
+                {row.editedHtml && <span className="text-[10px] text-amber-400/70">• sudah diedit</span>}
+                {row.pub === "publishing" && <span className="text-[10px] text-blue-400 flex items-center gap-1"><span className="w-2.5 h-2.5 border border-blue-400 border-t-transparent rounded-full animate-spin" />Mengirim ke WP...</span>}
+                {row.pub === "published" && <a href={row.pubLink} target="_blank" rel="noopener" className="text-[10px] text-emerald-400 hover:underline">✓ {row.scheduledFor ? `Terjadwal ${row.scheduledFor.replace("T", " ").slice(0, 16)}` : "Terpublish"} →</a>}
+                {row.pub === "puberror" && <span className="text-[10px] text-red-400">✗ {row.pubError}</span>}
               </div>
+              <div className="max-h-72 overflow-y-auto bg-slate-900 rounded-lg p-4
+                [&_h1]:text-lg [&_h1]:font-black [&_h1]:text-white [&_h1]:mb-2 [&_h1]:mt-3
+                [&_h2]:text-base [&_h2]:font-bold [&_h2]:text-white [&_h2]:mb-2 [&_h2]:mt-4
+                [&_h3]:text-sm [&_h3]:font-bold [&_h3]:text-slate-200 [&_h3]:mb-1.5 [&_h3]:mt-3
+                [&_p]:text-xs [&_p]:text-slate-300 [&_p]:leading-relaxed [&_p]:mb-2
+                [&_strong]:text-white [&_strong]:font-bold [&_em]:italic
+                [&_ul]:list-disc [&_ul]:pl-4 [&_ul]:mb-2 [&_ol]:list-decimal [&_ol]:pl-4 [&_ol]:mb-2 [&_li]:text-xs [&_li]:text-slate-300 [&_li]:mb-1
+                [&_a]:text-amber-400 [&_a]:underline
+                [&_table]:w-full [&_table]:border-collapse [&_table]:mb-2 [&_table]:text-xs
+                [&_th]:border [&_th]:border-slate-700 [&_th]:px-2 [&_th]:py-1 [&_th]:bg-slate-800 [&_th]:text-white
+                [&_td]:border [&_td]:border-slate-700/60 [&_td]:px-2 [&_td]:py-1 [&_td]:text-slate-300
+                [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-lg [&_img]:my-2 [&_img]:block"
+                dangerouslySetInnerHTML={{ __html: previewHtml }} />
             </>
           )}
         </div>
@@ -109,6 +143,12 @@ export default function BulkPage() {
   const [running, setRunning] = useState(false);
   const [genLoading, setGenLoading] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
+  // Publish ke WordPress
+  const [pubMode, setPubMode] = useState<"draft" | "publish" | "schedule">("schedule");
+  const [schedStart, setSchedStart] = useState("");
+  const [schedPerDay, setSchedPerDay] = useState(3);
+  const [publishingAll, setPublishingAll] = useState(false);
+  const [editingIdx, setEditingIdx] = useState<number | null>(null);
 
   const isAdmin = user?.role === "admin";
   const isPro = isAdmin || (user?.plan ?? "free") !== "free";
@@ -197,6 +237,52 @@ export default function BulkPage() {
     setRunning(false);
   };
 
+  // Publish semua artikel selesai ke WordPress (Draft / Publish langsung / Schedule bertahap).
+  const publishAll = async () => {
+    if (!wpSel) return;
+    if (pubMode === "schedule" && !schedStart) return;
+    setPublishingAll(true);
+    // Indeks artikel yang akan dipublish (selesai, ada konten, belum terpublish)
+    const targets = rows
+      .map((r, i) => ({ r, i }))
+      .filter(({ r }) => r.status === "selesai" && r.content && r.pub !== "published");
+
+    for (let j = 0; j < targets.length; j++) {
+      const { i } = targets[j];
+      setRows(prev => prev.map((r, idx) => idx === i ? { ...r, pub: "publishing", pubError: undefined } : r));
+      try {
+        // Pakai HTML hasil edit kalau ada (buang H1 & META biar tak dobel judul), kalau tidak konversi markdown
+        let html = rows[i].editedHtml
+          ? rows[i].editedHtml!.replace(/<h1[^>]*>.*?<\/h1>/i, "").replace(/<p>\s*META:.*?<\/p>/i, "")
+          : markdownToHtml(rows[i].content);
+        let featuredMediaId: number | undefined;
+        if (/data:[^"]+;base64,/.test(html)) {
+          const up = await uploadImagesToWP(html, wpSel);
+          html = up.html;
+          featuredMediaId = up.firstMediaId;
+        }
+        const scheduledAt = pubMode === "schedule" ? computeScheduleDate(schedStart, schedPerDay, j) : undefined;
+        const res = await publishToWordPress(wpSel, {
+          title: rows[i].selectedTitle || extractTitle(rows[i].content),
+          content: html,
+          status: pubMode === "schedule" ? "future" : pubMode,
+          scheduledAt,
+          focusKeyword: rows[i].topic || undefined,
+          featuredMediaId,
+        });
+        setRows(prev => prev.map((r, idx) => idx === i
+          ? { ...r, pub: "published", pubLink: res.link, scheduledFor: scheduledAt }
+          : r));
+      } catch (e: any) {
+        setRows(prev => prev.map((r, idx) => idx === i ? { ...r, pub: "puberror", pubError: e.message } : r));
+      }
+    }
+    setPublishingAll(false);
+  };
+
+  const doneRows = rows.filter(r => r.status === "selesai" && r.content);
+  const unpublishedCount = doneRows.filter(r => r.pub !== "published").length;
+
   return (
     <div className="h-full flex flex-col" style={{ fontFamily: "'DM Sans',sans-serif" }}>
       <div className="border-b border-slate-800/60 pl-14 pr-6 lg:px-6 py-3 flex items-center gap-3 bg-[#0c0e14]">
@@ -274,6 +360,62 @@ export default function BulkPage() {
             disabled={!validRows.length || credits < cost}
             label={`Generate (${validRows.length} artikel · ${validRows.length * cost} 💎)`}
             sublabel={`${rows.filter(r => r.status === "selesai").length}/${rows.length}`} />
+
+          {/* Panel publish ke WordPress — muncul setelah ada artikel selesai */}
+          {doneRows.length > 0 && (
+            <div className="border border-blue-900/40 bg-blue-950/20 rounded-xl overflow-hidden flex-shrink-0">
+              <div className="bg-blue-950/40 px-4 py-3 flex items-center justify-between">
+                <span className="text-[11px] font-black text-blue-300 uppercase tracking-widest">🌐 Publish ke WordPress</span>
+                <span className="text-[10px] text-slate-500">{doneRows.length - unpublishedCount}/{doneRows.length}</span>
+              </div>
+              <div className="px-4 py-3 flex flex-col gap-2.5">
+                {!wpSel && <p className="text-[10px] text-amber-400/80 leading-relaxed">Pilih situs WordPress dulu di pengaturan di atas (bagian WordPress).</p>}
+
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Status Publikasi</label>
+                  <div className="flex gap-1 bg-slate-900 border border-slate-700/60 rounded-lg p-1">
+                    {([["draft", "Draft"], ["publish", "Publish"], ["schedule", "Jadwal"]] as const).map(([v, label]) => (
+                      <button key={v} onClick={() => setPubMode(v)}
+                        className={`flex-1 text-[10px] font-bold py-1.5 rounded-md transition-all ${pubMode === v ? "bg-blue-500/20 text-blue-300 border border-blue-500/40" : "text-slate-500 border border-transparent hover:text-slate-300"}`}>
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {pubMode === "schedule" && (
+                  <>
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Mulai Tayang</label>
+                      <input type="datetime-local" value={schedStart} onChange={e => setSchedStart(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-700 text-slate-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500/40" />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex-shrink-0">Frekuensi</label>
+                      <select value={schedPerDay} onChange={e => setSchedPerDay(Number(e.target.value))}
+                        className="bg-slate-900 border border-slate-700 text-slate-200 text-xs rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500/40">
+                        {[1, 2, 3, 4, 5, 6, 8, 10].map(n => <option key={n} value={n}>{n}</option>)}
+                      </select>
+                      <span className="text-[10px] text-slate-500">artikel / hari</span>
+                    </div>
+                    <p className="text-[10px] text-slate-600 leading-relaxed">
+                      {unpublishedCount} artikel disebar otomatis mulai jadwal di atas. WordPress yang menayangkan.
+                    </p>
+                  </>
+                )}
+
+                <button onClick={publishAll}
+                  disabled={!wpSel || publishingAll || unpublishedCount === 0 || (pubMode === "schedule" && !schedStart)}
+                  className="w-full py-2.5 rounded-lg font-bold text-xs bg-blue-600 hover:bg-blue-500 text-white transition-all disabled:opacity-40 flex items-center justify-center gap-2">
+                  {publishingAll
+                    ? <><span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />Mengirim...</>
+                    : pubMode === "schedule" ? <>📅 Jadwalkan {unpublishedCount} Artikel</>
+                    : pubMode === "publish" ? <>⬆ Publish {unpublishedCount} Artikel</>
+                    : <>💾 Kirim {unpublishedCount} sebagai Draft</>}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="flex-1 flex flex-col gap-3 overflow-hidden">
@@ -296,17 +438,47 @@ export default function BulkPage() {
                 <div className="flex-1 overflow-y-auto flex flex-col gap-2.5 pb-2">
                   {rows.map((row, i) => (
                     <BulkRowCard key={i} row={row} index={i}
-                      onSelectTitle={t => setRows(prev => prev.map((r, idx) => idx === i ? { ...r, selectedTitle: t } : r))}
+                      onSelectTitle={t => setRows(prev => prev.map((r, idx) => idx === i ? { ...r, selectedTitle: t, titles: [] } : r))}
                       onRegenTitles={() => regenTitles(i)}
                       onKeywordsChange={v => setRows(prev => prev.map((r, idx) => idx === i ? { ...r, keywords: v } : r))}
                       onTitleEdit={v => setRows(prev => prev.map((r, idx) => idx === i ? { ...r, selectedTitle: v } : r))}
-                      onRemove={() => removeRow(i)} />
+                      onRemove={() => removeRow(i)}
+                      onEdit={() => setEditingIdx(i)} />
                   ))}
                 </div>
               </div>
           }
         </div>
       </div>
+
+      {/* Modal editor per artikel — preview, edit, & tambah gambar seperti single */}
+      {editingIdx !== null && rows[editingIdx] && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 md:p-8"
+          onClick={() => setEditingIdx(null)}>
+          <div className="bg-[#0c0e14] border border-slate-700 rounded-2xl w-full max-w-5xl h-[90vh] flex flex-col overflow-hidden shadow-2xl"
+            onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-5 py-3 border-b border-slate-800 flex-shrink-0">
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-white truncate">{rows[editingIdx].selectedTitle || rows[editingIdx].topic}</p>
+                <p className="text-[10px] text-slate-500">Edit artikel & tambah gambar — perubahan otomatis dipakai saat publish</p>
+              </div>
+              <button onClick={() => setEditingIdx(null)} className="text-slate-400 hover:text-white text-xl leading-none flex-shrink-0 ml-3">✕</button>
+            </div>
+            <div className="flex-1 overflow-hidden p-4">
+              <ResultPanel
+                key={editingIdx}
+                content={rows[editingIdx].content}
+                keyword={rows[editingIdx].topic}
+                model={!isPro ? MODELS[0] : model}
+                wpSites={wpSel ? [wpSel] : wpSites}
+                synds={cfg.synds}
+                userId={user?.id}
+                onContentChange={html => setRows(prev => prev.map((r, idx) => idx === editingIdx ? { ...r, editedHtml: html } : r))}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
