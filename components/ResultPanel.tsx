@@ -293,7 +293,7 @@ export default function ResultPanel({ content: initialContent, keyword = "", mod
   // Konversi SVG base64 → WebP blob via Canvas (agar WordPress tidak perlu plugin SVG)
   const svgToWebP = useCallback((svgB64: string): Promise<Blob> => {
     return new Promise((resolve, reject) => {
-      const img = new Image();
+      const img = new window.Image();
       img.onload = () => {
         const canvas = document.createElement("canvas");
         canvas.width = 800; canvas.height = 450;
