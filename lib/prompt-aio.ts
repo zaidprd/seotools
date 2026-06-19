@@ -488,21 +488,30 @@ function briefJsonSchema(): string {
 }
 
 /**
- * Map articleType + sinyal dari input ke search_intent default. Bisa di-override
- * lewat config lebih detail di iterasi berikutnya. Untuk prototipe, pakai
- * heuristic sederhana.
+ * Derivasi search_intent dari keyword (sinyal utama) + articleType (fallback).
+ * Analisis keyword lebih akurat karena mencerminkan intent pencari sesungguhnya.
  */
 function deriveSearchIntent(input: AioInput): string {
-  const t = (input.articleType || "").toLowerCase();
-  if (t.includes("how-to") || t.includes("panduan") || t.includes("listicle")) {
+  const kw = (input.keyword || "").toLowerCase();
+  const t  = (input.articleType || "").toLowerCase();
+
+  // Sinyal informational dari keyword
+  if (/^(cara|how to|langkah|tutorial|panduan|belajar|apa itu|pengertian|kenapa|mengapa|kapan|dimana)/.test(kw)) {
     return "informational";
   }
-  if (t.includes("review") || t.includes("produk") || t.includes("roundup")) {
+  // Sinyal commercial dari keyword
+  if (/(terbaik|rekomendasi|review|vs\s|perbandingan|worth it|harga|murah|alternatif|top \d|\d terbaik)/.test(kw)) {
     return "commercial";
   }
-  if (t.includes("landing") || t.includes("press release")) {
+  // Sinyal transactional dari keyword
+  if (/(beli|order|checkout|daftar sekarang|sign up|daftar gratis|diskon|promo|download gratis)/.test(kw)) {
     return "transactional";
   }
+
+  // Fallback ke articleType
+  if (t.includes("how-to") || t.includes("panduan") || t.includes("listicle")) return "informational";
+  if (t.includes("review") || t.includes("produk") || t.includes("roundup")) return "commercial";
+  if (t.includes("landing") || t.includes("press release")) return "transactional";
   return "informational";
 }
 
@@ -830,6 +839,7 @@ export function buildBlockPrompt(args: AioBuildArgs): AioPrompt {
       blockSpec,
       prevBlocksText,
       nextBlockTitles,
+      args.brief,
     ),
     requestParams: {
       maxTokens: 2000,
@@ -889,6 +899,11 @@ function buildBlockSystemPrompt(input: AioInput, blockSpec: AioOutlineBlock): st
     `- Elemen yang harus ada: ${blockSpec.must_include.join(", ") || "-"}\n` +
     `- Format yang dipakai: ${blockSpec.format.join(", ") || "paragraph"}\n` +
     "\n" +
+    "ATURAN KHUSUS AI OVERVIEW:\n" +
+    "- Setiap seksi H2 harus bisa dipahami sebagai standalone passage — tulis seolah Google hanya mengambil seksi ini untuk ditampilkan di AI Overview tanpa konteks blok lain.\n" +
+    "- Paragraf pertama tiap seksi = jawaban/definisi langsung, bukan intro atau transisi antar-blok.\n" +
+    "- Hindari anafora antar-blok ('Seperti yang disebutkan sebelumnya', 'Pada bagian sebelumnya').\n" +
+    "\n" +
     "LARANGAN:\n" +
     "- Jangan menuliskan instruksi prompt ini di output.\n" +
     "- Jangan menulis ulang H1 artikel (H1 hanya di luar blok ini).\n" +
@@ -905,6 +920,7 @@ function buildBlockUserPrompt(
   blockSpec: AioOutlineBlock,
   prevBlocksText: string | undefined,
   nextBlockTitles: string[] | undefined,
+  brief: AioBriefOutput | null | undefined,
 ): string {
   // Outline ringkas untuk koherensi antar-blok.
   const outlineInline = JSON.stringify(
@@ -929,10 +945,14 @@ function buildBlockUserPrompt(
   const internalLinkForBlock = pickLinksForBlock(outline.internal_link_plan, blockSpec, 2);
   const externalLinkForBlock = pickLinksForBlock(outline.external_link_plan, blockSpec, 1);
 
-  // Fakta wajib yang harus muncul di blok ini (round-robin dari must_include_facts brief).
-  // Brief diakses via input - caller bisa menyisipkan via field opsional (TODO di iterasi
-  // berikutnya, untuk sekarang kita pakai default dari outline.related context).
-  const mustIncludeFactsCsv = "lihat brief; cantumkan fakta yang relevan untuk blok ini";
+  // Fakta wajib dari brief — distribusi round-robin per blok supaya tiap blok dapat porsi fakta.
+  const allFacts = brief?.must_include_facts || [];
+  const factsForBlock = allFacts.length > 0
+    ? allFacts.filter((_, idx) => idx % 10 === (blockIndex - 1) % allFacts.length || idx % 10 === blockIndex % allFacts.length)
+    : [];
+  const mustIncludeFactsCsv = factsForBlock.length > 0
+    ? factsForBlock.join(" | ")
+    : "cantumkan data/angka spesifik yang relevan dengan topik blok ini (dengan sebutan sumber)";
 
   // Judul blok setelahnya saja, supaya tidak bocor isi.
   const nextTitles = (nextBlockTitles || []).join(" | ") || "(tidak ada)";
@@ -979,7 +999,7 @@ function buildBlockUserPrompt(
     "5. Untuk blok 5 (Perbandingan): WAJIB ada 1 tabel Markdown minimal 3 kolom x 3 baris.\n" +
     "6. Untuk blok 6 (Step-by-step): WAJIB pakai ordered list bernomor.\n" +
     "7. Untuk blok 7 (FAQ): WAJIB format '### P: ...' lalu jawaban 1-3 kalimat, total 5-7 Q dari outline.faq_questions.\n" +
-    "8. Untuk blok 10 (Sources): WAJIB daftar minimal 3 sumber dengan format 'Nama Sumber - URL - Diakses 2026-06-18'.\n" +
+    "8. Untuk blok 10 (Sources): WAJIB daftar minimal 3 sumber otoritatif. Format: '- **Nama Sumber** — Jenis sumber (jurnal/situs resmi/buku/lembaga) — Tahun'. JANGAN mengarang URL — hanya sertakan URL nyata dari allowedExternalDomains atau internalLinkBaseUrl jika tersedia.\n" +
     "9. Internal link Markdown: [anchor](URL) dengan base URL dari input.internalLinkBaseUrl.\n" +
     "10. External link Markdown: [anchor](URL) sesuai outline.external_link_plan.\n" +
     `11. Recency marker '${input.recencyMarker || input.publishDate.slice(0, 4)}' muncul minimal 1x di SELURUH artikel; jika blok ini tempat yang cocok, selipkan natural.\n` +
@@ -1005,7 +1025,7 @@ function blockJsonSchema(blockSpec: AioOutlineBlock, input: AioInput): string {
     "    6) Untuk blok 5: WAJIB 1 tabel Markdown 3 kolom x 3 baris.\n" +
     "    7) Untuk blok 6: WAJIB ordered list bernomor.\n" +
     "    8) Untuk blok 7: WAJIB format '### P: ...' dengan 5-7 Q dari outline.faq_questions.\n" +
-    "    9) Untuk blok 10: WAJIB daftar 3+ sumber dengan format 'Nama - URL - Diakses " + (input.publishDate || "2026-06-18") + "'.\n" +
+    "    9) Untuk blok 10: WAJIB daftar 3+ sumber otoritatif. Format: '- **Nama Sumber** — Jenis sumber — Tahun'. JANGAN generate URL palsu — hanya gunakan URL dari domain yang sudah diverifikasi (allowedExternalDomains / internalLinkBaseUrl).\n" +
     "    10) Internal link: [anchor](URL) sesuai base URL.\n" +
     "    11) External link: [anchor](URL) sesuai external link plan.\n" +
     `    12) Recency marker '${input.recencyMarker || input.publishDate.slice(0, 4)}' selipkan natural jika belum ada di seluruh artikel sampai blok ini.>\",\n` +

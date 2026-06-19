@@ -21,7 +21,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Paket kamu sudah expired. Silakan perpanjang untuk melanjutkan." }, { status: 403 });
     }
 
-    const { site, post } = await req.json();
+    const { site, post }: {
+      site: { url: string; user: string; pass: string };
+      post: { title: string; content: string; status?: string; scheduledAt?: string; focusKeyword?: string; featuredMediaId?: number };
+    } = await req.json();
     if (!site?.url || !site?.user || !site?.pass) {
       return NextResponse.json({ error: "Data koneksi WordPress tidak lengkap" }, { status: 400 });
     }
@@ -35,17 +38,21 @@ export async function POST(req: NextRequest) {
     const auth = Buffer.from(`${site.user}:${site.pass}`).toString("base64");
     const endpoint = `${urlCheck.url.origin}/wp-json/wp/v2/posts`;
 
+    const wpBody: Record<string, unknown> = {
+      title: post.title,
+      content: post.content,
+      status: post.status || "draft",
+    };
+    if (post.scheduledAt) wpBody.date = post.scheduledAt;
+    if (post.featuredMediaId) wpBody.featured_media = post.featuredMediaId;
+
     const r = await fetch(endpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Basic ${auth}`,
       },
-      body: JSON.stringify({
-        title: post.title,
-        content: post.content,
-        status: post.status || "draft",
-      }),
+      body: JSON.stringify(wpBody),
     });
 
     const data = await r.json();

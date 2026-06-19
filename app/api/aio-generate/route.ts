@@ -9,7 +9,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { marked } from "marked";
 import { createClient } from "@supabase/supabase-js";
-import { CREDIT_COST, FREE_ARTICLE_COST, MODELS, ModelInfo } from "@/lib/constants";
+import { CREDIT_COST, FREE_ARTICLE_COST, MODELS, ModelInfo, AIO_MODEL_ID, AIO_CREDIT_COST } from "@/lib/constants";
 import { requireAuth } from "@/lib/supabase/require-auth";
 import {
   AioProviderId,
@@ -627,6 +627,7 @@ async function checkAndDeductCredits(
   supabase: any,
   userId: string,
   modelId: string,
+  aioMode = false,
 ): Promise<{ ok: true; cost: number; isFree: boolean; isAdmin: boolean } | { ok: false; error: string; status: number }> {
   const { data: userDataRaw, error: userErr } = await supabase
     .from("users")
@@ -644,7 +645,17 @@ async function checkAndDeductCredits(
       ? userData.plan
       : "free";
   const isFree = effectivePlan === "free";
-  const cost = isFree ? FREE_ARTICLE_COST : (CREDIT_COST[modelId] ?? 1);
+
+  // AIO hanya untuk pengguna berbayar
+  if (aioMode && isFree && !isAdmin) {
+    return {
+      ok: false,
+      error: "Fitur AI Overview hanya tersedia untuk pengguna berbayar. Upgrade ke plan Aktif atau lebih tinggi.",
+      status: 403,
+    };
+  }
+
+  const cost = isAdmin ? 0 : (aioMode ? AIO_CREDIT_COST : (isFree ? FREE_ARTICLE_COST : (CREDIT_COST[modelId] ?? 1)));
 
   if (isAdmin) return { ok: true, cost, isFree, isAdmin };
 
@@ -702,12 +713,15 @@ export async function POST(req: NextRequest) {
   if (v.error) return NextResponse.json({ error: v.error }, { status: 400 });
   const aioReq = v.req!;
 
+  // Selalu pakai Sonnet untuk AIO — override apapun yang dikirim client
+  aioReq.modelId = AIO_MODEL_ID;
+
   // 3. Setup supabase + billing
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
   );
-  const billing = await checkAndDeductCredits(supabase, userId, aioReq.modelId);
+  const billing = await checkAndDeductCredits(supabase, userId, aioReq.modelId, true /* aioMode */);
   if (!billing.ok) {
     return NextResponse.json({ error: billing.error }, { status: billing.status });
   }
@@ -720,6 +734,7 @@ export async function POST(req: NextRequest) {
   let response: AioGenerateResponse;
   try {
     response = await runAioPipeline(aioReq, userId, controller.signal);
+    response.creditsUsed = billing.cost; // pakai biaya aktual AIO, bukan model.credits
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e);
     console.error(`[aio-generate] user=${userId} model=${aioReq.modelId} unhandled error: ${msg}`);

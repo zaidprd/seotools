@@ -182,6 +182,8 @@ export default function ResultPanel({ content: initialContent, keyword = "", mod
   const [isAIGenerating, setIsAIGenerating] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
   const [showSvgPreview, setShowSvgPreview] = useState<string | null>(null);
+  const [showSeoPanel, setShowSeoPanel] = useState(false);
+  const touchStartX = useRef(0);
 
   const editor = useEditor({
     extensions: [
@@ -288,10 +290,14 @@ export default function ResultPanel({ content: initialContent, keyword = "", mod
   };
 
 
-  // Upload semua gambar base64 di konten ke WP Media Library, return konten dengan URL WP
-  const uploadBase64ToWP = useCallback(async (html: string, site: WPSite): Promise<string> => {
+  // Upload semua gambar base64 di konten ke WP Media Library.
+  // Return { html dengan URL WP, firstMediaId = ID gambar pertama untuk featured_media }
+  const uploadBase64ToWP = useCallback(async (
+    html: string, site: WPSite
+  ): Promise<{ html: string; firstMediaId?: number }> => {
     const regex = /<img([^>]*?)src="(data:([^;]+);base64,([^"]+))"([^>]*?)>/gi;
     let result = html;
+    let firstMediaId: number | undefined;
     const matches: Array<{ full: string; pre: string; dataUrl: string; mime: string; b64: string; post: string }> = [];
     let m: RegExpExecArray | null;
     while ((m = regex.exec(html)) !== null) {
@@ -317,29 +323,33 @@ export default function ResultPanel({ content: initialContent, keyword = "", mod
         });
         if (r.ok) {
           const data = await r.json();
+          if (!firstMediaId) firstMediaId = data.id as number; // gambar pertama jadi featured image
           const wpUrl: string = data.source_url;
-          // Ganti hanya src base64 dengan URL WP, pertahankan atribut lain
           result = result.replace(img.full, `<img${img.pre}src="${wpUrl}"${img.post}>`);
         }
       } catch { /* pertahankan base64 jika upload gagal */ }
     }
-    return result;
+    return { html: result, firstMediaId };
   }, []);
 
   const publish = async () => {
     if (!wpSel) return;
     setPublishing(true); setPubResult(null); setPubError(null);
     try {
-      // Upload semua gambar base64 ke WP Media Library sebelum publish
       let content = htmlContent;
+      let featuredMediaId: number | undefined;
+      // Upload gambar base64 → URL WP, ambil ID pertama sebagai featured image
       if (/data:[^"]+;base64,/.test(content)) {
-        content = await uploadBase64ToWP(content, wpSel);
+        const { html, firstMediaId } = await uploadBase64ToWP(content, wpSel);
+        content = html;
+        featuredMediaId = firstMediaId;
       }
       const r = await publishToWordPress(wpSel, {
         title, content,
         status: scheduledAt ? "future" : postStatus,
         scheduledAt: scheduledAt || undefined,
         focusKeyword: keyword || undefined,
+        featuredMediaId,
       });
       setPubResult({ link: r.link });
     } catch (e: any) { setPubError(e.message); }
@@ -482,6 +492,24 @@ export default function ResultPanel({ content: initialContent, keyword = "", mod
               uploadError={uploadError}
             />
             {aiError && <div className="px-3 py-1.5 text-[11px] text-red-400 bg-red-500/5 border-b border-red-500/10">✗ AI: {aiError}</div>}
+
+            {/* Mobile-only: tombol buka SEO Checker */}
+            <div className="md:hidden flex items-center justify-end px-3 py-1.5 border-b border-slate-800 bg-slate-900/60">
+              <button
+                onClick={() => setShowSeoPanel(p => !p)}
+                className="text-[11px] px-3 py-1.5 rounded-lg border border-amber-500/30 bg-amber-500/5 text-amber-400 font-bold flex items-center gap-1.5">
+                📊 Cek SEO
+              </button>
+            </div>
+
+            {/* Backdrop SEO panel (mobile) */}
+            {showSeoPanel && (
+              <div
+                className="fixed inset-0 z-40 bg-black/60 md:hidden"
+                onClick={() => setShowSeoPanel(false)}
+              />
+            )}
+
             {/* Split: TipTap + SEO panel */}
             <div className="flex flex-1 overflow-hidden min-h-0">
               <div className="flex-1 overflow-y-auto
@@ -505,10 +533,34 @@ export default function ResultPanel({ content: initialContent, keyword = "", mod
                 [&_.ProseMirror_.is-editor-empty:first-child::before]:content-['Tulis_artikel_di_sini...'] [&_.ProseMirror_.is-editor-empty:first-child::before]:text-slate-600 [&_.ProseMirror_.is-editor-empty:first-child::before]:pointer-events-none [&_.ProseMirror_.is-editor-empty:first-child::before]:float-left [&_.ProseMirror_.is-editor-empty:first-child::before]:h-0">
                 <EditorContent editor={editor} className="h-full" />
               </div>
-              {/* SEO Panel */}
-              <div className="w-52 flex-shrink-0 border-l border-slate-800 bg-slate-950/30 overflow-hidden flex flex-col">
-                <div className="px-3 py-2 border-b border-slate-800 bg-slate-900/40">
+
+              {/* SEO Panel — sidebar di desktop, drawer slide-from-right di mobile */}
+              <div
+                className={[
+                  // Mobile: fixed overlay dari kanan, bisa ditutup dengan swipe kanan
+                  "fixed inset-y-0 right-0 z-50 w-72",
+                  "transition-transform duration-300 ease-out",
+                  showSeoPanel ? "translate-x-0" : "translate-x-full",
+                  // Desktop: sidebar inline biasa
+                  "md:relative md:inset-auto md:z-auto md:w-52",
+                  "md:translate-x-0",
+                  "flex-shrink-0 border-l border-slate-800",
+                  "bg-[#0c0e14] md:bg-slate-950/30",
+                  "overflow-hidden flex flex-col",
+                ].join(" ")}
+                onTouchStart={e => { touchStartX.current = e.touches[0].clientX; }}
+                onTouchEnd={e => {
+                  if (e.changedTouches[0].clientX - touchStartX.current > 60) setShowSeoPanel(false);
+                }}
+              >
+                <div className="px-3 py-2 border-b border-slate-800 bg-slate-900/40 flex items-center justify-between">
                   <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">🎯 SEO Checker</p>
+                  {/* Tombol tutup — hanya tampil di mobile */}
+                  <button
+                    onClick={() => setShowSeoPanel(false)}
+                    className="md:hidden text-slate-400 hover:text-white text-base leading-none p-1 -mr-1">
+                    ✕
+                  </button>
                 </div>
                 <SEOPanel content={seoContent} keyword={keyword} />
               </div>

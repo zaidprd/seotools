@@ -1,7 +1,7 @@
 ﻿"use client";
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { MODELS, ModelInfo, WPSite, Config, UserData, defaultCfg, FREE_MODEL_ID, FREE_MAX_WORDS, FREE_ARTICLE_COST, CREDIT_COST, SVG_CREDIT_COST } from "@/lib/constants";
+import { MODELS, ModelInfo, WPSite, Config, UserData, defaultCfg, FREE_MODEL_ID, FREE_MAX_WORDS, FREE_ARTICLE_COST, CREDIT_COST, SVG_CREDIT_COST, AIO_MODEL_ID, AIO_CREDIT_COST } from "@/lib/constants";
 import { generateArticle, generateAioArticle } from "@/lib/api";
 import { Sec, Inp, RunBtn } from "@/components/ui";
 import SettingsForm from "@/components/SettingsForm";
@@ -84,8 +84,10 @@ export default function GeneratePage() {
     setWpSites(prev => { const next = prev.filter(x => x.id !== id); saveWPSites(next); return next; });
   }, []);
 
-  const articleCost = isPro ? (CREDIT_COST[model.id] ?? 1) : FREE_ARTICLE_COST;
-  const imgCostExtra = isPro ? parseInt(cfg.imgCount || "0") * SVG_CREDIT_COST : 0;
+  const articleCost = mode === "aio"
+    ? (isPro ? AIO_CREDIT_COST : FREE_ARTICLE_COST)
+    : (isPro ? (CREDIT_COST[model.id] ?? 1) : FREE_ARTICLE_COST);
+  const imgCostExtra = mode === "aio" ? 0 : (isPro ? parseInt(cfg.imgCount || "0") * SVG_CREDIT_COST : 0);
   const cost = articleCost + imgCostExtra;
 
   const handleGenerateTitle = async () => {
@@ -98,17 +100,24 @@ export default function GeneratePage() {
 
   const generate = async () => {
     if (!keyword.trim()) return;
-    if (credits < cost) { setUpgradeReason(`Butuh ${cost} 💎 untuk model ini, kamu punya ${credits} 💎`); setShowUpgrade(true); return; }
+    // AIO: hanya untuk pengguna berbayar
+    if (mode === "aio" && !isPro) {
+      setUpgradeReason("Fitur AI Overview hanya untuk pengguna berbayar. Upgrade untuk akses pipeline 7-step dengan Claude Sonnet 4.6.");
+      setShowUpgrade(true);
+      return;
+    }
+    if (credits < cost) { setUpgradeReason(`Butuh ${cost} 💎 untuk ${mode === "aio" ? "AI Overview" : "model ini"}, kamu punya ${credits} 💎`); setShowUpgrade(true); return; }
     setLoading(true); setResult(null); setError(null);
     setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 100);
     try {
       // Branching: mode AIO (7-step pipeline) vs standard (1-step)
       if (mode === "aio") {
         // Bangun AioGenerateRequest dari state form yang ada
+        // modelId selalu Sonnet — dikunci di server maupun client
         const aioReq = {
           keyword: keyword.trim(),
           primaryKeyword: keyword.trim(),
-          modelId: !isPro ? FREE_MODEL_ID : model.id,
+          modelId: AIO_MODEL_ID,
           language: cfg.language || "Indonesia",
           tone: cfg.tone,
           pov: cfg.pov,
@@ -195,7 +204,9 @@ export default function GeneratePage() {
         </div>
         {mode === "aio" && (
           <p className="text-[11px] text-violet-300/80 mt-2">
-            Pipeline 7-step: riset - outline - 10 blok - quality gate - refinement - JSON-LD - meta. Cocok untuk kutipan AI Overviews.
+            Pipeline 7-step: riset → outline → 10 blok → quality gate → refinement → JSON-LD → meta.{" "}
+            <span className="text-amber-400 font-bold">Model: Claude Sonnet 4.6 • {AIO_CREDIT_COST} 💎 per artikel</span>
+            {!isPro && <span className="ml-1.5 text-red-400 font-bold">· Pro only</span>}
           </p>
         )}
       </div>
@@ -292,12 +303,25 @@ export default function GeneratePage() {
           {error && (
             <div className="flex-1 flex flex-col items-center justify-center gap-3">
               <div className="bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 text-red-300 text-sm max-w-md">✗ {error}</div>
-              {showModelTip && (
-                <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-3 text-amber-300 text-xs max-w-md text-center">
-                  💡 Coba ganti ke model yang lebih ringan (GPT-5.4 atau Gemini 2.5 Flash) lalu klik Buat Artikel lagi.
-                  <button onClick={() => setShowModelTip(false)} className="ml-2 text-amber-500 hover:text-amber-400 underline">Tutup</button>
-                </div>
-              )}
+              {showModelTip && (() => {
+                const fallback = MODELS.find(m => m.id === currentModel.fallbackId);
+                return (
+                  <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-3 text-amber-300 text-xs max-w-md text-center space-y-2">
+                    <p>
+                      💡 Model <strong>{currentModel.label}</strong> mungkin sedang tidak stabil atau overloaded.
+                      {fallback && <> Coba beralih ke <strong>{fallback.label}</strong> ({fallback.credits} 💎) yang lebih ringan.</>}
+                    </p>
+                    {fallback && (
+                      <button
+                        onClick={() => { setModel(fallback); setShowModelTip(false); setError(null); }}
+                        className="w-full py-1.5 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/30 rounded-lg font-bold text-amber-200 transition-colors">
+                        Ganti ke {fallback.label} &rarr;
+                      </button>
+                    )}
+                    <button onClick={() => setShowModelTip(false)} className="text-amber-600 hover:text-amber-400 underline text-[10px]">Tutup</button>
+                  </div>
+                );
+              })()}
             </div>
           )}
           {result && <ResultPanel content={result} keyword={keyword} model={currentModel} wpSites={wpSel ? [wpSel] : wpSites} synds={cfg.synds} userId={user?.id} />}

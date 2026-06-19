@@ -1,85 +1,106 @@
 import { Config } from "./constants";
 
 export function buildPrompt(cfg: Config): string {
-  const { keyword, title, extraKeywords, outline, language, articleType, articleSize, tone, pov,
+  const {
+    keyword, title, extraKeywords, outline, language, articleType, articleSize, tone, pov,
     readability, country, brandVoice, details, withConclusion, withTables, withH3, withLists,
     withNotes, withQuotes, withKeyTakeaways, withFAQ, withBold, connectWeb, seoKeywords,
-    internalLinkBaseUrl, internalLinkPages, extLinkType, extLinkUrls } = cfg;
+    internalLinkBaseUrl, internalLinkPages, extLinkType, extLinkUrls,
+  } = cfg;
 
-  // Sanitasi base URL: hapus trailing slash dan pastikan tidak ada duplikasi
   const baseUrl = (internalLinkBaseUrl || "").replace(/\/+$/, "").trim();
   const hasInternalLink = baseUrl.length > 0;
   const hasManualPages = (internalLinkPages || "").trim().length > 0;
-
-  // External link manual URLs
   const hasManualExtLinks = extLinkType === "Manual" && (extLinkUrls || "").trim().length > 0;
+  const currentYear = new Date().getFullYear();
 
-  return `Kamu adalah penulis konten SEO profesional${language && language !== "Indonesia" ? ` (tulis dalam ${language})` : ""}. Buat artikel LENGKAP dengan spesifikasi berikut:
+  return `Kamu adalah SEO content writer senior${language && language !== "Indonesia" ? ` (tulis dalam ${language})` : ""}. Spesialisasimu: artikel yang dikutip Google AI Overviews dan Gemini ${currentYear}. Kamu menerapkan E-E-A-T, entity SEO, dan passage-level optimization.
+
+Buat artikel LENGKAP dengan spesifikasi berikut:
 
 Keyword utama: "${keyword}"
-${title ? `Judul: ${title}` : `Buat judul H1 yang menarik dan WAJIB mengandung keyword "${keyword}"`}
+${title ? `Judul: ${title}` : `Buat judul H1 menarik (50-60 karakter) yang WAJIB mengandung keyword "${keyword}"`}
 ${extraKeywords ? `Keyword tambahan: ${extraKeywords}` : ""}
-${seoKeywords ? `Keywords yang wajib disertakan: ${seoKeywords}` : ""}
+${seoKeywords ? `Keyword LSI yang wajib muncul natural: ${seoKeywords}` : ""}
 Tipe: ${articleType} | Panjang: ${articleSize} | Nada: ${tone} | POV: ${pov} | Keterbacaan: ${readability} | Negara: ${country}
 ${brandVoice ? `Brand Voice: ${brandVoice}` : ""}
-${details ? `Detail wajib disertakan: ${details}` : ""}
+${details ? `Informasi wajib disertakan: ${details}` : ""}
 ${outline ? `Outline:\n${outline}` : ""}
 
-=== ATURAN SEO WAJIB (target skor 100) ===
-1. Keyword "${keyword}" WAJIB muncul di 100 kata pertama artikel (di paragraf pembuka)
-2. Judul H1 WAJIB mengandung keyword "${keyword}" secara eksplisit
-3. Minimal 1 heading H2 atau H3 WAJIB mengandung keyword "${keyword}"
-4. Keyword density 1–2% (jangan over-stuffing, tapi pastikan natural muncul di paragraf penting)
-5. Di akhir artikel WAJIB tulis: META: [meta description 130-155 karakter yang mengandung keyword "${keyword}"]
-6. WAJIB ada section ## FAQ dengan 3-5 pertanyaan & jawaban relevan tentang "${keyword}"
-7. WAJIB ada section ## Kesimpulan atau ## Penutup sebagai penutup artikel
+=== ATURAN SEO ${currentYear} — WAJIB SEMUA ===
 
-=== STRUKTUR ARTIKEL ===
-- H1: judul mengandung keyword
-- Paragraf pembuka: keyword di 100 kata pertama
-- H2${withH3 ? " dan H3" : ""}: sub-topik (minimal 1 H2 mengandung keyword)
-${withTables ? "- Sertakan tabel perbandingan atau data relevan" : ""}
-${withLists ? "- Gunakan bullet points atau daftar bernomor untuk keterbacaan" : ""}
-${withNotes ? "- Tambahkan kotak catatan atau tips penting" : ""}
-${withQuotes ? "- Sertakan kutipan pakar atau statistik terpercaya" : ""}
-${withKeyTakeaways ? "- Seksi Key Takeaways di bagian akhir sebelum FAQ" : ""}
-${withFAQ ? "- ## FAQ: 3-5 pertanyaan & jawaban (WAJIB)" : "- ## FAQ: 3-5 pertanyaan & jawaban (WAJIB untuk SEO)"}
-${withConclusion ? "- ## Kesimpulan dengan CTA (WAJIB)" : "- ## Kesimpulan atau ## Penutup (WAJIB untuk SEO)"}
-${withBold ? "- Bold kata-kata penting dan keyword" : ""}
-${connectWeb ? "- Sertakan data, statistik, atau fakta terkini yang relevan" : ""}
+STRUKTUR HEADING:
+1. H1 WAJIB mengandung keyword "${keyword}" — panjang 50-60 karakter
+2. Minimal 2 H2 mengandung keyword atau sinonimnya secara natural
+3. JANGAN heading generik: "Pendahuluan", "Isi Artikel", "Pembahasan" — heading harus spesifik dan deskriptif
+4. Jika pakai H3, pastikan berada di bawah H2 (jangan loncat level H2 → H4)
+
+DIRECT ANSWER PER SEKSI (sinyal paling kuat untuk AI Overview):
+5. Setiap H2 WAJIB diawali paragraf "direct answer" 40-60 kata yang menjawab langsung intent seksi. Gunakan kalimat deklaratif: "X adalah...", "Cara melakukan Y adalah...", "Perbedaan A dan B terletak pada..."
+6. JANGAN pembuka klise: "Pada artikel ini", "Di era digital ini", "Tidak bisa dipungkiri", "Seiring perkembangan teknologi", "Halo pembaca", "Pernahkah Anda berpikir"
+7. Setiap seksi H2 harus bisa dipahami TANPA membaca seksi lain — tulis seolah Google hanya mengambil seksi itu saja untuk ditampilkan di AI Overview
+
+KUALITAS DAN E-E-A-T:
+8. Setiap klaim berupa angka/persentase/statistik WAJIB sebut sumber: "menurut [Nama Lembaga/Tahun]" atau "berdasarkan data [Sumber]"
+9. Paragraf maksimal 120 kata — jika lebih, pecah jadi 2 paragraf
+10. Hindari kata vague tanpa data: "banyak orang", "mayoritas", "sebagian besar pengguna", "umumnya" — ganti dengan angka spesifik atau hapus
+11. Recency marker: tahun "${currentYear}" wajib muncul minimal 1x secara natural di artikel
+
+KEYWORD DAN SEMANTIK:
+12. Keyword "${keyword}" muncul di 100 kata pertama (paragraf pembuka)
+13. Gunakan sinonim dan variasi keyword secara natural — hindari repetisi kata yang sama 3x berturut-turut dalam 1 paragraf
+14. Sebutkan entitas terkait yang relevan: konsep, istilah teknis, merek, atau lembaga yang berkaitan dengan topik
+
+FAQ (format wajib untuk schema compatibility):
+15. Seksi ## FAQ dengan 5-7 pertanyaan & jawaban
+16. Format WAJIB: "**P: [pertanyaan lengkap?]**" diikuti baris baru "**A:** [jawaban 1-3 kalimat, langsung ke inti]"
+17. Pertanyaan FAQ harus berbeda dari H2 yang sudah ada — fokus pada intent yang belum dijawab di seksi sebelumnya
+
+META:
+18. Di akhir artikel tulis: META: [meta description 130-155 karakter mengandung keyword "${keyword}" dan manfaat yang jelas]
+
+${withH3 ? "- Gunakan H3 sebagai sub-bagian dalam tiap H2 untuk topik yang butuh breakdown lebih detail." : ""}
+${withTables ? "- WAJIB sertakan minimal 1 tabel perbandingan (header + minimal 3 baris data) menggunakan format Markdown." : ""}
+${withLists ? "- Gunakan bullet list untuk fitur/manfaat dan ordered list untuk langkah-langkah step-by-step." : ""}
+${withNotes ? "- Tambahkan kotak tips penting dengan format: > **💡 Tips:** [isi tips singkat]" : ""}
+${withQuotes ? "- Sertakan kutipan data atau pakar dengan sebutan sumber yang jelas." : ""}
+${withKeyTakeaways ? "- Tambahkan seksi ## Key Takeaways sebelum FAQ berisi 3-4 bullet poin utama artikel." : ""}
+${withFAQ ? "- ## FAQ wajib ada dengan 5-7 Q&A format **P:**/**A:**." : "- ## FAQ wajib ada (5-7 Q&A format **P:**/**A:**)."}
+${withConclusion ? "- ## Kesimpulan wajib ada dengan ringkasan 2-3 poin utama dan CTA singkat." : "- ## Kesimpulan atau ## Penutup wajib ada dengan ringkasan dan CTA."}
+${withBold ? "- Bold kata kunci dan konsep penting untuk skimmability." : ""}
+${connectWeb ? `- Sertakan data atau statistik terkini ${currentYear} — WAJIB sebut nama sumber secara eksplisit di teks.` : ""}
 
 ${hasInternalLink ? `=== INTERNAL LINKING ===
 Sisipkan 2-4 internal link ke situs: ${baseUrl}
-ATURAN FORMAT LINK (penting, jangan dilanggar):
-- Gunakan format Markdown: [teks anchor yang relevan](${baseUrl}/path-halaman)
-- Path halaman: gunakan slug pendek dalam bahasa Indonesia (huruf kecil, tanpa spasi, pakai tanda hubung)
-- CONTOH BENAR: [cara memulai bisnis](${baseUrl}/cara-memulai-bisnis)
-- CONTOH SALAH: [cara memulai bisnis](${baseUrl}/${baseUrl.replace(/https?:\/\//, "")}/cara-memulai-bisnis) — jangan duplikasi domain!
-- JANGAN pernah menulis domain lebih dari sekali dalam satu URL
-${hasManualPages ? `Halaman yang tersedia untuk dilink:
-${internalLinkPages}
-Gunakan halaman-halaman di atas sebagai referensi URL yang tepat.` : "Buat URL path yang relevan dengan konten artikel."}
+ATURAN FORMAT:
+- Markdown: [teks anchor deskriptif](${baseUrl}/path-halaman)
+- Path: slug pendek bahasa Indonesia (huruf kecil, tanda hubung, tanpa spasi)
+- BENAR: [cara memulai bisnis online](${baseUrl}/cara-memulai-bisnis-online)
+- SALAH: duplikasi domain di URL
+${hasManualPages ? `Halaman yang tersedia untuk dilink:\n${internalLinkPages}` : "Buat path URL yang relevan dengan topik konten."}
 ` : ""}
 ${hasManualExtLinks ? `=== EXTERNAL LINKING ===
-Sisipkan 2-3 external link ke sumber terpercaya berikut (gunakan sebagai referensi atau kutipan):
+Sisipkan 1-3 external link ke sumber berikut sebagai referensi atau kutipan:
 ${extLinkUrls}
 Format: [anchor text deskriptif](URL)
 ` : extLinkType === "Otomatis" ? `=== EXTERNAL LINKING ===
-Sisipkan 2-3 external link ke sumber terpercaya yang relevan (Wikipedia Indonesia, situs pemerintah, atau sumber otoritatif dalam topik ini). Format: [anchor text](URL)
+Sisipkan 1-2 external link ke sumber otoritatif yang BENAR-BENAR ADA dan Anda yakin URL-nya valid (Wikipedia Indonesia, situs .go.id, atau institusi resmi nasional/internasional yang terkenal). JANGAN mengarang URL — jika tidak yakin URL-nya, jangan tambahkan link.
 ` : ""}
 
-Tulis artikel LENGKAP dalam bahasa natural. Jangan tambahkan komentar atau penjelasan di luar artikel.
+Tulis artikel LENGKAP dalam bahasa natural. Jangan tambahkan komentar meta, instruksi, atau penjelasan di luar artikel.
 Di akhir artikel (setelah ## Kesimpulan): META: [meta description 130-155 karakter mengandung keyword "${keyword}"]`;
 }
 
 export function buildTitlePrompt(keyword: string, count = 5): string {
+  const currentYear = new Date().getFullYear();
   return `Buat ${count} judul artikel SEO untuk keyword "${keyword}".
 
 Aturan:
 - Keyword "${keyword}" ada di awal atau tengah judul
 - Panjang 50-60 karakter
-- Mengandung angka, power word (Terbaik, Terbukti, Lengkap, Rahasia, Panduan), atau kata sentiment (Mudah, Cepat, Ampuh, Efektif, Praktis)
-- Bahasa Indonesia natural
+- Mengandung angka, tahun ${currentYear}, atau power word (Terbaik, Terbukti, Lengkap, Panduan, Cara)
+- Bahasa Indonesia natural dan spesifik — jangan generik
+- Satu judul boleh pakai format pertanyaan (Apa, Bagaimana, Mengapa)
 
 Format: hanya daftar judul, satu per baris, tanpa nomor, tanpa bullet, tanpa penjelasan.`;
 }

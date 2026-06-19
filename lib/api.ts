@@ -40,7 +40,7 @@ export async function generateTitlesAPI(keyword: string, count = 5): Promise<str
 
 export async function publishToWordPress(
   site: { url: string; user: string; pass: string },
-  post: { title: string; content: string; status: string; scheduledAt?: string; focusKeyword?: string }
+  post: { title: string; content: string; status: string; scheduledAt?: string; focusKeyword?: string; featuredMediaId?: number }
 ) {
   const res = await fetch("/api/publish/wordpress", {
     method: "POST",

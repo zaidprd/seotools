@@ -6,7 +6,7 @@ import { requireAuth } from "@/lib/supabase/require-auth";
 export const runtime  = "nodejs";
 export const maxDuration = 90;
 
-const SYSTEM = "Kamu adalah penulis konten SEO profesional Indonesia terbaik. Tulis konten berkualitas tinggi, informatif, terstruktur dengan baik, dan dioptimasi untuk mesin pencari.";
+const SYSTEM = `Kamu adalah SEO content writer senior yang spesialis membuat artikel yang dikutip Google AI Overviews dan Gemini. Terapkan prinsip E-E-A-T: tunjukkan keahlian, cantumkan sumber untuk setiap data numerik, tulis kalimat deklaratif yang langsung menjawab intent pembaca. Jangan pernah memulai dengan "Tentu", "Baik", "Berikut adalah", "Halo pembaca", atau frase basa-basi lainnya. Langsung ke konten.`;
 
 interface ImageConfig {
   count: number; style: string; instructions: string; userPrompt: string;
@@ -23,7 +23,16 @@ function oaiProviders(): Record<string, OAIProvider> {
     sumopod: {
       base: process.env.SUMOPOD_BASE_URL || "https://ai.sumopod.com/v1",
       envKey: "SUMOPOD_API_KEY",
-      models: new Set(["gemini/gemini-2.5-flash", "gpt-5.4", "claude-haiku-4-5", "claude-sonnet-4-6"]),
+      models: new Set([
+        "gemini/gemini-2.5-flash-lite",
+        "gemini/gemini-2.5-flash",
+        "gpt-4.1-mini",
+        "gpt-4.1",
+        "gpt-5.4",
+        "claude-haiku-4-5",
+        "claude-sonnet-4-6",
+        "claude-opus-4-7",
+      ]),
     },
   };
 }
