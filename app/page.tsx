@@ -114,7 +114,7 @@ const FAQS = [
   },
   {
     q: "Model AI mana yang paling bagus untuk blog Indonesia?",
-    a: "Untuk blog umum dan SEO konten, Gemini 2.5 Flash (gratis) atau GPT-5.4 (3 💎) adalah sweet spot — kualitas bagus, hemat. Untuk konten premium, landing page, atau artikel kompetitif, Claude Sonnet 4.6 (7 💎) atau Claude Haiku 4.5 (5 💎) sangat direkomendasikan.",
+    a: "Untuk blog umum dan SEO konten, Gemini 2.5 Flash (gratis) atau GPT-4.1 Mini (2 💎) adalah sweet spot — kualitas bagus, hemat. Untuk konten premium, landing page, atau artikel kompetitif yang panjang, GPT-4.1 (3 💎) atau GPT-5.4 (5 💎) sangat direkomendasikan.",
   },
   {
     q: "Bisa generate dalam bahasa lain selain Indonesia?",

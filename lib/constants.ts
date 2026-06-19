@@ -122,14 +122,14 @@ export const PLANS = [
     id: "starter", name: "Starter", price: 25000, priceLabel: "Rp 25rb", period: "/bulan",
     credits: 35, maxWords: "2.000 kata", maxSites: 1, maxBulk: 10,
     canSchedule: true, canSyndicate: false, priority: false, imageSource: "imagen",
-    features: ["35 kredit/bulan", "Semua model AI (Gemini, GPT, Claude)", "Maks 2.000 kata per artikel", "1 situs WordPress", "Bulk hingga 10 artikel sekaligus", "Schedule publish otomatis", "Generate gambar AI otomatis", "Editor artikel built-in", "Support via email"],
+    features: ["35 kredit/bulan", "Semua model AI (Gemini & GPT)", "Maks 2.000 kata per artikel", "1 situs WordPress", "Bulk hingga 10 artikel sekaligus", "Schedule publish otomatis", "Generate gambar AI (foto & SVG)", "Editor artikel built-in", "Support via email"],
     cta: "Mulai Sekarang — Rp 25rb/bln", highlight: false,
   },
   {
     id: "pro", name: "Pro", price: 75000, priceLabel: "Rp 75rb", period: "/bulan",
     credits: 100, maxWords: "2.500 kata", maxSites: 3, maxBulk: 30,
     canSchedule: true, canSyndicate: true, priority: true, imageSource: "imagen",
-    features: ["100 kredit/bulan", "Semua model AI (Gemini, GPT-4.1, GPT-5.4)", "Maks 2.500 kata per artikel", "3 situs WordPress", "Bulk hingga 30 artikel", "Schedule & auto-syndicate", "Generate gambar AI otomatis", "AI Content Cleaning otomatis", "Priority support"],
+    features: ["100 kredit/bulan", "Semua model AI (Gemini, GPT-4.1, GPT-5.4)", "Maks 2.500 kata per artikel", "3 situs WordPress", "Bulk hingga 30 artikel", "Schedule & auto-syndicate", "Generate gambar AI (foto & SVG)", "AI Content Cleaning otomatis", "Priority support"],
     cta: "Upgrade ke Pro — Rp 75rb/bln", highlight: true,
   },
   {

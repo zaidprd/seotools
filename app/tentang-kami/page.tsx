@@ -54,8 +54,8 @@ export default function TentangKami() {
           <h2 className="text-2xl font-black text-white mb-6" style={{ fontFamily: "Sora,sans-serif" }}>Apa yang Kami Tawarkan</h2>
           <div className="grid md:grid-cols-2 gap-4">
             {[
-              { icon: "✍️", title: "Generator Artikel SEO", desc: "Buat artikel panjang yang dioptimasi untuk SEO dengan model AI terbaru — Gemini 2.5 Flash, GPT-5.4, Claude, dan lainnya." },
-              { icon: "🖼️", title: "Ilustrasi SVG AI", desc: "Generate ilustrasi SVG otomatis yang langsung disisipkan ke dalam artikel — tanpa API gambar eksternal." },
+              { icon: "✍️", title: "Generator Artikel SEO", desc: "Buat artikel panjang yang dioptimasi untuk SEO dengan model AI terbaru — Gemini 2.5 Flash, GPT-4.1, GPT-5.4, dan lainnya." },
+              { icon: "🖼️", title: "Gambar AI Otomatis", desc: "Generate foto realistis (Cloudflare Flux) atau ilustrasi SVG yang langsung disisipkan ke dalam artikel." },
               { icon: "📦", title: "Bulk Generation", desc: "Generate puluhan artikel sekaligus dari daftar keyword. Ideal untuk skala besar tanpa bottleneck manual." },
               { icon: "🌐", title: "Integrasi WordPress", desc: "Publish artikel langsung ke situs WordPress Anda dari dalam aplikasi, tanpa copy-paste." },
               { icon: "📊", title: "SEO Checker", desc: "Analisis konten real-time untuk memastikan artikel Anda memenuhi kriteria SEO on-page." },
