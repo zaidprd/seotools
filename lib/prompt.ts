@@ -14,10 +14,9 @@ export function buildPrompt(cfg: Config): string {
   const hasManualExtLinks = extLinkType === "Manual" && (extLinkUrls || "").trim().length > 0;
   const currentYear = new Date().getFullYear();
 
-  return `Kamu adalah SEO content writer senior${language && language !== "Indonesia" ? ` (tulis dalam ${language})` : ""}. Spesialisasimu: artikel yang dikutip Google AI Overviews dan Gemini ${currentYear}. Kamu menerapkan E-E-A-T, entity SEO, dan passage-level optimization.
+  return `Kamu adalah SEO content writer profesional ${currentYear} yang menulis seperti MANUSIA BERPENGALAMAN — bukan AI. Spesialisasimu: artikel yang dikutip Google AI Overviews, lolos detector AI, dan benar-benar dibaca sampai selesai oleh manusia.
 
-Buat artikel LENGKAP dengan spesifikasi berikut:
-
+Buat artikel LENGKAP dengan spesifikasi:
 Keyword utama: "${keyword}"
 ${title ? `Judul: ${title}` : `Buat judul H1 menarik (50-60 karakter) yang WAJIB mengandung keyword "${keyword}"`}
 ${extraKeywords ? `Keyword tambahan: ${extraKeywords}` : ""}
@@ -30,34 +29,57 @@ ${outline ? `Outline:\n${outline}` : ""}
 === ATURAN SEO ${currentYear} — WAJIB SEMUA ===
 
 STRUKTUR HEADING:
-1. H1 WAJIB mengandung keyword "${keyword}" — panjang 50-60 karakter
+1. H1 WAJIB mengandung keyword "${keyword}" — panjang 50-60 karakter, spesifik dan menarik
 2. Minimal 2 H2 mengandung keyword atau sinonimnya secara natural
 3. JANGAN heading generik: "Pendahuluan", "Isi Artikel", "Pembahasan" — heading harus spesifik dan deskriptif
 4. Jika pakai H3, pastikan berada di bawah H2 (jangan loncat level H2 → H4)
 
-DIRECT ANSWER PER SEKSI (sinyal paling kuat untuk AI Overview):
+DIRECT ANSWER PER SEKSI (sinyal terkuat untuk Google AI Overview):
 5. Setiap H2 WAJIB diawali paragraf "direct answer" 40-60 kata yang menjawab langsung intent seksi. Gunakan kalimat deklaratif: "X adalah...", "Cara melakukan Y adalah...", "Perbedaan A dan B terletak pada..."
-6. JANGAN pembuka klise: "Pada artikel ini", "Di era digital ini", "Tidak bisa dipungkiri", "Seiring perkembangan teknologi", "Halo pembaca", "Pernahkah Anda berpikir"
-7. Setiap seksi H2 harus bisa dipahami TANPA membaca seksi lain — tulis seolah Google hanya mengambil seksi itu saja untuk ditampilkan di AI Overview
+6. Setiap seksi H2 harus bisa dipahami TANPA membaca seksi lain — tulis seolah Google hanya mengambil seksi itu saja untuk ditampilkan di AI Overview
+7. Paragraf pertama artikel (sebelum H2 pertama) WAJIB mengandung keyword "${keyword}" dan menjawab search intent utama dalam 2-3 kalimat pertama
 
-KUALITAS DAN E-E-A-T:
+KUALITAS DAN E-E-A-T ${currentYear}:
 8. Setiap klaim berupa angka/persentase/statistik WAJIB sebut sumber: "menurut [Nama Lembaga/Tahun]" atau "berdasarkan data [Sumber]"
 9. Paragraf maksimal 120 kata — jika lebih, pecah jadi 2 paragraf
-10. Hindari kata vague tanpa data: "banyak orang", "mayoritas", "sebagian besar pengguna", "umumnya" — ganti dengan angka spesifik atau hapus
-11. Recency marker: tahun "${currentYear}" wajib muncul minimal 1x secara natural di artikel
+10. Recency marker: tahun "${currentYear}" wajib muncul minimal 1x secara natural
 
 KEYWORD DAN SEMANTIK:
-12. Keyword "${keyword}" muncul di 100 kata pertama (paragraf pembuka)
-13. Gunakan sinonim dan variasi keyword secara natural — hindari repetisi kata yang sama 3x berturut-turut dalam 1 paragraf
-14. Sebutkan entitas terkait yang relevan: konsep, istilah teknis, merek, atau lembaga yang berkaitan dengan topik
+11. Keyword "${keyword}" muncul di 100 kata pertama
+12. Gunakan sinonim dan variasi keyword secara natural — hindari repetisi kata yang sama 3x berturut-turut dalam 1 paragraf
+13. Sebutkan entitas terkait yang relevan: konsep, istilah teknis, merek, atau lembaga yang berkaitan dengan topik
 
 FAQ (format wajib untuk schema compatibility):
-15. Seksi ## FAQ dengan 5-7 pertanyaan & jawaban
-16. Format WAJIB: "**P: [pertanyaan lengkap?]**" diikuti baris baru "**A:** [jawaban 1-3 kalimat, langsung ke inti]"
-17. Pertanyaan FAQ harus berbeda dari H2 yang sudah ada — fokus pada intent yang belum dijawab di seksi sebelumnya
+14. Seksi ## FAQ dengan 5-7 pertanyaan & jawaban
+15. Format WAJIB: "**P: [pertanyaan lengkap?]**" diikuti baris baru "**A:** [jawaban 1-3 kalimat, langsung ke inti]"
+16. Pertanyaan FAQ harus berbeda dari H2 yang sudah ada — fokus pada intent yang belum dijawab
 
 META:
-18. Di akhir artikel tulis: META: [meta description 130-155 karakter mengandung keyword "${keyword}" dan manfaat yang jelas]
+17. Di akhir artikel tulis: META: [meta description 130-155 karakter mengandung keyword "${keyword}" dan manfaat yang jelas]
+
+=== HUMANISASI WAJIB — ARTIKEL HARUS TERASA DITULIS MANUSIA ===
+
+GAYA PENULISAN NATURAL:
+- Variasikan panjang kalimat: campur kalimat pendek (5-12 kata) dengan kalimat panjang (20-30 kata). Jangan semua kalimat panjang rata.
+- Gunakan 1-2 kalimat tanya retoris per artikel untuk melibatkan pembaca: "Kenapa ini penting?", "Apa yang terjadi kalau salah langkah?"
+- Tambahkan transisi naratif alami antar-seksi — bukan "Selanjutnya," atau "Di bagian ini," tapi kalimat yang mengalir dari konteks seksi sebelumnya
+- Sesekali gunakan kalimat pendek 1 baris sebagai penegas. Ini efektif.
+- Boleh sisipkan 1-2 pendapat langsung: "Yang sering terlewat adalah...", "Kenyataannya...", "Dari praktik nyata..."
+
+KATA & FRASA YANG DILARANG (pola AI yang mudah terdeteksi):
+- "penting untuk diperhatikan", "tidak kalah penting", "sangat penting untuk", "perlu dicatat bahwa"
+- "pada dasarnya", "pada intinya", "secara keseluruhan", "dalam hal ini", "hal ini menunjukkan"
+- "memainkan peran penting", "berperan krusial", "menjadi kunci utama", "sangat berpengaruh"
+- "Di era modern ini", "Di era digital", "seiring perkembangan zaman", "seiring berjalannya waktu"
+- "tidak bisa dipungkiri", "sudah bukan rahasia lagi", "patut diakui", "tak dapat disangkal"
+- "Pada artikel ini kita akan", "Mari kita bahas", "Simak penjelasan berikut"
+- Jangan mulai 3 kalimat berturut-turut dengan kata atau pola yang sama
+
+EXPERIENCE & AUTHORITY (sinyal E-E-A-T terkuat ${currentYear}):
+- Minimal 1 seksi harus berisi insight praktis — sesuatu yang hanya diketahui praktisi, bukan sekadar rangkuman teori
+- Cantumkan sudut pandang nyata: "Dalam praktiknya...", "Yang jarang disebutkan adalah...", "Perbedaan nyata di lapangan..."
+- Boleh akui trade-off atau keterbatasan: "Ini tidak selalu berlaku untuk semua kasus, terutama jika..."
+- Hindari generalisasi tanpa data: ganti "banyak orang", "mayoritas", "umumnya" dengan angka spesifik atau hapus
 
 ${withH3 ? "- Gunakan H3 sebagai sub-bagian dalam tiap H2 untuk topik yang butuh breakdown lebih detail." : ""}
 ${withTables ? "- WAJIB sertakan minimal 1 tabel perbandingan (header + minimal 3 baris data) menggunakan format Markdown." : ""}
@@ -104,9 +126,10 @@ export function buildTitlePrompt(keyword: string, count = 5): string {
 Aturan:
 - Keyword "${keyword}" ada di awal atau tengah judul
 - Panjang 50-60 karakter
-- Mengandung angka, tahun ${currentYear}, atau power word (Terbaik, Terbukti, Lengkap, Panduan, Cara)
+- Mengandung angka, tahun ${currentYear}, atau power word (Terbaik, Terbukti, Lengkap, Panduan, Cara, Rahasia, Tips)
 - Bahasa Indonesia natural dan spesifik — jangan generik
 - Satu judul boleh pakai format pertanyaan (Apa, Bagaimana, Mengapa)
+- Hindari judul klise seperti "Panduan Lengkap untuk Pemula" tanpa spesifik
 
 Format: hanya daftar judul, satu per baris, tanpa nomor, tanpa bullet, tanpa penjelasan.`;
 }

@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { MODELS, ModelInfo, FREE_MODEL_ID, FREE_MODEL_LABEL, AIO_MODEL_ID } from "@/lib/constants";
+import { MODELS, ModelInfo, FREE_MODEL_ID, FREE_MODEL_LABEL } from "@/lib/constants";
 
 interface Props {
   sel: ModelInfo;
@@ -26,7 +26,7 @@ export default function ModelSelector({ sel, set, credits, isPro, isAio, isAdmin
             <span className="text-[10px] bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 px-2 py-0.5 rounded-full font-bold">1 💎</span>
           </div>
           <p className="text-[10px] text-slate-600 text-center leading-relaxed">
-            Upgrade untuk akses GPT-4.1, Claude Haiku, Sonnet, dan Opus
+            Upgrade untuk akses GPT-4.1 Mini, GPT-4.1, dan GPT-5.4
           </p>
           <button onClick={() => setShowUpgrade(true)}
             className="text-[10px] text-amber-400 hover:text-amber-300 border border-amber-500/20 hover:border-amber-500/40 py-1.5 rounded-lg transition-colors">
@@ -73,42 +73,35 @@ export default function ModelSelector({ sel, set, credits, isPro, isAio, isAdmin
       </label>
       <div className="flex flex-col gap-1 bg-slate-900 border border-slate-800 rounded-xl p-2">
         {MODELS.map(m => {
-          const isAioModel = m.id === AIO_MODEL_ID;
-          // Di mode AIO: hanya Sonnet yang aktif, sisanya di-lock
-          const lockedByAio = !!isAio && !isAioModel;
           const canAfford = isAdmin || credits >= m.credits;
-          const disabled = lockedByAio || !canAfford;
+          const disabled = !canAfford;
 
           return (
             <button key={m.id}
               onClick={() => !disabled && set(m)}
               disabled={disabled}
-              title={lockedByAio ? "AI Overview dikunci ke Claude Sonnet 4.6" : undefined}
               className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-all border ${
-                lockedByAio
-                  ? "opacity-25 cursor-not-allowed text-slate-600 border-transparent"
-                  : sel.id === m.id
-                    ? "bg-amber-500/10 border-amber-500/30 text-amber-300"
-                    : canAfford
-                      ? "hover:bg-slate-800/60 text-slate-400 border-transparent"
-                      : "opacity-40 cursor-not-allowed text-slate-600 border-transparent"
+                sel.id === m.id
+                  ? "bg-amber-500/10 border-amber-500/30 text-amber-300"
+                  : canAfford
+                    ? "hover:bg-slate-800/60 text-slate-400 border-transparent"
+                    : "opacity-40 cursor-not-allowed text-slate-600 border-transparent"
               }`}>
               <span className="flex items-center gap-1.5">
                 {m.label}
-                {lockedByAio && <span className="text-[9px] text-slate-700">🔒</span>}
+                <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold border ${
+                  m.badge === "HEMAT" ? "text-emerald-400 border-emerald-500/30 bg-emerald-500/10" :
+                  m.badge === "MAX"   ? "text-purple-400 border-purple-500/30 bg-purple-500/10" :
+                                        "text-blue-400 border-blue-500/30 bg-blue-500/10"
+                }`}>{m.badge}</span>
               </span>
-              <span className={`text-[10px] font-bold ${lockedByAio ? "text-slate-700" : canAfford ? "text-amber-400" : "text-slate-600"}`}>
+              <span className={`text-[10px] font-bold ${canAfford ? "text-amber-400" : "text-slate-600"}`}>
                 {m.credits} 💎
               </span>
             </button>
           );
         })}
       </div>
-      {isAio && (
-        <p className="text-[10px] text-violet-400/70 mt-0.5">
-          ✨ AI Overview selalu menggunakan Claude Sonnet 4.6 untuk kualitas optimal
-        </p>
-      )}
     </div>
   );
 }

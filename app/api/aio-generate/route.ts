@@ -9,7 +9,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { marked } from "marked";
 import { createClient } from "@supabase/supabase-js";
-import { CREDIT_COST, FREE_ARTICLE_COST, MODELS, ModelInfo, AIO_MODEL_ID, AIO_CREDIT_COST } from "@/lib/constants";
+import { CREDIT_COST, FREE_ARTICLE_COST, MODELS, ModelInfo } from "@/lib/constants";
+
+const AIO_MODEL_ID = "claude-sonnet-4-6";
+const AIO_CREDIT_COST = 20;
 import { requireAuth } from "@/lib/supabase/require-auth";
 import {
   AioProviderId,

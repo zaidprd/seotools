@@ -49,10 +49,30 @@ function getProvider(modelId: string): string {
 
 function cleanAIContent(text: string): string {
   return text
-    .replace(/^(Tentu|Baik|Berikut|Berikut adalah|Tentu saja|Dengan senang hati|Saya akan|Ini adalah|Di bawah ini).{0,120}\n\n/i, "")
-    .replace(/\n\n(Semoga|Demikian|Sekian|Itulah|Dengan demikian artikel ini).{0,200}$/i, "")
+    // Strip AI opener lines
+    .replace(/^(Tentu|Baik|Berikut|Berikut adalah|Tentu saja|Dengan senang hati|Saya akan|Ini adalah|Di bawah ini|Artikel berikut|Berikut ini).{0,150}\n\n/i, "")
+    // Strip AI closer lines
+    .replace(/\n\n(Semoga|Demikian|Sekian|Itulah|Dengan demikian|Semoga artikel ini|Itulah tadi|Demikianlah).{0,250}$/i, "")
+    // Strip meta commentary
     .replace(/\*?Catatan\*?:.{0,300}\n/gi, "")
     .replace(/\*?Disclaimer\*?:.{0,300}\n/gi, "")
+    .replace(/\*?Perhatian\*?:.{0,300}\n/gi, "")
+    // Remove "Artikel ini membahas..." type meta-sentences
+    .replace(/Artikel ini (membahas|akan membahas|menjelaskan|mengulas).{0,200}[.!]\n?/gi, "")
+    // Replace overused AI filler phrases
+    .replace(/penting untuk diperhatikan bahwa /gi, "")
+    .replace(/tidak kalah penting(nya)?[,]?\s*/gi, "")
+    .replace(/perlu (dicatat|diperhatikan|diingat) bahwa /gi, "")
+    .replace(/dalam hal ini[,]?\s*/gi, "")
+    .replace(/pada dasarnya[,]?\s*/gi, "")
+    .replace(/secara keseluruhan[,]?\s*/gi, "")
+    .replace(/memainkan peran (penting|krusial|vital)/gi, "berperan")
+    .replace(/menjadi kunci (utama|keberhasilan)/gi, "menjadi faktor penentu")
+    .replace(/tidak bisa dipungkiri (bahwa )?/gi, "")
+    .replace(/sudah bukan rahasia (lagi )?/gi, "")
+    .replace(/di era (modern|digital) ini[,]?\s*/gi, "")
+    .replace(/seiring (perkembangan|berjalannya) (zaman|waktu|teknologi)[,]?\s*/gi, "")
+    // Normalize whitespace
     .replace(/\n{3,}/g, "\n\n")
     .trim();
 }
