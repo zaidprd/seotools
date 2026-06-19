@@ -94,13 +94,15 @@ function SEOPanel({ content, keyword }: { content: string; keyword: string }) {
 }
 
 // ─── TipTap Toolbar ────────────────────────────────────────────────────────────
-function TipTapToolbar({ editor, wpSite, onUpload, onAISvg, isUploading, isAIGenerating, uploadError }: {
+function TipTapToolbar({ editor, wpSite, onUpload, onAISvg, onAIPhoto, isUploading, isAIGenerating, isPhotoGenerating, uploadError }: {
   editor: ReturnType<typeof useEditor>;
   wpSite: WPSite | null;
   onUpload: (file: File) => void;
   onAISvg: () => void;
+  onAIPhoto: () => void;
   isUploading: boolean;
   isAIGenerating: boolean;
+  isPhotoGenerating: boolean;
   uploadError: string | null;
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -146,10 +148,16 @@ function TipTapToolbar({ editor, wpSite, onUpload, onAISvg, isUploading, isAIGen
         onChange={e => { const f = e.target.files?.[0]; if (f) onUpload(f); e.target.value = ""; }} />
 
 
-      {/* AI SVG */}
-      <button onClick={onAISvg} disabled={isAIGenerating} title="Generate ilustrasi SVG dengan AI (gratis)"
+      {/* AI SVG — ilustrasi vektor */}
+      <button onClick={onAISvg} disabled={isAIGenerating} title="Generate ilustrasi vektor (SVG) dengan AI"
         className="text-[11px] px-2 py-1.5 rounded-lg border border-violet-500/30 text-violet-400 hover:bg-violet-500/5 disabled:opacity-50 transition-all flex items-center gap-1">
         {isAIGenerating ? <><span className="w-2.5 h-2.5 border border-violet-400 border-t-transparent rounded-full animate-spin" />Generating...</> : "✨ AI SVG"}
+      </button>
+
+      {/* AI Foto — foto realistis via Cloudflare Flux */}
+      <button onClick={onAIPhoto} disabled={isPhotoGenerating} title="Generate foto realistis dengan AI (Cloudflare Flux)"
+        className="text-[11px] px-2 py-1.5 rounded-lg border border-sky-500/30 text-sky-400 hover:bg-sky-500/5 disabled:opacity-50 transition-all flex items-center gap-1">
+        {isPhotoGenerating ? <><span className="w-2.5 h-2.5 border border-sky-400 border-t-transparent rounded-full animate-spin" />Generating...</> : "📷 AI Foto"}
       </button>
 
       {uploadError && <span className="text-[10px] text-red-400 ml-1">✗ {uploadError}</span>}
@@ -182,8 +190,10 @@ export default function ResultPanel({ content: initialContent, keyword = "", mod
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isAIGenerating, setIsAIGenerating] = useState(false);
+  const [isPhotoGenerating, setIsPhotoGenerating] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
   const [showSvgPreview, setShowSvgPreview] = useState<string | null>(null);
+  const [showPhotoPreview, setShowPhotoPreview] = useState<string | null>(null);
   const [showSeoPanel, setShowSeoPanel] = useState(false);
   const touchStartX = useRef(0);
 
@@ -289,6 +299,29 @@ export default function ResultPanel({ content: initialContent, keyword = "", mod
     const src = `data:image/svg+xml;base64,${b64}`;
     editor?.chain().focus().setImage({ src, alt: "Ilustrasi AI" }).run();
     setShowSvgPreview(null);
+  };
+
+  const handleAIPhoto = async () => {
+    if (!userId) { setAiError("Login diperlukan"); return; }
+    const desc = window.prompt("Deskripsi foto (contoh: panel listrik industri di ruang kontrol, close-up, pencahayaan profesional):");
+    if (!desc) return;
+    setIsPhotoGenerating(true); setAiError(null);
+    try {
+      const res = await fetch("/api/generate-photo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: desc, keyword }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setShowPhotoPreview(`data:image/jpeg;base64,${data.image}`);
+    } catch (e: any) { setAiError(e.message); }
+    setIsPhotoGenerating(false);
+  };
+
+  const insertPhoto = (src: string) => {
+    editor?.chain().focus().setImage({ src, alt: keyword || "Foto AI" }).run();
+    setShowPhotoPreview(null);
   };
 
 
@@ -485,6 +518,31 @@ export default function ResultPanel({ content: initialContent, keyword = "", mod
         </div>
       )}
 
+      {/* Photo Preview Modal (Cloudflare Flux) */}
+      {showPhotoPreview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-2xl flex flex-col gap-4 p-5 shadow-2xl">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-bold text-white">Preview Foto AI</p>
+              <button onClick={() => setShowPhotoPreview(null)} className="text-slate-500 hover:text-white text-lg leading-none">✕</button>
+            </div>
+            <div className="bg-white rounded-xl overflow-hidden flex items-center justify-center">
+              <img src={showPhotoPreview} alt="Preview foto AI" className="max-w-full max-h-[60vh] object-contain" />
+            </div>
+            <div className="flex gap-2 justify-end">
+              <button onClick={() => setShowPhotoPreview(null)}
+                className="text-xs px-4 py-2 rounded-lg border border-slate-700 text-slate-400 hover:text-white transition-colors">
+                Batal
+              </button>
+              <button onClick={() => insertPhoto(showPhotoPreview)}
+                className="text-xs px-4 py-2 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-bold transition-colors">
+                ✓ Sisipkan ke Artikel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Content area */}
       <div className="flex-1 bg-slate-900/50 border border-slate-800 rounded-xl overflow-hidden flex flex-col min-h-0">
 
@@ -521,8 +579,10 @@ export default function ResultPanel({ content: initialContent, keyword = "", mod
               wpSite={wpSel}
               onUpload={handleUpload}
               onAISvg={handleAISvg}
+              onAIPhoto={handleAIPhoto}
               isUploading={isUploading}
               isAIGenerating={isAIGenerating}
+              isPhotoGenerating={isPhotoGenerating}
               uploadError={uploadError}
             />
             {aiError && <div className="px-3 py-1.5 text-[11px] text-red-400 bg-red-500/5 border-b border-red-500/10">✗ AI: {aiError}</div>}
