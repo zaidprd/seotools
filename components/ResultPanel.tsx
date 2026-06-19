@@ -290,7 +290,27 @@ export default function ResultPanel({ content: initialContent, keyword = "", mod
   };
 
 
+  // Konversi SVG base64 → WebP blob via Canvas (agar WordPress tidak perlu plugin SVG)
+  const svgToWebP = useCallback((svgB64: string): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = 800; canvas.height = 450;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) { reject(new Error("no canvas ctx")); return; }
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, 800, 450);
+        ctx.drawImage(img, 0, 0, 800, 450);
+        canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error("toBlob failed")), "image/webp", 0.92);
+      };
+      img.onerror = reject;
+      img.src = `data:image/svg+xml;base64,${svgB64}`;
+    });
+  }, []);
+
   // Upload semua gambar base64 di konten ke WP Media Library.
+  // SVG otomatis dikonversi ke WebP — tidak perlu plugin WordPress.
   // Return { html dengan URL WP, firstMediaId = ID gambar pertama untuk featured_media }
   const uploadBase64ToWP = useCallback(async (
     html: string, site: WPSite
@@ -305,13 +325,22 @@ export default function ResultPanel({ content: initialContent, keyword = "", mod
     }
     for (const img of matches) {
       try {
-        const byteStr = atob(img.b64);
-        const bytes = new Uint8Array(byteStr.length);
-        for (let i = 0; i < byteStr.length; i++) bytes[i] = byteStr.charCodeAt(i);
-        const blob = new Blob([bytes], { type: img.mime });
-        const mimeToExt: Record<string, string> = { "image/svg+xml": "svg", "image/jpeg": "jpg", "image/png": "png", "image/gif": "gif", "image/webp": "webp" };
-        const ext = mimeToExt[img.mime] || img.mime.split("/")[1] || "png";
-        const file = new File([blob], `artikel-seo-img-${Date.now()}.${ext}`, { type: img.mime });
+        let uploadBlob: Blob;
+        let uploadFilename: string;
+        if (img.mime === "image/svg+xml") {
+          // Konversi SVG → WebP agar kompatibel dengan WordPress tanpa plugin
+          uploadBlob = await svgToWebP(img.b64);
+          uploadFilename = `artikel-seo-img-${Date.now()}.webp`;
+        } else {
+          const byteStr = atob(img.b64);
+          const bytes = new Uint8Array(byteStr.length);
+          for (let i = 0; i < byteStr.length; i++) bytes[i] = byteStr.charCodeAt(i);
+          uploadBlob = new Blob([bytes], { type: img.mime });
+          const mimeToExt: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/gif": "gif", "image/webp": "webp" };
+          const ext = mimeToExt[img.mime] || "png";
+          uploadFilename = `artikel-seo-img-${Date.now()}.${ext}`;
+        }
+        const file = new File([uploadBlob], uploadFilename, { type: uploadBlob.type });
         const fd = new FormData();
         fd.append("file", file);
         const r = await fetch(`${site.url.replace(/\/+$/, "")}/wp-json/wp/v2/media`, {
@@ -331,7 +360,7 @@ export default function ResultPanel({ content: initialContent, keyword = "", mod
       } catch { /* pertahankan base64 jika upload gagal */ }
     }
     return { html: result, firstMediaId };
-  }, []);
+  }, [svgToWebP]);
 
   const publish = async () => {
     if (!wpSel) return;
