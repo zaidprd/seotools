@@ -77,43 +77,93 @@ function cleanAIContent(text: string): string {
     .trim();
 }
 
-function makeSvgImgTag(svgB64: string, alt: string, size: string): string {
+function imgWidthAttr(size: string): string {
   const m = size?.match(/(\d+)px/);
-  const w = m ? ` width="${m[1]}"` : "";
-  return `<img src="data:image/svg+xml;base64,${svgB64}" alt="${alt}"${w} style="max-width:100%;height:auto;display:block;margin:1em auto;border-radius:8px" />`;
+  return m ? ` width="${m[1]}"` : "";
 }
 
-function insertSvgImages(content: string, svgs: string[], cfg: ImageConfig): string {
-  if (!svgs.length) return content;
+function makeSvgImgTag(svgB64: string, alt: string, size: string): string {
+  return `<img src="data:image/svg+xml;base64,${svgB64}" alt="${alt}"${imgWidthAttr(size)} style="max-width:100%;height:auto;display:block;margin:1em auto;border-radius:8px" />`;
+}
+
+function makeRasterImgTag(b64Jpeg: string, alt: string, size: string): string {
+  return `<img src="data:image/jpeg;base64,${b64Jpeg}" alt="${alt}"${imgWidthAttr(size)} style="max-width:100%;height:auto;display:block;margin:1em auto;border-radius:8px" />`;
+}
+
+// Sisipkan tag <img> yang sudah jadi: 1 sebelum H2 pertama, sisanya setelah tiap H2 berikutnya.
+function insertImageTags(content: string, tags: string[]): string {
+  if (!tags.length) return content;
   const lines = content.split("\n");
   const result: string[] = [];
   let idx = 0;
   let h2Count = 0;
 
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
+  for (const line of lines) {
     const isH2 = /^## /.test(line);
-
     if (isH2) {
       h2Count++;
-      if (h2Count === 1 && idx < svgs.length) {
-        const alt = cfg.firstKeyword ? cfg.keyword : cfg.altText ? `${cfg.keyword} ilustrasi` : "";
-        const b64 = Buffer.from(svgs[idx++]).toString("base64");
-        result.push("", makeSvgImgTag(b64, alt, cfg.size), "");
-      }
+      if (h2Count === 1 && idx < tags.length) result.push("", tags[idx++], "");
     }
-
     result.push(line);
-
-    if (isH2 && h2Count >= 2 && idx < svgs.length) {
-      const heading = line.replace(/^##\s*/, "");
-      const alt = cfg.altText ? `${cfg.keyword} - ${heading}` : "";
-      const b64 = Buffer.from(svgs[idx++]).toString("base64");
-      result.push("", makeSvgImgTag(b64, alt, cfg.size), "");
-    }
+    if (isH2 && h2Count >= 2 && idx < tags.length) result.push("", tags[idx++], "");
   }
-
   return result.join("\n");
+}
+
+// PRIMARY: Cloudflare Workers AI (flux-1-schnell) → foto raster base64 JPEG. null jika gagal/tak dikonfigurasi.
+async function genCloudflareImage(prompt: string): Promise<string | null> {
+  const acct = process.env.CF_ACCOUNT_ID;
+  const token = process.env.CF_API_TOKEN;
+  if (!acct || !token) return null;
+  try {
+    const r = await fetch(
+      `https://api.cloudflare.com/client/v4/accounts/${acct}/ai/run/@cf/black-forest-labs/flux-1-schnell`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+        body: JSON.stringify({ prompt: prompt.slice(0, 2048), steps: 6 }),
+      }
+    );
+    if (!r.ok) {
+      console.error(`[generate] cloudflare image error ${r.status}:`, (await r.text().catch(() => "")).slice(0, 160));
+      return null;
+    }
+    const d = await r.json();
+    const b64 = d?.result?.image;
+    return typeof b64 === "string" && b64.length > 100 ? b64 : null;
+  } catch (e) {
+    console.error("[generate] cloudflare image exception:", e instanceof Error ? e.message : e);
+    return null;
+  }
+}
+
+// FALLBACK: SVG ilustrasi via SumoPod. Return kode SVG mentah atau null.
+async function genSvgImage(cfg: ImageConfig): Promise<string | null> {
+  const spKey = process.env.SUMOPOD_API_KEY;
+  const spBase = (process.env.SUMOPOD_BASE_URL || "https://ai.sumopod.com/v1").replace(/\/$/, "");
+  if (!spKey) return null;
+  const kw = cfg.keyword || "";
+  const svgSysPrompt = `Kamu adalah generator ilustrasi SVG profesional untuk artikel blog SEO. Kembalikan HANYA kode SVG mentah, mulai dari <svg hingga </svg>. Gunakan viewBox="0 0 800 450", warna modern dan harmonis, tambahkan teks/label bahasa Indonesia jika relevan. JANGAN ada markdown, penjelasan, atau teks apapun di luar tag SVG.`;
+  const svgPrompt = cfg.userPrompt
+    ? `Ilustrasi SVG untuk artikel tentang "${kw}": ${cfg.userPrompt}`
+    : `Ilustrasi SVG untuk artikel tentang "${kw}". Style: ${cfg.style || "Ilustrasi"}. ${cfg.instructions || ""}`.trim();
+  try {
+    const r = await fetch(`${spBase}/chat/completions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${spKey}` },
+      body: JSON.stringify({
+        model: "gpt-4.1-mini",
+        messages: [{ role: "system", content: svgSysPrompt }, { role: "user", content: svgPrompt }],
+        max_tokens: 4000,
+      }),
+    });
+    if (!r.ok) return null;
+    const d = await r.json();
+    let raw: string = d.choices?.[0]?.message?.content ?? "";
+    raw = raw.replace(/^```(?:svg|xml)?\s*/i, "").replace(/\s*```$/, "").trim();
+    const match = raw.match(/<svg[\s\S]*<\/svg>/i);
+    return match ? match[0] : null;
+  } catch { return null; }
 }
 
 // Whitelist model IDs yang valid untuk mencegah penyalahgunaan
@@ -289,45 +339,25 @@ export async function POST(req: NextRequest) {
 
     if (aiCleaning) text = cleanAIContent(text);
 
-    // Generate & insert SVG illustrations via SumoPod (paid plans only)
+    // Generate & insert gambar (paid plans). Utama: Cloudflare Flux (foto) → fallback SVG.
     if (imgCount > 0 && !isFreePlan && text) {
       try {
-        const spKey = process.env.SUMOPOD_API_KEY;
-        const spBase = (process.env.SUMOPOD_BASE_URL || "https://ai.sumopod.com/v1").replace(/\/$/, "");
-        if (spKey) {
-          const svgSysPrompt = `Kamu adalah generator ilustrasi SVG profesional untuk artikel blog SEO. Kembalikan HANYA kode SVG mentah, mulai dari <svg hingga </svg>. Gunakan viewBox="0 0 800 450", warna modern dan harmonis, tambahkan teks/label bahasa Indonesia jika relevan. JANGAN ada markdown, penjelasan, atau teks apapun di luar tag SVG.`;
-          const svgs: string[] = [];
-          for (let i = 0; i < imgCount; i++) {
-            const kw = imgCfg.keyword || "";
-            const svgPrompt = imgCfg.userPrompt
-              ? `Ilustrasi SVG untuk artikel tentang "${kw}": ${imgCfg.userPrompt}`
-              : `Ilustrasi SVG untuk artikel tentang "${kw}". Style: ${imgCfg.style || "Ilustrasi"}. ${imgCfg.instructions || ""}`.trim();
-            try {
-              const r = await fetch(`${spBase}/chat/completions`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${spKey}` },
-                body: JSON.stringify({
-                  model: "gpt-4.1-mini",
-                  messages: [
-                    { role: "system", content: svgSysPrompt },
-                    { role: "user", content: svgPrompt },
-                  ],
-                  max_tokens: 4000,
-                }),
-              });
-              if (r.ok) {
-                const d = await r.json();
-                let raw: string = d.choices?.[0]?.message?.content ?? "";
-                raw = raw.replace(/^```(?:svg|xml)?\s*/i, "").replace(/\s*```$/, "").trim();
-                const match = raw.match(/<svg[\s\S]*<\/svg>/i);
-                if (match) svgs.push(match[0]);
-              }
-            } catch { /* skip failed individual SVG */ }
-          }
-          if (svgs.length > 0) {
-            text = insertSvgImages(text, svgs, imgCfg);
-          }
+        const kw = imgCfg.keyword || "";
+        const desc = imgCfg.userPrompt || `${imgCfg.style || "Foto"}. ${imgCfg.instructions || ""}`.trim();
+        const cfPrompt = `High-quality ${(imgCfg.style || "photo").toLowerCase()} illustration for an article about "${kw}". ${desc}`.trim();
+        const tags: string[] = [];
+        for (let i = 0; i < imgCount; i++) {
+          const alt = i === 0 && imgCfg.firstKeyword
+            ? kw
+            : imgCfg.altText ? `${kw} - ilustrasi ${i + 1}` : "";
+          // 1) Cloudflare (utama)
+          const raster = await genCloudflareImage(cfPrompt);
+          if (raster) { tags.push(makeRasterImgTag(raster, alt, imgCfg.size)); continue; }
+          // 2) SVG (fallback otomatis)
+          const svg = await genSvgImage(imgCfg);
+          if (svg) tags.push(makeSvgImgTag(Buffer.from(svg).toString("base64"), alt, imgCfg.size));
         }
+        if (tags.length > 0) text = insertImageTags(text, tags);
       } catch { /* silently skip image errors */ }
     }
 
