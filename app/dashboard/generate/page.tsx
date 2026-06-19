@@ -1,8 +1,8 @@
 ﻿"use client";
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { MODELS, ModelInfo, WPSite, Config, UserData, defaultCfg, FREE_MODEL_ID, FREE_MAX_WORDS, FREE_ARTICLE_COST, CREDIT_COST, SVG_CREDIT_COST, AIO_MODEL_ID, AIO_CREDIT_COST } from "@/lib/constants";
-import { generateArticle, generateAioArticle } from "@/lib/api";
+import { MODELS, ModelInfo, WPSite, Config, UserData, defaultCfg, FREE_MODEL_ID, FREE_MAX_WORDS, FREE_ARTICLE_COST, CREDIT_COST, SVG_CREDIT_COST } from "@/lib/constants";
+import { generateArticle } from "@/lib/api";
 import { Sec, Inp, RunBtn } from "@/components/ui";
 import SettingsForm from "@/components/SettingsForm";
 import OutlineEditor from "@/components/OutlineEditor";
@@ -60,7 +60,6 @@ export default function GeneratePage() {
   const [upgradeReason, setUpgradeReason] = useState("");
   const [showModelTip, setShowModelTip] = useState(false);
   const [mobileTab, setMobileTab] = useState<"form" | "result">("form");
-  const [mode, setMode] = useState<"standard" | "aio">("standard");
   const resultRef = useRef<HTMLDivElement>(null);
 
   const fetchUser = useCallback(async (uid: string) => {
@@ -85,10 +84,8 @@ export default function GeneratePage() {
     setWpSites(prev => { const next = prev.filter(x => x.id !== id); saveWPSites(next); return next; });
   }, []);
 
-  const articleCost = mode === "aio"
-    ? (isPro ? AIO_CREDIT_COST : FREE_ARTICLE_COST)
-    : (isPro ? (CREDIT_COST[model.id] ?? 1) : FREE_ARTICLE_COST);
-  const imgCostExtra = mode === "aio" ? 0 : (isPro ? parseInt(cfg.imgCount || "0") * SVG_CREDIT_COST : 0);
+  const articleCost = isPro ? (CREDIT_COST[model.id] ?? 1) : FREE_ARTICLE_COST;
+  const imgCostExtra = isPro ? parseInt(cfg.imgCount || "0") * SVG_CREDIT_COST : 0;
   const cost = articleCost + imgCostExtra;
 
   const handleGenerateTitle = async () => {
@@ -101,75 +98,20 @@ export default function GeneratePage() {
 
   const generate = async () => {
     if (!keyword.trim()) return;
-    // AIO: hanya untuk pengguna berbayar
-    if (mode === "aio" && !isPro) {
-      setUpgradeReason("Fitur AI Overview hanya untuk pengguna berbayar. Upgrade untuk akses pipeline 7-step dengan Claude Sonnet 4.6.");
-      setShowUpgrade(true);
-      return;
-    }
-    if (!isAdmin && credits < cost) { setUpgradeReason(`Butuh ${cost} 💎 untuk ${mode === "aio" ? "AI Overview" : "model ini"}, kamu punya ${credits} 💎`); setShowUpgrade(true); return; }
+    if (!isAdmin && credits < cost) { setUpgradeReason(`Butuh ${cost} 💎 untuk model ini, kamu punya ${credits} 💎`); setShowUpgrade(true); return; }
     setLoading(true); setResult(null); setError(null);
     setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 100);
     try {
-      // Branching: mode AIO (7-step pipeline) vs standard (1-step)
-      if (mode === "aio") {
-        // Bangun AioGenerateRequest dari state form yang ada
-        // modelId selalu Sonnet — dikunci di server maupun client
-        const aioReq = {
-          keyword: keyword.trim(),
-          primaryKeyword: keyword.trim(),
-          modelId: AIO_MODEL_ID,
-          language: cfg.language || "Indonesia",
-          tone: cfg.tone,
-          pov: cfg.pov,
-          readability: cfg.readability,
-          articleType: cfg.articleType,
-          wordTarget: parseWordTargetFromSize(cfg.articleSize) || 1600,
-          brandName: cfg.brandVoice || "Artikel SEO",
-          targetAudience: cfg.details || "Pembaca umum",
-          geo: cfg.country || "Indonesia",
-          publishDate: new Date().toISOString().slice(0, 10),
-          secondaryKeywords: cfg.seoKeywords ? cfg.seoKeywords.split(",").map(s => s.trim()).filter(Boolean) : undefined,
-          brandVoice: cfg.brandVoice,
-          mustMention: cfg.details,
-          recencyMarker: String(new Date().getFullYear()),
-          userTitle: title.trim() || undefined,
-          userOutlineOverride: outlineRows.length > 0 ? outlineRows.map(r => `${r.type}: ${r.text}`).join("\n") : undefined,
-          internalLinkBaseUrl: cfg.internalLinkBaseUrl || undefined,
-          internalLinkPages: cfg.internalLinkSite === "Manual" && cfg.internalLinkPages?.trim()
-            ? cfg.internalLinkPages.trim()
-            : undefined,
-          noExternalLinks: cfg.extLinkType === "Tidak Ada",
-          skipCritique: false,
-          skipRefinement: false,
-          imageConfig: isPro ? {
-            count: parseInt(cfg.imgCount || "0"),
-            style: cfg.imgStyle || "Ilustrasi",
-            instructions: cfg.imgInstructions || "",
-            userPrompt: cfg.imgPrompt || "",
-            altText: cfg.imgAltText !== false,
-            firstKeyword: cfg.imgFirstKeyword !== false,
-            keyword: keyword.trim(),
-            size: cfg.imgSize || "Sedang 800px",
-          } : undefined,
-        };
-        const aioRes = await generateAioArticle(aioReq as any);
-        setResult(aioRes.fullHtml || aioRes.fullMarkdown);
-        setMobileTab("result");
-        if (authUser) fetchUser(authUser.id);
-      } else {
-        // Standard mode: 1-step pipeline lama
-        const outline = outlineRows.map(r => `${r.type}: ${r.text}`).join("\n");
-        const effectiveCfg = !isPro ? { ...cfg, articleSize: FREE_MAX_WORDS } : cfg;
-        const text = await generateArticle({
-          ...effectiveCfg, keyword, title, outline,
-          modelId: !isPro ? FREE_MODEL_ID : model.id,
-          userId: user?.id,
-        } as any);
-        setResult(text);
-        setMobileTab("result");
-        if (authUser) fetchUser(authUser.id);
-      }
+      const outline = outlineRows.map(r => `${r.type}: ${r.text}`).join("\n");
+      const effectiveCfg = !isPro ? { ...cfg, articleSize: FREE_MAX_WORDS } : cfg;
+      const text = await generateArticle({
+        ...effectiveCfg, keyword, title, outline,
+        modelId: !isPro ? FREE_MODEL_ID : model.id,
+        userId: user?.id,
+      } as any);
+      setResult(text);
+      setMobileTab("result");
+      if (authUser) fetchUser(authUser.id);
     } catch (e: any) {
       if (e.message?.includes("Kredit")) { setUpgradeReason(e.message); setShowUpgrade(true); }
       else {
@@ -199,36 +141,6 @@ export default function GeneratePage() {
         )}
       </div>
 
-      {/* Mode switcher: Standard vs AI Overview */}
-      <div className="px-4 lg:px-6 pt-3 pb-1 bg-[#0c0e14] flex-shrink-0">
-        <div className="inline-flex items-center gap-1 bg-slate-900/60 border border-slate-800 rounded-xl p-1">
-          <button
-            onClick={() => setMode("standard")}
-            className={`px-3 py-1.5 rounded-lg text-[12px] font-bold transition-colors ${mode === "standard" ? "bg-amber-500 text-slate-900" : "text-slate-400 hover:text-slate-200"}`}
-            title="Generator 1-step klasik">
-            <span className="mr-1">🔧</span>Standard
-          </button>
-          <button
-            onClick={() => {
-              setMode("aio");
-              // Otomatis pilih Sonnet saat switch ke AIO mode
-              const sonnet = MODELS.find(m => m.id === AIO_MODEL_ID);
-              if (sonnet) setModel(sonnet);
-            }}
-            className={`px-3 py-1.5 rounded-lg text-[12px] font-bold transition-colors flex items-center gap-1.5 ${mode === "aio" ? "bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white" : "text-slate-400 hover:text-slate-200"}`}
-            title="Pipeline 7-step untuk Google AI Overviews">
-            <span>✨</span>AI Overview
-            <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-black ${mode === "aio" ? "bg-white/20 text-white" : "bg-violet-500/20 text-violet-300"}`}>NEW</span>
-          </button>
-        </div>
-        {mode === "aio" && (
-          <p className="text-[11px] text-violet-300/80 mt-2">
-            Pipeline 7-step: riset → outline → 10 blok → quality gate → refinement → JSON-LD → meta.{" "}
-            <span className="text-amber-400 font-bold">Model: Claude Sonnet 4.6 • {AIO_CREDIT_COST} 💎 per artikel</span>
-            {!isPro && <span className="ml-1.5 text-red-400 font-bold">· Pro only</span>}
-          </p>
-        )}
-      </div>
 
       {/* Mobile tab bar — fixed bottom, only on small screens */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#0c0e14] border-t border-slate-800 flex">
@@ -291,7 +203,7 @@ export default function GeneratePage() {
           <SettingsForm cfg={cfg} set={setCfg} model={currentModel} setModel={setModel}
             wpSites={wpSites} addWp={addWp} removeWp={removeWp}
             wpSel={wpSel} setWpSel={setWpSel} mode="single"
-            credits={credits} isPro={isPro} isAio={mode === "aio"} isAdmin={isAdmin} />
+            credits={credits} isPro={isPro} isAio={false} isAdmin={isAdmin} />
 
           {/* Run button — sticky di bawah panel kiri */}
           <div className="sticky bottom-0 pt-2 pb-1 bg-gradient-to-t from-[#0c0e14] via-[#0c0e14] to-transparent flex-shrink-0">
