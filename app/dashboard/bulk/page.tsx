@@ -110,7 +110,8 @@ export default function BulkPage() {
   const [genLoading, setGenLoading] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
 
-  const isPro = (user?.plan ?? "free") !== "free";
+  const isAdmin = user?.role === "admin";
+  const isPro = isAdmin || (user?.plan ?? "free") !== "free";
   const credits = user?.credits ?? 0;
   const cost = CREDIT_COST[model.id] ?? 1;
   const validRows = rows.filter(r => r.status === "idle" && r.selectedTitle);
@@ -171,13 +172,13 @@ export default function BulkPage() {
   };
 
   const runAll = async () => {
-    if (!validRows.length || credits < cost) { setShowUpgrade(true); return; }
+    if (!validRows.length || (!isAdmin && credits < cost)) { setShowUpgrade(true); return; }
     setRunning(true);
     setRows(prev => prev.map(r => r.selectedTitle && r.status === "idle" ? { ...r, status: "loading" } : r));
     let remainingCredits = credits;
     for (let i = 0; i < rows.length; i++) {
       if (rows[i].status !== "idle" || !rows[i].selectedTitle) continue;
-      if (remainingCredits < cost) { setShowUpgrade(true); break; }
+      if (!isAdmin && remainingCredits < cost) { setShowUpgrade(true); break; }
       try {
         const text = await generateArticle({
           ...cfg, keyword: rows[i].topic, title: rows[i].selectedTitle,

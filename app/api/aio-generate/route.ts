@@ -99,6 +99,11 @@ export interface AioGenerateRequest {
   lastUpdated?: string;
   skipCritique?: boolean;
   skipRefinement?: boolean;
+  noExternalLinks?: boolean;
+  imageConfig?: {
+    count: number; style: string; instructions: string; userPrompt: string;
+    altText: boolean; firstKeyword: boolean; keyword: string; size: string;
+  };
 }
 
 export interface AioGenerateResponse {
@@ -161,6 +166,7 @@ function buildAioInput(req: AioGenerateRequest): AioInput {
     userOutlineOverride: req.userOutlineOverride,
     internalLinkBaseUrl: req.internalLinkBaseUrl,
     allowedExternalDomains: req.allowedExternalDomains,
+    noExternalLinks: req.noExternalLinks,
     authorName: req.authorName,
     authorBio: req.authorBio,
     lastUpdated: req.lastUpdated,
@@ -516,7 +522,47 @@ async function step7Meta(
 }
 
 // ============================================================================
-// 5. Orchestrator runAioPipeline
+// 5. SVG Image helpers (sama dengan generate/route.ts)
+// ============================================================================
+
+function makeSvgImgTag(svgB64: string, alt: string, size: string): string {
+  const m = size?.match(/(\d+)px/);
+  const w = m ? ` width="${m[1]}"` : "";
+  return `<img src="data:image/svg+xml;base64,${svgB64}" alt="${alt}"${w} style="max-width:100%;height:auto;display:block;margin:1em auto;border-radius:8px" />`;
+}
+
+interface AioImageConfig { count: number; style: string; instructions: string; userPrompt: string; altText: boolean; firstKeyword: boolean; keyword: string; size: string; }
+
+function insertSvgImages(content: string, svgs: string[], cfg: AioImageConfig): string {
+  if (!svgs.length) return content;
+  const lines = content.split("\n");
+  const result: string[] = [];
+  let idx = 0;
+  let h2Count = 0;
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const isH2 = /^## /.test(line);
+    if (isH2) {
+      h2Count++;
+      if (h2Count === 1 && idx < svgs.length) {
+        const alt = cfg.firstKeyword ? cfg.keyword : cfg.altText ? `${cfg.keyword} ilustrasi` : "";
+        const b64 = Buffer.from(svgs[idx++]).toString("base64");
+        result.push("", makeSvgImgTag(b64, alt, cfg.size), "");
+      }
+    }
+    result.push(line);
+    if (isH2 && h2Count >= 2 && idx < svgs.length) {
+      const heading = line.replace(/^##\s*/, "");
+      const alt = cfg.altText ? `${cfg.keyword} - ${heading}` : "";
+      const b64 = Buffer.from(svgs[idx++]).toString("base64");
+      result.push("", makeSvgImgTag(b64, alt, cfg.size), "");
+    }
+  }
+  return result.join("\n");
+}
+
+// ============================================================================
+// 6. Orchestrator runAioPipeline
 // ============================================================================
 
 /** Susun fullMarkdown dari 10 blocks. Sort by block_index untuk safety. */
@@ -741,7 +787,45 @@ export async function POST(req: NextRequest) {
   let response: AioGenerateResponse;
   try {
     response = await runAioPipeline(aioReq, userId, controller.signal);
-    response.creditsUsed = billing.cost; // pakai biaya aktual AIO, bukan model.credits
+    response.creditsUsed = billing.cost;
+
+    // Generate & insert SVG illustrations (paid only, jika imageConfig dikirim)
+    const imgCfg = aioReq.imageConfig;
+    if (imgCfg && imgCfg.count > 0 && !billing.isFree && response.fullMarkdown) {
+      try {
+        const spKey = process.env.SUMOPOD_API_KEY;
+        const spBase = (process.env.SUMOPOD_BASE_URL || "https://ai.sumopod.com/v1").replace(/\/$/, "");
+        if (spKey) {
+          const svgSysPrompt = `Kamu adalah generator ilustrasi SVG profesional untuk artikel blog SEO. Kembalikan HANYA kode SVG mentah, mulai dari <svg hingga </svg>. Gunakan viewBox="0 0 800 450", warna modern dan harmonis, tambahkan teks/label bahasa Indonesia jika relevan. JANGAN ada markdown, penjelasan, atau teks apapun di luar tag SVG.`;
+          const svgs: string[] = [];
+          const imgCount = Math.min(imgCfg.count, 6);
+          const kw = imgCfg.keyword || aioReq.keyword || "";
+          for (let i = 0; i < imgCount; i++) {
+            const svgPrompt = imgCfg.userPrompt
+              ? `Ilustrasi SVG untuk artikel tentang "${kw}": ${imgCfg.userPrompt}`
+              : `Ilustrasi SVG untuk artikel tentang "${kw}". Style: ${imgCfg.style || "Ilustrasi"}. ${imgCfg.instructions || ""}`.trim();
+            try {
+              const r = await fetch(`${spBase}/chat/completions`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${spKey}` },
+                body: JSON.stringify({ model: "gpt-4.1-mini", messages: [{ role: "system", content: svgSysPrompt }, { role: "user", content: svgPrompt }], max_tokens: 4000 }),
+              });
+              if (r.ok) {
+                const d = await r.json();
+                let raw: string = d.choices?.[0]?.message?.content ?? "";
+                raw = raw.replace(/^```(?:svg|xml)?\s*/i, "").replace(/\s*```$/, "").trim();
+                const match = raw.match(/<svg[\s\S]*<\/svg>/i);
+                if (match) svgs.push(match[0]);
+              }
+            } catch { /* skip failed SVG */ }
+          }
+          if (svgs.length > 0) {
+            response.fullMarkdown = insertSvgImages(response.fullMarkdown, svgs, imgCfg);
+            response.fullHtml = await marked.parse(response.fullMarkdown, { async: true });
+          }
+        }
+      } catch { /* silently skip image errors */ }
+    }
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e);
     console.error(`[aio-generate] user=${userId} model=${aioReq.modelId} unhandled error: ${msg}`);

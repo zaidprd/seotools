@@ -146,6 +146,7 @@ export interface AioInput {
   userOutlineOverride?: string;
   internalLinkBaseUrl?: string;
   allowedExternalDomains?: string[];
+  noExternalLinks?: boolean;  // true = larang semua link eksternal di artikel
   authorName?: string;
   authorBio?: string;
   lastUpdated?: string;
@@ -876,6 +877,7 @@ function buildBlockSystemPrompt(input: AioInput, blockSpec: AioOutlineBlock): st
     (input.recencyMarker ? `- Recency marker: ${input.recencyMarker}\n` : "") +
     (input.authorName ? `- Penulis: ${input.authorName}\n` : "") +
     (input.internalLinkBaseUrl ? `- Base URL internal link: ${input.internalLinkBaseUrl}\n` : "") +
+    (input.noExternalLinks ? "- ATURAN LINK: DILARANG KERAS menambahkan link ke domain eksternal apapun. Semua hyperlink harus ke base URL internal di atas.\n" : "") +
     "\n" +
     "GAYA TULIS:\n" +
     "- Kalimat deklaratif, subjek-predikat-objek jelas.\n" +
@@ -985,7 +987,9 @@ function buildBlockUserPrompt(
     "YANG WAJIB MUNCUL DI BLOK INI:\n" +
     `- Entity: ${entitiesForBlock.join(", ") || "-"}\n` +
     `- Internal link plan: ${internalLinkForBlock.map((l) => l.anchor_hint).join(" | ") || "-"}\n` +
-    `- External link plan: ${externalLinkForBlock.map((l) => l.anchor_hint).join(" | ") || "-"}\n` +
+    (input.noExternalLinks
+      ? "- External link: DILARANG — jangan tambahkan link ke domain eksternal apapun.\n"
+      : `- External link plan: ${externalLinkForBlock.map((l) => l.anchor_hint).join(" | ") || "-"}\n`) +
     `- Fakta/angka yang wajib: ${mustIncludeFactsCsv}\n` +
     "\n" +
     "SCHEMA OUTPUT (WAJIB JSON VALID, tanpa teks di luar JSON):\n" +
@@ -999,9 +1003,11 @@ function buildBlockUserPrompt(
     "5. Untuk blok 5 (Perbandingan): WAJIB ada 1 tabel Markdown minimal 3 kolom x 3 baris.\n" +
     "6. Untuk blok 6 (Step-by-step): WAJIB pakai ordered list bernomor.\n" +
     "7. Untuk blok 7 (FAQ): WAJIB format '### P: ...' lalu jawaban 1-3 kalimat, total 5-7 Q dari outline.faq_questions.\n" +
-    "8. Untuk blok 10 (Sources): WAJIB daftar minimal 3 sumber otoritatif. Format: '- **Nama Sumber** — Jenis sumber (jurnal/situs resmi/buku/lembaga) — Tahun'. JANGAN mengarang URL — hanya sertakan URL nyata dari allowedExternalDomains atau internalLinkBaseUrl jika tersedia.\n" +
+    "8. Untuk blok 10 (Sources): WAJIB daftar minimal 3 sumber otoritatif. Format: '- **Nama Sumber** — Jenis sumber (jurnal/situs resmi/buku/lembaga) — Tahun'. Cantumkan nama sumber saja tanpa URL kecuali URL benar-benar diketahui dan valid.\n" +
     "9. Internal link Markdown: [anchor](URL) dengan base URL dari input.internalLinkBaseUrl.\n" +
-    "10. External link Markdown: [anchor](URL) sesuai outline.external_link_plan.\n" +
+    (input.noExternalLinks
+      ? "10. DILARANG KERAS: Jangan sertakan link ke domain eksternal apapun (iec.ch, se.com, dll). Hanya boleh link internal.\n"
+      : "10. External link Markdown: [anchor](URL) sesuai outline.external_link_plan.\n") +
     `11. Recency marker '${input.recencyMarker || input.publishDate.slice(0, 4)}' muncul minimal 1x di SELURUH artikel; jika blok ini tempat yang cocok, selipkan natural.\n` +
     "12. Tulis SELALU dalam bahasa yang sama dengan input.language.\n" +
     "13. Jangan tulis catatan meta, prompt reflection, atau komentar di luar JSON."

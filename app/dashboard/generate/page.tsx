@@ -136,8 +136,19 @@ export default function GeneratePage() {
           userTitle: title.trim() || undefined,
           userOutlineOverride: outlineRows.length > 0 ? outlineRows.map(r => `${r.type}: ${r.text}`).join("\n") : undefined,
           internalLinkBaseUrl: cfg.internalLinkBaseUrl || undefined,
+          noExternalLinks: cfg.extLinkType === "Tidak Ada",
           skipCritique: false,
           skipRefinement: false,
+          imageConfig: isPro ? {
+            count: parseInt(cfg.imgCount || "0"),
+            style: cfg.imgStyle || "Ilustrasi",
+            instructions: cfg.imgInstructions || "",
+            userPrompt: cfg.imgPrompt || "",
+            altText: cfg.imgAltText !== false,
+            firstKeyword: cfg.imgFirstKeyword !== false,
+            keyword: keyword.trim(),
+            size: cfg.imgSize || "Sedang 800px",
+          } : undefined,
         };
         const aioRes = await generateAioArticle(aioReq as any);
         setResult(aioRes.fullHtml || aioRes.fullMarkdown);
