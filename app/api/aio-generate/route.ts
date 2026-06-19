@@ -100,6 +100,7 @@ export interface AioGenerateRequest {
   skipCritique?: boolean;
   skipRefinement?: boolean;
   noExternalLinks?: boolean;
+  internalLinkPages?: string;
   imageConfig?: {
     count: number; style: string; instructions: string; userPrompt: string;
     altText: boolean; firstKeyword: boolean; keyword: string; size: string;
@@ -167,6 +168,7 @@ function buildAioInput(req: AioGenerateRequest): AioInput {
     internalLinkBaseUrl: req.internalLinkBaseUrl,
     allowedExternalDomains: req.allowedExternalDomains,
     noExternalLinks: req.noExternalLinks,
+    internalLinkPages: req.internalLinkPages,
     authorName: req.authorName,
     authorBio: req.authorBio,
     lastUpdated: req.lastUpdated,

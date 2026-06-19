@@ -146,7 +146,8 @@ export interface AioInput {
   userOutlineOverride?: string;
   internalLinkBaseUrl?: string;
   allowedExternalDomains?: string[];
-  noExternalLinks?: boolean;  // true = larang semua link eksternal di artikel
+  noExternalLinks?: boolean;   // true = larang semua link eksternal di artikel
+  internalLinkPages?: string;  // daftar URL halaman manual (satu per baris) — AI HANYA boleh gunakan URL ini
   authorName?: string;
   authorBio?: string;
   lastUpdated?: string;
@@ -662,6 +663,9 @@ function buildOutlineUserPrompt(input: AioInput, brief: AioBriefOutput): string 
     `- Brand voice: ${input.brandVoice || "-"}\n` +
     (override ? `- Override outline editor: ${override}\n` : "") +
     (internalBase ? `- Base URL internal link: ${internalBase}\n` : "") +
+    (input.internalLinkPages?.trim()
+      ? `- Halaman internal yang TERSEDIA (gunakan HANYA URL ini, jangan buat slug baru):\n${input.internalLinkPages.trim()}\n`
+      : "") +
     (input.allowedExternalDomains && input.allowedExternalDomains.length
       ? `- Domain eksternal yang diizinkan: ${input.allowedExternalDomains.join(", ")}\n`
       : "") +
@@ -681,7 +685,10 @@ function buildOutlineUserPrompt(input: AioInput, brief: AioBriefOutput): string 
     "6. Jika override outline editor diisi, INTEGRASIKAN ke blok yang relevan, jangan diabaikan.\n" +
     "7. title mengandung keyword utama. slug hanya huruf kecil, angka, dan tanda hubung. meta_description mengandung keyword dan call-to-value yang jelas.\n" +
     "8. Jangan menulis isi artikel di sini, hanya outline.\n" +
-    "9. Jangan tambahkan field di luar schema."
+    (input.internalLinkPages?.trim()
+      ? "9. internal_link_plan WAJIB menggunakan HANYA URL yang ada di daftar halaman internal di atas. DILARANG membuat slug atau URL baru yang tidak ada di daftar.\n"
+      : "9. internal_link_plan: anchor_hint harus relevan dengan konten blok.\n") +
+    "10. Jangan tambahkan field di luar schema."
   );
 }
 
@@ -877,7 +884,10 @@ function buildBlockSystemPrompt(input: AioInput, blockSpec: AioOutlineBlock): st
     (input.recencyMarker ? `- Recency marker: ${input.recencyMarker}\n` : "") +
     (input.authorName ? `- Penulis: ${input.authorName}\n` : "") +
     (input.internalLinkBaseUrl ? `- Base URL internal link: ${input.internalLinkBaseUrl}\n` : "") +
-    (input.noExternalLinks ? "- ATURAN LINK: DILARANG KERAS menambahkan link ke domain eksternal apapun. Semua hyperlink harus ke base URL internal di atas.\n" : "") +
+    (input.internalLinkPages?.trim()
+      ? `- URL internal yang BOLEH digunakan (HANYA ini, jangan buat URL baru):\n${input.internalLinkPages.trim()}\n`
+      : "") +
+    (input.noExternalLinks ? "- ATURAN LINK: DILARANG KERAS menambahkan link ke domain eksternal apapun. Semua hyperlink harus ke URL internal di atas.\n" : "") +
     "\n" +
     "GAYA TULIS:\n" +
     "- Kalimat deklaratif, subjek-predikat-objek jelas.\n" +
@@ -1004,7 +1014,9 @@ function buildBlockUserPrompt(
     "6. Untuk blok 6 (Step-by-step): WAJIB pakai ordered list bernomor.\n" +
     "7. Untuk blok 7 (FAQ): WAJIB format '### P: ...' lalu jawaban 1-3 kalimat, total 5-7 Q dari outline.faq_questions.\n" +
     "8. Untuk blok 10 (Sources): WAJIB daftar minimal 3 sumber otoritatif. Format: '- **Nama Sumber** — Jenis sumber (jurnal/situs resmi/buku/lembaga) — Tahun'. Cantumkan nama sumber saja tanpa URL kecuali URL benar-benar diketahui dan valid.\n" +
-    "9. Internal link Markdown: [anchor](URL) dengan base URL dari input.internalLinkBaseUrl.\n" +
+    (input.internalLinkPages?.trim()
+      ? "9. Internal link: WAJIB gunakan URL PERSIS dari daftar URL internal yang tercantum di system prompt. DILARANG menambah path, slug, atau suffix apapun. Contoh benar: [anchor](https://domain.com/halaman). Contoh salah: [anchor](https://domain.com/slug-yang-dikarang).\n"
+      : "9. Internal link Markdown: [anchor](URL) dengan base URL dari input.internalLinkBaseUrl.\n") +
     (input.noExternalLinks
       ? "10. DILARANG KERAS: Jangan sertakan link ke domain eksternal apapun (iec.ch, se.com, dll). Hanya boleh link internal.\n"
       : "10. External link Markdown: [anchor](URL) sesuai outline.external_link_plan.\n") +

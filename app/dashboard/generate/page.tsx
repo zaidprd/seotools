@@ -136,6 +136,9 @@ export default function GeneratePage() {
           userTitle: title.trim() || undefined,
           userOutlineOverride: outlineRows.length > 0 ? outlineRows.map(r => `${r.type}: ${r.text}`).join("\n") : undefined,
           internalLinkBaseUrl: cfg.internalLinkBaseUrl || undefined,
+          internalLinkPages: cfg.internalLinkSite === "Manual" && cfg.internalLinkPages?.trim()
+            ? cfg.internalLinkPages.trim()
+            : undefined,
           noExternalLinks: cfg.extLinkType === "Tidak Ada",
           skipCritique: false,
           skipRefinement: false,
