@@ -93,6 +93,38 @@ export async function uploadImagesToWP(
   return { html: result, firstMediaId };
 }
 
+// Bangun structured data JSON-LD (Article + FAQPage) dari markdown artikel.
+// FAQ diambil dari pasangan "**P: ...?**" / "**A:** ...". Hasilnya tag <script> siap
+// ditempel ke akhir konten WordPress — sinyal kuat untuk rich result & AI Overview 2026.
+export function buildJsonLd(md: string, title: string, keyword?: string): string {
+  const faqs: { q: string; a: string }[] = [];
+  const re = /\*\*P:\s*([^*\n]+?)\*\*\s*\n+\s*\*\*A:\*\*\s*([\s\S]*?)(?=\n\s*\*\*P:|\n#{1,3}\s|\n\n\n|$)/gi;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(md)) !== null) {
+    const q = m[1].trim().replace(/\s+/g, " ");
+    const a = m[2].trim().replace(/[*_#>]/g, "").replace(/\s+/g, " ");
+    if (q && a) faqs.push({ q, a });
+  }
+  const graph: Record<string, unknown>[] = [{
+    "@type": "Article",
+    headline: title.slice(0, 110),
+    ...(keyword ? { keywords: keyword } : {}),
+    dateModified: new Date().toISOString().slice(0, 10),
+  }];
+  if (faqs.length >= 2) {
+    graph.push({
+      "@type": "FAQPage",
+      mainEntity: faqs.map(f => ({
+        "@type": "Question",
+        name: f.q,
+        acceptedAnswer: { "@type": "Answer", text: f.a },
+      })),
+    });
+  }
+  const json = JSON.stringify({ "@context": "https://schema.org", "@graph": graph });
+  return `\n<script type="application/ld+json">${json}</script>`;
+}
+
 // Hitung waktu tayang terjadwal untuk artikel ke-`index` (0-based).
 // Drip: `perDay` artikel/hari, jeda antar artikel = 24 jam / perDay, mulai dari `startLocal`.
 // Return string waktu lokal "YYYY-MM-DDTHH:MM:SS" (format yang dipahami WordPress).

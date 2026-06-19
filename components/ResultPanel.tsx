@@ -6,6 +6,7 @@ import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
 import { WPSite, ModelInfo, Synds, PROVIDER_COLORS } from "@/lib/constants";
 import { publishToWordPress } from "@/lib/api";
+import { buildJsonLd } from "@/lib/wp-publish";
 import { marked } from "marked";
 import DOMPurify from "dompurify";
 
@@ -375,6 +376,8 @@ export default function ResultPanel({ content: initialContent, keyword = "", mod
         content = html;
         featuredMediaId = firstMediaId;
       }
+      // Tempel structured data (Article + FAQPage) untuk rich result / AI Overview
+      content += buildJsonLd(initialContent, title, keyword || undefined);
       const r = await publishToWordPress(wpSel, {
         title, content,
         status: scheduledAt ? "future" : postStatus,

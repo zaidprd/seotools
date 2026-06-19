@@ -126,8 +126,11 @@ export async function POST(req: NextRequest) {
     if (errorResponse) return errorResponse;
     const userId = user.id;
 
-    const { prompt, modelId = FREE_MODEL_ID, aiCleaning = false, imageConfig } = await req.json();
+    const { prompt, modelId = FREE_MODEL_ID, aiCleaning = false, imageConfig, maxTokens } = await req.json();
     if (!prompt) return NextResponse.json({ error: "Prompt kosong" }, { status: 400 });
+
+    // Output token sesuai panjang artikel (dari client), clamp 500–8000 agar long-form tak terpotong
+    const outTokens = Math.min(Math.max(Number(maxTokens) || 4000, 500), 8000);
 
     // Validasi model ID
     const safeModelId = ALLOWED_MODELS.has(modelId) ? modelId : FREE_MODEL_ID;
@@ -205,7 +208,7 @@ export async function POST(req: NextRequest) {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${key}` },
         body: JSON.stringify({
-          model: cfg.apiModel || safeModelId, max_tokens: 4000,
+          model: cfg.apiModel || safeModelId, max_tokens: outTokens,
           messages: [{ role: "system", content: SYSTEM }, { role: "user", content: prompt }],
         }),
       });
@@ -228,7 +231,7 @@ export async function POST(req: NextRequest) {
           body: JSON.stringify({
             system_instruction: { parts: [{ text: SYSTEM }] },
             contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { maxOutputTokens: 4000 },
+            generationConfig: { maxOutputTokens: outTokens },
           }),
         }
       );
@@ -247,7 +250,7 @@ export async function POST(req: NextRequest) {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${key}` },
         body: JSON.stringify({
-          model: safeModelId, max_tokens: 4000,
+          model: safeModelId, max_tokens: outTokens,
           messages: [{ role: "system", content: SYSTEM }, { role: "user", content: prompt }],
         }),
       });
@@ -271,7 +274,7 @@ export async function POST(req: NextRequest) {
           "X-Title": "Artikel SEO",
         },
         body: JSON.stringify({
-          model: safeModelId, max_tokens: 4000,
+          model: safeModelId, max_tokens: outTokens,
           messages: [{ role: "system", content: SYSTEM }, { role: "user", content: prompt }],
         }),
       });

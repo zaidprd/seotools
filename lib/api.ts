@@ -2,6 +2,19 @@
 import { buildPrompt, buildTitlePrompt } from "./prompt";
 import type { AioGenerateRequest, AioGenerateResponse } from "@/app/api/aio-generate/route";
 
+// Perkiraan output token sesuai target panjang artikel.
+// Teks Indonesia ≈ 2 token/kata, ditambah headroom untuk FAQ/kesimpulan.
+// Dikirim ke server agar artikel panjang tidak terpotong di tengah.
+function maxTokensFor(articleSize: string): number {
+  if (/Mini/i.test(articleSize))     return 1800;
+  if (/Pendek/i.test(articleSize))   return 2600;
+  if (/Standar/i.test(articleSize))  return 3400;
+  if (/Sedang/i.test(articleSize))   return 4800;
+  if (/Panjang/i.test(articleSize))  return 6500;
+  if (/Maksimal/i.test(articleSize)) return 8000;
+  return 4000;
+}
+
 export async function generateArticle(cfg: Config & { modelId?: string; userId?: string }): Promise<string> {
   const res = await fetch("/api/generate", {
     method: "POST",
@@ -11,6 +24,7 @@ export async function generateArticle(cfg: Config & { modelId?: string; userId?:
       modelId: cfg.modelId,
       userId: cfg.userId,
       aiCleaning: cfg.aiCleaning,
+      maxTokens: maxTokensFor(cfg.articleSize),
       imageConfig: {
         count: parseInt(cfg.imgCount || "0"),
         style: cfg.imgStyle || "Foto",

@@ -2,8 +2,8 @@
 import { useState, useCallback, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { MODELS, ModelInfo, WPSite, Config, UserData, defaultCfg, FREE_MODEL_ID, CREDIT_COST } from "@/lib/constants";
-import { generateArticle, publishToWordPress } from "@/lib/api";
-import { extractTitle, markdownToHtml, uploadImagesToWP, computeScheduleDate } from "@/lib/wp-publish";
+import { generateArticle, publishToWordPress, generateTitlesAPI } from "@/lib/api";
+import { extractTitle, markdownToHtml, uploadImagesToWP, computeScheduleDate, buildJsonLd } from "@/lib/wp-publish";
 import { marked } from "marked";
 import DOMPurify from "dompurify";
 import { RunBtn, Badge } from "@/components/ui";
@@ -13,29 +13,29 @@ import UpgradePopup from "@/components/UpgradePopup";
 import { createClient } from "@/lib/supabase/client";
 import { getWPSites, saveWPSites } from "@/lib/wp-sites";
 
-async function generateTitles(keyword: string, count = 5): Promise<string[]> {
-  const res = await fetch("/api/generate", {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      prompt: `Buat ${count} judul artikel SEO yang menarik dan mengandung keyword "${keyword}". Format: hanya daftar judul, satu per baris, tanpa nomor atau bullet. Bahasa Indonesia.`,
-      modelId: FREE_MODEL_ID,
-    }),
-  });
-  const data = await res.json();
-  return (data.text || "").split("\n").map((t: string) => t.trim()).filter((t: string) => t.length > 10).slice(0, count);
+// Pakai buildTitlePrompt (teroptimasi SEO: power word, tahun, 50-60 karakter)
+const generateTitles = (keyword: string, count = 5) => generateTitlesAPI(keyword, count);
+
+// Turunkan keyword fokus ringkas dari sebuah judul (untuk mode "Ketik Manual").
+// Buang angka/tahun di awal & power word umum agar keyword tidak berupa seluruh judul.
+function deriveKeyword(title: string): string {
+  let k = title.replace(/^\s*\d+\s*[.):\-]?\s*/, "");
+  k = k.replace(/\b(cara|panduan|tips|rahasia|terbaik|terlengkap|lengkap|terbukti|mudah|cepat|memilih|untuk pemula|di \d{4}|tahun \d{4}|\d{4})\b/gi, " ");
+  k = k.replace(/\s{2,}/g, " ").trim();
+  return k.length >= 3 ? k : title;
 }
 
 interface BulkResult {
-  topic: string; titles: string[]; selectedTitle: string; keywords: string;
+  topic: string; keyword: string; titles: string[]; selectedTitle: string; keywords: string;
   status: "idle"|"genTitles"|"loading"|"selesai"|"error"; content: string;
   editedHtml?: string; // HTML hasil edit di modal editor (dipakai saat publish jika ada)
   pub?: "idle"|"publishing"|"published"|"puberror"; pubLink?: string; pubError?: string; scheduledFor?: string;
 }
 
-function BulkRowCard({ row, index, onSelectTitle, onRegenTitles, onKeywordsChange, onTitleEdit, onRemove, onEdit }: {
+function BulkRowCard({ row, index, onSelectTitle, onRegenTitles, onKeywordsChange, onKeywordEdit, onTitleEdit, onRemove, onEdit }: {
   row: BulkResult; index: number;
   onSelectTitle: (t: string) => void; onRegenTitles: () => void; onKeywordsChange: (v: string) => void;
-  onTitleEdit: (v: string) => void; onRemove: () => void; onEdit: () => void;
+  onKeywordEdit: (v: string) => void; onTitleEdit: (v: string) => void; onRemove: () => void; onEdit: () => void;
 }) {
   const [open, setOpen] = useState(true);
   const [copied, setCopied] = useState(false);
@@ -89,6 +89,13 @@ function BulkRowCard({ row, index, onSelectTitle, onRegenTitles, onKeywordsChang
                   {t}
                 </button>
               ))}
+            </div>
+          )}
+          {row.status !== "selesai" && (
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Keyword Fokus <span className="text-slate-600 normal-case font-normal">(target SEO utama)</span></label>
+              <input value={row.keyword} onChange={e => onKeywordEdit(e.target.value)} placeholder="cth: panel kapasitor"
+                className="w-full bg-slate-900 border border-emerald-700/40 text-emerald-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-500/60 placeholder-slate-700" />
             </div>
           )}
           {row.status !== "selesai" && (
@@ -181,17 +188,17 @@ export default function BulkPage() {
     // Offset = jumlah baris yang sudah ada, supaya baris baru DITAMBAH di bawah (bukan menimpa)
     const offset = rows.length;
 
-    // Mode manual: tiap baris langsung jadi judul, siap generate tanpa langkah AI
+    // Mode manual: tiap baris langsung jadi judul; keyword fokus diturunkan dari judul
     if (titleMode === "manual") {
-      const newRows: BulkResult[] = lines.map(t => ({ topic: t, titles: [], selectedTitle: t, keywords: "", status: "idle", content: "" }));
+      const newRows: BulkResult[] = lines.map(t => ({ topic: t, keyword: deriveKeyword(t), titles: [], selectedTitle: t, keywords: "", status: "idle", content: "" }));
       setRows(prev => [...prev, ...newRows]);
       setTopicInput(""); // kosongkan input agar siap menambah batch berikutnya
       return;
     }
 
-    // Mode AI: generate 5 saran judul per topik, ditambah di bawah antrian
+    // Mode AI: topik = keyword fokus; generate 5 saran judul per topik
     setGenLoading(true);
-    const placeholders: BulkResult[] = lines.map(t => ({ topic: t, titles: [], selectedTitle: "", keywords: "", status: "genTitles", content: "" }));
+    const placeholders: BulkResult[] = lines.map(t => ({ topic: t, keyword: t, titles: [], selectedTitle: "", keywords: "", status: "genTitles", content: "" }));
     setRows(prev => [...prev, ...placeholders]);
     for (let i = 0; i < lines.length; i++) {
       const titles = await generateTitles(lines[i], 5);
@@ -221,7 +228,7 @@ export default function BulkPage() {
       if (!isAdmin && remainingCredits < cost) { setShowUpgrade(true); break; }
       try {
         const text = await generateArticle({
-          ...cfg, keyword: rows[i].topic, title: rows[i].selectedTitle,
+          ...cfg, keyword: rows[i].keyword || rows[i].topic, title: rows[i].selectedTitle,
           extraKeywords: rows[i].keywords,
           modelId: !isPro ? FREE_MODEL_ID : model.id,
           userId: user?.id,
@@ -261,13 +268,16 @@ export default function BulkPage() {
           html = up.html;
           featuredMediaId = up.firstMediaId;
         }
+        const pubTitle = rows[i].selectedTitle || extractTitle(rows[i].content);
+        // Tempel structured data (Article + FAQPage) untuk rich result / AI Overview
+        html += buildJsonLd(rows[i].content, pubTitle, rows[i].keyword || rows[i].topic);
         const scheduledAt = pubMode === "schedule" ? computeScheduleDate(schedStart, schedPerDay, j) : undefined;
         const res = await publishToWordPress(wpSel, {
-          title: rows[i].selectedTitle || extractTitle(rows[i].content),
+          title: pubTitle,
           content: html,
           status: pubMode === "schedule" ? "future" : pubMode,
           scheduledAt,
-          focusKeyword: rows[i].topic || undefined,
+          focusKeyword: rows[i].keyword || rows[i].topic || undefined,
           featuredMediaId,
         });
         setRows(prev => prev.map((r, idx) => idx === i
@@ -441,6 +451,7 @@ export default function BulkPage() {
                       onSelectTitle={t => setRows(prev => prev.map((r, idx) => idx === i ? { ...r, selectedTitle: t, titles: [] } : r))}
                       onRegenTitles={() => regenTitles(i)}
                       onKeywordsChange={v => setRows(prev => prev.map((r, idx) => idx === i ? { ...r, keywords: v } : r))}
+                      onKeywordEdit={v => setRows(prev => prev.map((r, idx) => idx === i ? { ...r, keyword: v } : r))}
                       onTitleEdit={v => setRows(prev => prev.map((r, idx) => idx === i ? { ...r, selectedTitle: v } : r))}
                       onRemove={() => removeRow(i)}
                       onEdit={() => setEditingIdx(i)} />
