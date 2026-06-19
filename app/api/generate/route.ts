@@ -57,14 +57,14 @@ function cleanAIContent(text: string): string {
     .trim();
 }
 
-function makeImgTag(b64: string, alt: string, size: string): string {
+function makeSvgImgTag(svgB64: string, alt: string, size: string): string {
   const m = size?.match(/(\d+)px/);
   const w = m ? ` width="${m[1]}"` : "";
-  return `<img src="data:image/png;base64,${b64}" alt="${alt}"${w} style="max-width:100%;height:auto;display:block;margin:1em auto;border-radius:8px" />`;
+  return `<img src="data:image/svg+xml;base64,${svgB64}" alt="${alt}"${w} style="max-width:100%;height:auto;display:block;margin:1em auto;border-radius:8px" />`;
 }
 
-function insertImages(content: string, images: string[], cfg: ImageConfig): string {
-  if (!images.length) return content;
+function insertSvgImages(content: string, svgs: string[], cfg: ImageConfig): string {
+  if (!svgs.length) return content;
   const lines = content.split("\n");
   const result: string[] = [];
   let idx = 0;
@@ -76,18 +76,20 @@ function insertImages(content: string, images: string[], cfg: ImageConfig): stri
 
     if (isH2) {
       h2Count++;
-      if (h2Count === 1 && idx < images.length) {
+      if (h2Count === 1 && idx < svgs.length) {
         const alt = cfg.firstKeyword ? cfg.keyword : cfg.altText ? `${cfg.keyword} ilustrasi` : "";
-        result.push("", makeImgTag(images[idx++], alt, cfg.size), "");
+        const b64 = Buffer.from(svgs[idx++]).toString("base64");
+        result.push("", makeSvgImgTag(b64, alt, cfg.size), "");
       }
     }
 
     result.push(line);
 
-    if (isH2 && h2Count >= 2 && idx < images.length) {
+    if (isH2 && h2Count >= 2 && idx < svgs.length) {
       const heading = line.replace(/^##\s*/, "");
       const alt = cfg.altText ? `${cfg.keyword} - ${heading}` : "";
-      result.push("", makeImgTag(images[idx++], alt, cfg.size), "");
+      const b64 = Buffer.from(svgs[idx++]).toString("base64");
+      result.push("", makeSvgImgTag(b64, alt, cfg.size), "");
     }
   }
 
@@ -264,36 +266,43 @@ export async function POST(req: NextRequest) {
 
     if (aiCleaning) text = cleanAIContent(text);
 
-    // Generate & insert images (paid plans only)
+    // Generate & insert SVG illustrations via SumoPod (paid plans only)
     if (imgCount > 0 && !isFreePlan && text) {
       try {
-        const key = process.env.GOOGLE_API_KEY;
-        if (key) {
-          const images: string[] = [];
+        const spKey = process.env.SUMOPOD_API_KEY;
+        const spBase = (process.env.SUMOPOD_BASE_URL || "https://ai.sumopod.com/v1").replace(/\/$/, "");
+        if (spKey) {
+          const svgSysPrompt = `Kamu adalah generator ilustrasi SVG profesional untuk artikel blog SEO. Kembalikan HANYA kode SVG mentah, mulai dari <svg hingga </svg>. Gunakan viewBox="0 0 800 450", warna modern dan harmonis, tambahkan teks/label bahasa Indonesia jika relevan. JANGAN ada markdown, penjelasan, atau teks apapun di luar tag SVG.`;
+          const svgs: string[] = [];
           for (let i = 0; i < imgCount; i++) {
-            const imgPrompt = imgCfg.userPrompt
-              ? `Professional photo of ${imgCfg.keyword}, ${imgCfg.userPrompt}, high quality, blog article`
-              : [imgCfg.keyword, imgCfg.style, "high quality blog illustration", imgCfg.instructions].filter(Boolean).join(", ");
+            const kw = imgCfg.keyword || "";
+            const svgPrompt = imgCfg.userPrompt
+              ? `Ilustrasi SVG untuk artikel tentang "${kw}": ${imgCfg.userPrompt}`
+              : `Ilustrasi SVG untuk artikel tentang "${kw}". Style: ${imgCfg.style || "Ilustrasi"}. ${imgCfg.instructions || ""}`.trim();
             try {
-              const r = await fetch(
-                `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${key}`,
-                {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    instances: [{ prompt: imgPrompt }],
-                    parameters: { sampleCount: 1, aspectRatio: "4:3" },
-                  }),
-                }
-              );
-              const d = await r.json();
-              if (r.ok && d.predictions?.[0]?.bytesBase64Encoded) {
-                images.push(d.predictions[0].bytesBase64Encoded);
+              const r = await fetch(`${spBase}/chat/completions`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${spKey}` },
+                body: JSON.stringify({
+                  model: "gpt-4.1-mini",
+                  messages: [
+                    { role: "system", content: svgSysPrompt },
+                    { role: "user", content: svgPrompt },
+                  ],
+                  max_tokens: 4000,
+                }),
+              });
+              if (r.ok) {
+                const d = await r.json();
+                let raw: string = d.choices?.[0]?.message?.content ?? "";
+                raw = raw.replace(/^```(?:svg|xml)?\s*/i, "").replace(/\s*```$/, "").trim();
+                const match = raw.match(/<svg[\s\S]*<\/svg>/i);
+                if (match) svgs.push(match[0]);
               }
-            } catch { /* skip failed individual image */ }
+            } catch { /* skip failed individual SVG */ }
           }
-          if (images.length > 0) {
-            text = insertImages(text, images, imgCfg);
+          if (svgs.length > 0) {
+            text = insertSvgImages(text, svgs, imgCfg);
           }
         }
       } catch { /* silently skip image errors */ }
