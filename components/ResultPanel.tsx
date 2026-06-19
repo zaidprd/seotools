@@ -309,7 +309,8 @@ export default function ResultPanel({ content: initialContent, keyword = "", mod
         const bytes = new Uint8Array(byteStr.length);
         for (let i = 0; i < byteStr.length; i++) bytes[i] = byteStr.charCodeAt(i);
         const blob = new Blob([bytes], { type: img.mime });
-        const ext = img.mime.split("/")[1]?.replace("jpeg", "jpg") || "png";
+        const mimeToExt: Record<string, string> = { "image/svg+xml": "svg", "image/jpeg": "jpg", "image/png": "png", "image/gif": "gif", "image/webp": "webp" };
+        const ext = mimeToExt[img.mime] || img.mime.split("/")[1] || "png";
         const file = new File([blob], `artikel-seo-img-${Date.now()}.${ext}`, { type: img.mime });
         const fd = new FormData();
         fd.append("file", file);
