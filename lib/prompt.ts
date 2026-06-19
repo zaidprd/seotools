@@ -72,12 +72,16 @@ ${connectWeb ? `- Sertakan data atau statistik terkini ${currentYear} — WAJIB 
 
 ${hasInternalLink ? `=== INTERNAL LINKING ===
 Sisipkan 2-4 internal link ke situs: ${baseUrl}
-ATURAN FORMAT:
+${hasManualPages ? `ATURAN FORMAT:
+- Gunakan HANYA URL persis dari daftar berikut — DILARANG membuat path atau slug baru yang tidak ada di daftar.
+- Format: [anchor text deskriptif](URL-persis-dari-daftar)
+- Halaman yang tersedia:
+${internalLinkPages}` : `ATURAN FORMAT:
 - Markdown: [teks anchor deskriptif](${baseUrl}/path-halaman)
 - Path: slug pendek bahasa Indonesia (huruf kecil, tanda hubung, tanpa spasi)
 - BENAR: [cara memulai bisnis online](${baseUrl}/cara-memulai-bisnis-online)
 - SALAH: duplikasi domain di URL
-${hasManualPages ? `Halaman yang tersedia untuk dilink:\n${internalLinkPages}` : "Buat path URL yang relevan dengan topik konten."}
+- Buat path URL yang relevan dengan topik konten.`}
 ` : ""}
 ${hasManualExtLinks ? `=== EXTERNAL LINKING ===
 Sisipkan 1-3 external link ke sumber berikut sebagai referensi atau kutipan:
@@ -85,6 +89,8 @@ ${extLinkUrls}
 Format: [anchor text deskriptif](URL)
 ` : extLinkType === "Otomatis" ? `=== EXTERNAL LINKING ===
 Sisipkan 1-2 external link ke sumber otoritatif yang BENAR-BENAR ADA dan Anda yakin URL-nya valid (Wikipedia Indonesia, situs .go.id, atau institusi resmi nasional/internasional yang terkenal). JANGAN mengarang URL — jika tidak yakin URL-nya, jangan tambahkan link.
+` : extLinkType === "Tidak Ada" ? `=== EXTERNAL LINKING ===
+LARANGAN KERAS: Artikel ini TIDAK BOLEH mengandung link Markdown atau HTML ke domain atau situs eksternal manapun. Jika ingin menyebutkan sumber, tulis nama institusinya saja tanpa URL.
 ` : ""}
 
 Tulis artikel LENGKAP dalam bahasa natural. Jangan tambahkan komentar meta, instruksi, atau penjelasan di luar artikel.

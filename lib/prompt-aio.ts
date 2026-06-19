@@ -1246,7 +1246,9 @@ function buildCritiqueUserPrompt(
     `- Tanggal publikasi: ${input.publishDate}\n` +
     `- Recency marker target: ${input.recencyMarker || input.publishDate.slice(0, 4)}\n` +
     (internalBase ? `- Base URL internal link: ${internalBase}\n` : "") +
-    `- Domain eksternal yang diizinkan: ${allowedExt}\n` +
+    (input.noExternalLinks
+      ? "- Mode external link: DILARANG KERAS — tidak ada external link sama sekali. Poin 8 (external) harus otomatis LULUS.\n"
+      : `- Domain eksternal yang diizinkan: ${allowedExt}\n`) +
     "\n" +
     "OUTLINE REFERENSI (untuk cek koherensi heading):\n" +
     JSON.stringify(
@@ -1344,10 +1346,15 @@ function qg13DetailGuide(input: AioInput): string {
     "7. Total 1.200-2.000 kata\n" +
     "   - Lulus: total kata (setelah strip tag HTML/markdown) dalam rentang 1.200-2.000.\n" +
     "   - Gagal: < 1.200 atau > 2.000 kata.\n\n" +
-    "8. Internal 3-5 + External 1-3 link otoritatif\n" +
-    "   - Internal: lulus jika 3-5 link Markdown ke base URL, anchor deskriptif.\n" +
-    "   - External: lulus jika 1-3 link Markdown ke domain dari allowedExternalDomains, anchor deskriptif, URL aktif.\n" +
-    "   - Gagal: jumlah di luar rentang, anchor generic ('klik di sini', 'baca selengkapnya'), domain tidak otoritatif.\n\n" +
+    (input.noExternalLinks
+      ? "8. Internal 3-5 link (mode tanpa external link)\n" +
+        "   - Internal: lulus jika 3-5 link Markdown ke base URL, anchor deskriptif.\n" +
+        "   - External: TIDAK BERLAKU — mode ini melarang external link. Poin external OTOMATIS LULUS; jangan nilai ketiadaan external link sebagai gagal.\n" +
+        "   - Gagal: jumlah internal link di luar rentang 3-5, atau anchor generic ('klik di sini', 'baca selengkapnya').\n\n"
+      : "8. Internal 3-5 + External 1-3 link otoritatif\n" +
+        "   - Internal: lulus jika 3-5 link Markdown ke base URL, anchor deskriptif.\n" +
+        "   - External: lulus jika 1-3 link Markdown ke domain dari allowedExternalDomains, anchor deskriptif, URL aktif.\n" +
+        "   - Gagal: jumlah di luar rentang, anchor generic ('klik di sini', 'baca selengkapnya'), domain tidak otoritatif.\n\n") +
     "9. Struktur heading valid (H1/H2/H3 konsisten, level tidak lonjong)\n" +
     "   - Lulus: ada H1 tepat 1, H2 untuk section utama, H3 untuk sub-section, tidak ada loncat level (H2 -> H4).\n" +
     "   - Gagal: ada multiple H1, atau level heading lonjong, atau heading generik ('Pendahuluan', 'Kesimpulan') tanpa isi.\n\n" +
