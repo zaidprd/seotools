@@ -40,11 +40,11 @@ function FetchSitemap({ baseUrl, onFetch }: { baseUrl: string; onFetch: (pages: 
   );
 }
 
-export default function SettingsForm({ cfg, set, model, setModel, wpSites, addWp, removeWp, wpSel, setWpSel, mode = "single", credits, isPro }: {
+export default function SettingsForm({ cfg, set, model, setModel, wpSites, addWp, removeWp, wpSel, setWpSel, mode = "single", credits, isPro, isAio, isAdmin }: {
   cfg: Config; set: (fn: (p: Config) => Config) => void; model: ModelInfo; setModel: (m: ModelInfo) => void;
   wpSites: WPSite[]; addWp: (s: WPSite) => void; removeWp: (id: number) => void;
   wpSel: WPSite | null; setWpSel: (s: WPSite | null) => void; mode?: "single" | "bulk";
-  credits: number; isPro: boolean;
+  credits: number; isPro: boolean; isAio?: boolean; isAdmin?: boolean;
 }) {
   const f = (k: keyof Config, v: any) => set(p => ({ ...p, [k]: v }));
 
@@ -77,7 +77,7 @@ export default function SettingsForm({ cfg, set, model, setModel, wpSites, addWp
           <div className="mt-2"><Tog label="AI Content Cleaning" val={cfg.aiCleaning} set={v => f("aiCleaning", v)} /></div>
         </div>
         <div className="border-t border-slate-800 pt-2.5 mt-0.5">
-          <ModelSelector sel={model} set={setModel} credits={credits} isPro={isPro} />
+          <ModelSelector sel={model} set={setModel} credits={credits} isPro={isPro} isAio={isAio} isAdmin={isAdmin} />
         </div>
       </Sec>
 

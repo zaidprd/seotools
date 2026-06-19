@@ -1,15 +1,17 @@
 "use client";
 import { useState } from "react";
-import { MODELS, ModelInfo, FREE_MODEL_ID, FREE_MODEL_LABEL } from "@/lib/constants";
+import { MODELS, ModelInfo, FREE_MODEL_ID, FREE_MODEL_LABEL, AIO_MODEL_ID } from "@/lib/constants";
 
 interface Props {
   sel: ModelInfo;
   set: (m: ModelInfo) => void;
   credits: number;
   isPro: boolean;
+  isAio?: boolean;    // jika true, semua model di-lock kecuali AIO_MODEL_ID
+  isAdmin?: boolean;  // jika true, unlimited — semua model bisa dipilih tanpa cek kredit
 }
 
-export default function ModelSelector({ sel, set, credits, isPro }: Props) {
+export default function ModelSelector({ sel, set, credits, isPro, isAio, isAdmin }: Props) {
   const [showUpgrade, setShowUpgrade] = useState(false);
 
   if (!isPro) {
@@ -24,7 +26,7 @@ export default function ModelSelector({ sel, set, credits, isPro }: Props) {
             <span className="text-[10px] bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 px-2 py-0.5 rounded-full font-bold">1 💎</span>
           </div>
           <p className="text-[10px] text-slate-600 text-center leading-relaxed">
-            Upgrade untuk akses GPT-5.4, Claude Haiku 4.5, dan Claude Sonnet 4.6
+            Upgrade untuk akses GPT-4.1, Claude Haiku, Sonnet, dan Opus
           </p>
           <button onClick={() => setShowUpgrade(true)}
             className="text-[10px] text-amber-400 hover:text-amber-300 border border-amber-500/20 hover:border-amber-500/40 py-1.5 rounded-lg transition-colors">
@@ -65,28 +67,48 @@ export default function ModelSelector({ sel, set, credits, isPro }: Props) {
     <div className="flex flex-col gap-1">
       <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center justify-between">
         <span>AI Model</span>
-        <span className="text-amber-400 normal-case font-normal">💎 {credits} kredit tersisa</span>
+        <span className="text-amber-400 normal-case font-normal">
+          {isAdmin ? "💎 Unlimited" : `💎 ${credits} kredit tersisa`}
+        </span>
       </label>
       <div className="flex flex-col gap-1 bg-slate-900 border border-slate-800 rounded-xl p-2">
         {MODELS.map(m => {
-          const canAfford = credits >= m.credits;
+          const isAioModel = m.id === AIO_MODEL_ID;
+          // Di mode AIO: hanya Sonnet yang aktif, sisanya di-lock
+          const lockedByAio = !!isAio && !isAioModel;
+          const canAfford = isAdmin || credits >= m.credits;
+          const disabled = lockedByAio || !canAfford;
+
           return (
-            <button key={m.id} onClick={() => canAfford && set(m)} disabled={!canAfford}
+            <button key={m.id}
+              onClick={() => !disabled && set(m)}
+              disabled={disabled}
+              title={lockedByAio ? "AI Overview dikunci ke Claude Sonnet 4.6" : undefined}
               className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-all border ${
-                sel.id === m.id
-                  ? "bg-amber-500/10 border-amber-500/30 text-amber-300"
-                  : canAfford
-                    ? "hover:bg-slate-800/60 text-slate-400 border-transparent"
-                    : "opacity-40 cursor-not-allowed text-slate-600 border-transparent"
+                lockedByAio
+                  ? "opacity-25 cursor-not-allowed text-slate-600 border-transparent"
+                  : sel.id === m.id
+                    ? "bg-amber-500/10 border-amber-500/30 text-amber-300"
+                    : canAfford
+                      ? "hover:bg-slate-800/60 text-slate-400 border-transparent"
+                      : "opacity-40 cursor-not-allowed text-slate-600 border-transparent"
               }`}>
               <span className="flex items-center gap-1.5">
                 {m.label}
+                {lockedByAio && <span className="text-[9px] text-slate-700">🔒</span>}
               </span>
-              <span className={`text-[10px] font-bold ${canAfford ? "text-amber-400" : "text-slate-600"}`}>{m.credits} 💎</span>
+              <span className={`text-[10px] font-bold ${lockedByAio ? "text-slate-700" : canAfford ? "text-amber-400" : "text-slate-600"}`}>
+                {m.credits} 💎
+              </span>
             </button>
           );
         })}
       </div>
+      {isAio && (
+        <p className="text-[10px] text-violet-400/70 mt-0.5">
+          ✨ AI Overview selalu menggunakan Claude Sonnet 4.6 untuk kualitas optimal
+        </p>
+      )}
     </div>
   );
 }

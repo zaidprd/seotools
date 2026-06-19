@@ -119,6 +119,7 @@ export interface WPSite { id: number; name: string; url: string; user: string; p
 export interface UserData {
   id: string; email: string; plan: string;
   credits: number; credits_used: number; articles_used: number;
+  role?: string;
 }
 
 export const PLANS = [

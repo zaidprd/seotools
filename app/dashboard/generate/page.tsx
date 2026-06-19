@@ -40,7 +40,8 @@ export default function GeneratePage() {
   const [authUser, setAuthUser] = useState<any>(null);
   const [wpSites, setWpSites] = useState<WPSite[]>([]);
 
-  const isPro = (user?.plan ?? "free") !== "free";
+  const isAdmin = user?.role === "admin";
+  const isPro = isAdmin || (user?.plan ?? "free") !== "free";
   const credits = user?.credits ?? 0;
   const defaultModel = MODELS[0];
 
@@ -106,7 +107,7 @@ export default function GeneratePage() {
       setShowUpgrade(true);
       return;
     }
-    if (credits < cost) { setUpgradeReason(`Butuh ${cost} 💎 untuk ${mode === "aio" ? "AI Overview" : "model ini"}, kamu punya ${credits} 💎`); setShowUpgrade(true); return; }
+    if (!isAdmin && credits < cost) { setUpgradeReason(`Butuh ${cost} 💎 untuk ${mode === "aio" ? "AI Overview" : "model ini"}, kamu punya ${credits} 💎`); setShowUpgrade(true); return; }
     setLoading(true); setResult(null); setError(null);
     setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 100);
     try {
@@ -179,8 +180,8 @@ export default function GeneratePage() {
           <p className="text-[11px] text-slate-500">Dari keyword ke artikel SEO lengkap</p>
         </div>
         {user && (
-          <span className={`ml-auto text-[10px] px-2.5 py-0.5 rounded-full border font-bold ${credits > 0 ? "text-amber-400 border-amber-800/50 bg-amber-950/30" : "text-red-400 border-red-800/50 bg-red-950/30"}`}>
-            💎 {credits} kredit
+          <span className={`ml-auto text-[10px] px-2.5 py-0.5 rounded-full border font-bold ${isAdmin ? "text-emerald-400 border-emerald-800/50 bg-emerald-950/30" : credits > 0 ? "text-amber-400 border-amber-800/50 bg-amber-950/30" : "text-red-400 border-red-800/50 bg-red-950/30"}`}>
+            {isAdmin ? "💎 Unlimited" : `💎 ${credits} kredit`}
           </span>
         )}
       </div>
@@ -195,7 +196,12 @@ export default function GeneratePage() {
             <span className="mr-1">🔧</span>Standard
           </button>
           <button
-            onClick={() => setMode("aio")}
+            onClick={() => {
+              setMode("aio");
+              // Otomatis pilih Sonnet saat switch ke AIO mode
+              const sonnet = MODELS.find(m => m.id === AIO_MODEL_ID);
+              if (sonnet) setModel(sonnet);
+            }}
             className={`px-3 py-1.5 rounded-lg text-[12px] font-bold transition-colors flex items-center gap-1.5 ${mode === "aio" ? "bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white" : "text-slate-400 hover:text-slate-200"}`}
             title="Pipeline 7-step untuk Google AI Overviews">
             <span>✨</span>AI Overview
@@ -272,14 +278,14 @@ export default function GeneratePage() {
           <SettingsForm cfg={cfg} set={setCfg} model={currentModel} setModel={setModel}
             wpSites={wpSites} addWp={addWp} removeWp={removeWp}
             wpSel={wpSel} setWpSel={setWpSel} mode="single"
-            credits={credits} isPro={isPro} />
+            credits={credits} isPro={isPro} isAio={mode === "aio"} isAdmin={isAdmin} />
 
           {/* Run button — sticky di bawah panel kiri */}
           <div className="sticky bottom-0 pt-2 pb-1 bg-gradient-to-t from-[#0c0e14] via-[#0c0e14] to-transparent flex-shrink-0">
             <RunBtn onClick={generate} loading={loading}
-              disabled={!keyword.trim() || credits < cost}
-              label={`Buat Artikel (${cost} 💎)`} sublabel="Membuat..." />
-            {credits === 0 && (
+              disabled={!keyword.trim() || (!isAdmin && credits < cost)}
+              label={isAdmin ? `Buat Artikel (Gratis)` : `Buat Artikel (${cost} 💎)`} sublabel="Membuat..." />
+            {!isAdmin && credits === 0 && (
               <button onClick={() => setShowUpgrade(true)}
                 className="w-full mt-2 py-2 text-[11px] text-amber-400 border border-amber-500/20 rounded-xl hover:bg-amber-500/5 transition-colors">
                 💎 Kredit habis — Upgrade sekarang
