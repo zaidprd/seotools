@@ -143,20 +143,19 @@ export default function GeneratePage() {
         setResult(aioRes.fullHtml || aioRes.fullMarkdown);
         setMobileTab("result");
         if (authUser) fetchUser(authUser.id);
-        return;
+      } else {
+        // Standard mode: 1-step pipeline lama
+        const outline = outlineRows.map(r => `${r.type}: ${r.text}`).join("\n");
+        const effectiveCfg = !isPro ? { ...cfg, articleSize: FREE_MAX_WORDS } : cfg;
+        const text = await generateArticle({
+          ...effectiveCfg, keyword, title, outline,
+          modelId: !isPro ? FREE_MODEL_ID : model.id,
+          userId: user?.id,
+        } as any);
+        setResult(text);
+        setMobileTab("result");
+        if (authUser) fetchUser(authUser.id);
       }
-
-      // Standard mode: 1-step pipeline lama
-      const outline = outlineRows.map(r => `${r.type}: ${r.text}`).join("\n");
-      const effectiveCfg = !isPro ? { ...cfg, articleSize: FREE_MAX_WORDS } : cfg;
-      const text = await generateArticle({
-        ...effectiveCfg, keyword, title, outline,
-        modelId: !isPro ? FREE_MODEL_ID : model.id,
-        userId: user?.id,
-      } as any);
-      setResult(text);
-      setMobileTab("result");
-      if (authUser) fetchUser(authUser.id);
     } catch (e: any) {
       if (e.message?.includes("Kredit")) { setUpgradeReason(e.message); setShowUpgrade(true); }
       else {

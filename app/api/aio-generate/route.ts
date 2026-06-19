@@ -524,7 +524,14 @@ function joinBlocksToMarkdown(blocks: AioBlockOutput[]): string {
   return blocks
     .slice()
     .sort((a, b) => a.block_index - b.block_index)
-    .map((b) => (b.h2 ? `## ${b.h2}\n\n` : "") + b.content_markdown)
+    .map((b) => {
+      // AI sering include "## heading" di dalam content_markdown sekaligus mengisi h2 field
+      // → strip heading di awal content agar tidak muncul dua kali
+      const content = b.h2
+        ? b.content_markdown.replace(/^##\s+[^\n]*\n*/m, "").trimStart()
+        : b.content_markdown;
+      return (b.h2 ? `## ${b.h2}\n\n` : "") + content;
+    })
     .join("\n\n");
 }
 
