@@ -35,13 +35,13 @@ STRUKTUR HEADING:
 4. Jika pakai H3, pastikan berada di bawah H2 (jangan loncat level H2 → H4)
 
 DIRECT ANSWER PER SEKSI (sinyal terkuat untuk Google AI Overview):
-5. Setiap H2 WAJIB diawali paragraf "direct answer" 40-60 kata yang menjawab langsung intent seksi. Gunakan kalimat deklaratif: "X adalah...", "Cara melakukan Y adalah...", "Perbedaan A dan B terletak pada..."
+5. Setiap H2 WAJIB diawali paragraf "direct answer" 35-45 kata yang menjawab langsung intent seksi. Gunakan kalimat deklaratif: "X adalah...", "Cara melakukan Y adalah...", "Perbedaan A dan B terletak pada..."
 6. Setiap seksi H2 harus bisa dipahami TANPA membaca seksi lain — tulis seolah Google hanya mengambil seksi itu saja untuk ditampilkan di AI Overview
 7. Paragraf pertama artikel (sebelum H2 pertama) WAJIB mengandung keyword "${keyword}" dan menjawab search intent utama dalam 2-3 kalimat pertama
 
 KUALITAS DAN E-E-A-T ${currentYear}:
 8. Setiap klaim berupa angka/persentase/statistik WAJIB sebut sumber: "menurut [Nama Lembaga/Tahun]" atau "berdasarkan data [Sumber]"
-9. Paragraf maksimal 120 kata — jika lebih, pecah jadi 2 paragraf
+9. WAJIB: setiap paragraf PENDEK, hanya 30-40 kata (2-3 kalimat). Paragraf yang lebih panjang HARUS dipecah jadi beberapa paragraf. Ini bikin artikel lega, nyaman dibaca, dan ramah mobile.
 10. Recency marker: tahun "${currentYear}" wajib muncul minimal 1x secara natural
 
 KEYWORD DAN SEMANTIK:

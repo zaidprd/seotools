@@ -8,20 +8,29 @@ export interface ModelInfo {
 }
 
 // Model yang tersedia — lewat SumoPod (proxy OpenAI-compatible, 1 key untuk semua).
-// Claude dihapus karena SumoPod tidak stabil untuk Claude (JSON parse error konsisten).
+// Claude sempat tidak stabil di SumoPod; kini dikembalikan + diproteksi auto-fallback
+// di server (jika error/kosong, otomatis retry pakai fallbackId yang lebih stabil).
 // id = nama model asli di SumoPod. Harga per 1M token (SumoPod Jun 2026):
 //   gemini-2.5-flash-lite $0.10/$0.40 | gemini-2.5-flash $0.30/$2.50
 //   gpt-4.1-mini $0.40/$1.60 | gpt-4.1 $2.00/$8.00 | gpt-5.4 $2.50/$15.00
 export const MODELS: ModelInfo[] = [
   // HEMAT — budget, cepat, cocok untuk draft & volume tinggi
-  { id: "gemini/gemini-2.5-flash-lite", label: "Gemini 2.5 Flash Lite", provider: "Google", badge: "HEMAT", credits: 1, fallbackId: "gemini/gemini-2.5-flash"  },
-  { id: "gemini/gemini-2.5-flash",      label: "Gemini 2.5 Flash",      provider: "Google", badge: "HEMAT", credits: 1, fallbackId: "gemini/gemini-2.5-flash-lite" },
+  { id: "gemini/gemini-2.5-flash-lite", label: "Gemini 2.5 Flash Lite", provider: "Google",    badge: "HEMAT", credits: 1, fallbackId: "gemini/gemini-2.5-flash"  },
+  { id: "gemini/gemini-2.5-flash",      label: "Gemini 2.5 Flash",      provider: "Google",    badge: "HEMAT", credits: 1, fallbackId: "gemini/gemini-2.5-flash-lite" },
   // PRO — kualitas artikel lebih kaya, harga terjangkau, STABIL
-  { id: "gpt-4.1-mini",                 label: "GPT-4.1 Mini",          provider: "OpenAI", badge: "PRO",   credits: 2, fallbackId: "gemini/gemini-2.5-flash"  },
-  { id: "gpt-4.1",                      label: "GPT-4.1",               provider: "OpenAI", badge: "PRO",   credits: 3, fallbackId: "gpt-4.1-mini"             },
+  { id: "gpt-4.1-mini",                 label: "GPT-4.1 Mini",          provider: "OpenAI",    badge: "PRO",   credits: 2, fallbackId: "gemini/gemini-2.5-flash"  },
+  { id: "gpt-4.1",                      label: "GPT-4.1",               provider: "OpenAI",    badge: "PRO",   credits: 3, fallbackId: "gpt-4.1-mini"             },
+  { id: "claude-haiku-4-5",             label: "Claude Haiku 4.5",      provider: "Anthropic", badge: "PRO",   credits: 5, fallbackId: "gpt-4.1-mini"             },
   // MAX — terbaik untuk artikel kompleks & long-form
-  { id: "gpt-5.4",                      label: "GPT-5.4",               provider: "OpenAI", badge: "MAX",   credits: 5, fallbackId: "gpt-4.1"                  },
+  { id: "gpt-5.4",                      label: "GPT-5.4",               provider: "OpenAI",    badge: "MAX",   credits: 5, fallbackId: "gpt-4.1"                  },
+  { id: "claude-sonnet-4-6",            label: "Claude Sonnet 4.6",     provider: "Anthropic", badge: "MAX",   credits: 7, fallbackId: "gpt-4.1"                  },
+  { id: "claude-opus-4-7",              label: "Claude Opus 4.7",       provider: "Anthropic", badge: "MAX",   credits: 10, fallbackId: "gpt-5.4"                 },
 ];
+
+// Peta fallback (modelId → model cadangan) untuk auto-retry di server.
+export const MODEL_FALLBACK: Record<string, string> = Object.fromEntries(
+  MODELS.filter(m => m.fallbackId).map(m => [m.id, m.fallbackId!])
+);
 
 export const FREE_MODEL_ID    = "gemini/gemini-2.5-flash";
 export const FREE_MODEL_LABEL = "Gemini 2.5 Flash";
@@ -37,7 +46,10 @@ export const CREDIT_COST: Record<string, number> = {
   "gemini/gemini-2.5-flash":      1,
   "gpt-4.1-mini":                  2,
   "gpt-4.1":                       3,
+  "claude-haiku-4-5":              5,
   "gpt-5.4":                       5,
+  "claude-sonnet-4-6":             7,
+  "claude-opus-4-7":               10,
 };
 
 export const SVG_CREDIT_COST = 3;

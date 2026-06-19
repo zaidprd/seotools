@@ -187,7 +187,7 @@ export default function PricingPage() {
         <div className="mt-16 max-w-2xl mx-auto">
           <h2 className="text-2xl font-black text-center mb-8" style={{ fontFamily: "Sora,sans-serif" }}>Pertanyaan Umum</h2>
           {[
-            { q: "Apa itu kredit dan 35 kredit itu cukup buat apa?", a: "Kredit adalah satuan pemakaian AI. Setiap artikel yang di-generate memotong kredit sesuai model yang dipilih: Gemini 2.5 Flash = 1 kredit (35 artikel/bln), GPT-4.1 Mini = 2 kredit, GPT-4.1 = 3 kredit, GPT-5.4 = 5 kredit (7 artikel/bln). Bebas campur model setiap saat." },
+            { q: "Apa itu kredit dan 35 kredit itu cukup buat apa?", a: "Kredit adalah satuan pemakaian AI. Setiap artikel yang di-generate memotong kredit sesuai model yang dipilih: Gemini 2.5 Flash = 1 kredit (35 artikel/bln), GPT-4.1 Mini = 2 kredit, GPT-4.1 = 3 kredit, GPT-5.4 = 5 kredit, Claude Haiku 4.5 = 5 kredit, Claude Sonnet 4.6 = 7 kredit, Claude Opus 4.7 = 10 kredit. Bebas campur model setiap saat." },
             { q: "Apakah kredit kadaluarsa?", a: "Kredit akan di-reset setiap awal bulan sesuai siklus langganan. Sisa kredit bulan lalu tidak diakumulasi — jadi usahakan dipakai habis tiap bulan." },
             { q: "Sudah bayar tapi kredit belum masuk?", a: "Klik tombol 'Verifikasi Pembayaran' di atas. Sistem akan mengecek pembayaran terakhirmu ke Mayar dan langsung menambahkan kredit jika sudah lunas." },
             { q: "Bisa berhenti berlangganan kapan saja?", a: "Ya. Karena pembayaran per bulan, kamu cukup tidak memperpanjang bulan berikutnya. Tidak ada kontrak jangka panjang." },

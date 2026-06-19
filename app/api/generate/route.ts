@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { CREDIT_COST, FREE_MODEL_ID, FREE_ARTICLE_COST, IMAGE_CREDIT_COST } from "@/lib/constants";
+import { CREDIT_COST, FREE_MODEL_ID, FREE_ARTICLE_COST, IMAGE_CREDIT_COST, MODEL_FALLBACK } from "@/lib/constants";
 import { createClient } from "@supabase/supabase-js";
 import { requireAuth } from "@/lib/supabase/require-auth";
 
@@ -166,6 +166,102 @@ async function genSvgImage(cfg: ImageConfig): Promise<string | null> {
   } catch { return null; }
 }
 
+// Panggil 1 model ke provider yang sesuai. Tidak melempar — selalu balas {text,error?}.
+// JSON di-parse aman (SumoPod kadang balas teks non-JSON untuk Claude → ditangani).
+async function callModel(modelId: string, prompt: string, outTokens: number): Promise<{ text: string; error?: string; status?: number }> {
+  const provider = getProvider(modelId);
+  const oai = oaiProviders();
+  try {
+    if (oai[provider]) {
+      const cfg = oai[provider];
+      const key = process.env[cfg.envKey];
+      if (!key) return { text: "", error: "Konfigurasi server tidak lengkap", status: 500 };
+      const r = await fetch(`${cfg.base.replace(/\/$/, "")}/chat/completions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${key}` },
+        body: JSON.stringify({
+          model: cfg.apiModel || modelId, max_tokens: outTokens,
+          messages: [{ role: "system", content: SYSTEM }, { role: "user", content: prompt }],
+        }),
+      });
+      const raw = await r.text();
+      if (!r.ok) {
+        console.error(`[generate] ${provider} ${modelId} error ${r.status}:`, raw.slice(0, 200));
+        return { text: "", error: `Provider error (${r.status})`, status: 502 };
+      }
+      let data: any;
+      try { data = JSON.parse(raw); }
+      catch { console.error(`[generate] ${modelId} respons non-JSON:`, raw.slice(0, 160)); return { text: "", error: "Respons provider tidak valid", status: 502 }; }
+      return { text: data.choices?.[0]?.message?.content || "" };
+
+    } else if (provider === "google") {
+      const key = process.env.GOOGLE_API_KEY;
+      if (!key) return { text: "", error: "Konfigurasi server tidak lengkap", status: 500 };
+      const r = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${key}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            system_instruction: { parts: [{ text: SYSTEM }] },
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { maxOutputTokens: outTokens },
+          }),
+        }
+      );
+      if (!r.ok) {
+        console.error(`[generate] google ${modelId} error ${r.status}:`, (await r.text().catch(() => "")).slice(0, 200));
+        return { text: "", error: `Google API error (${r.status})`, status: 502 };
+      }
+      const data = await r.json();
+      return { text: data.candidates?.[0]?.content?.parts?.[0]?.text || "" };
+
+    } else if (provider === "openai") {
+      const key = process.env.OPENAI_API_KEY;
+      if (!key) return { text: "", error: "Konfigurasi server tidak lengkap", status: 500 };
+      const r = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${key}` },
+        body: JSON.stringify({
+          model: modelId, max_tokens: outTokens,
+          messages: [{ role: "system", content: SYSTEM }, { role: "user", content: prompt }],
+        }),
+      });
+      if (!r.ok) {
+        console.error(`[generate] openai ${modelId} error ${r.status}:`, (await r.text().catch(() => "")).slice(0, 200));
+        return { text: "", error: `OpenAI error (${r.status})`, status: 502 };
+      }
+      const data = await r.json();
+      return { text: data.choices?.[0]?.message?.content || "" };
+
+    } else {
+      const key = process.env.OPENROUTER_API_KEY;
+      if (!key) return { text: "", error: "Konfigurasi server tidak lengkap", status: 500 };
+      const r = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${key}`,
+          "HTTP-Referer": process.env.SITE_URL || "http://localhost:3000",
+          "X-Title": "Artikel SEO",
+        },
+        body: JSON.stringify({
+          model: modelId, max_tokens: outTokens,
+          messages: [{ role: "system", content: SYSTEM }, { role: "user", content: prompt }],
+        }),
+      });
+      if (!r.ok) {
+        console.error(`[generate] openrouter ${modelId} error ${r.status}:`, (await r.text().catch(() => "")).slice(0, 200));
+        return { text: "", error: `OpenRouter error (${r.status})`, status: 502 };
+      }
+      const data = await r.json();
+      return { text: data.choices?.[0]?.message?.content || "" };
+    }
+  } catch (e) {
+    return { text: "", error: e instanceof Error ? e.message : "fetch error", status: 502 };
+  }
+}
+
 // Whitelist model IDs yang valid untuk mencegah penyalahgunaan
 const ALLOWED_MODELS = new Set(Object.keys(CREDIT_COST));
 
@@ -245,96 +341,24 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Generate article text
-    const provider = getProvider(safeModelId);
-    let text = "";
+    // Generate article text — auto-fallback kalau model utama error/kosong (mis. Claude tak stabil)
+    let usedModel = safeModelId;
+    let res = await callModel(safeModelId, prompt, outTokens);
+    let text = res.text;
+    if (!text && MODEL_FALLBACK[safeModelId]) {
+      const fb = MODEL_FALLBACK[safeModelId];
+      console.warn(`[generate] ${safeModelId} gagal (${res.error || "kosong"}) → fallback ke ${fb}`);
+      const res2 = await callModel(fb, prompt, outTokens);
+      if (res2.text) { text = res2.text; usedModel = fb; }
+      else res = res2;
+    }
 
-    const oai = oaiProviders();
-    if (oai[provider]) {
-      const cfg = oai[provider];
-      const key = process.env[cfg.envKey];
-      if (!key) return NextResponse.json({ error: "Konfigurasi server tidak lengkap" }, { status: 500 });
-      const r = await fetch(`${cfg.base.replace(/\/$/, "")}/chat/completions`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${key}` },
-        body: JSON.stringify({
-          model: cfg.apiModel || safeModelId, max_tokens: outTokens,
-          messages: [{ role: "system", content: SYSTEM }, { role: "user", content: prompt }],
-        }),
-      });
-      if (!r.ok) {
-        const errText = await r.text().catch(() => "(no body)");
-        console.error(`[generate] ${provider} error ${r.status}:`, errText);
-        return NextResponse.json({ error: `Provider error (${r.status}): ${errText.slice(0, 200)}` }, { status: 502 });
+    // Total gagal (utama + fallback) → refund kredit, jangan biarkan user kehilangan kredit
+    if (!text) {
+      if (!isAdmin) {
+        try { await supabase.rpc("refund_credit", { p_user_id: userId, p_amount: totalCost }); } catch { /* best effort */ }
       }
-      const data = await r.json();
-      text = data.choices?.[0]?.message?.content || "";
-
-    } else if (provider === "google") {
-      const key = process.env.GOOGLE_API_KEY;
-      if (!key) return NextResponse.json({ error: "Konfigurasi server tidak lengkap" }, { status: 500 });
-      const r = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${safeModelId}:generateContent?key=${key}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            system_instruction: { parts: [{ text: SYSTEM }] },
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { maxOutputTokens: outTokens },
-          }),
-        }
-      );
-      if (!r.ok) {
-        const errText = await r.text().catch(() => "(no body)");
-        console.error(`[generate] google error ${r.status}:`, errText);
-        return NextResponse.json({ error: `Google API error (${r.status})` }, { status: 502 });
-      }
-      const data = await r.json();
-      text = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
-
-    } else if (provider === "openai") {
-      const key = process.env.OPENAI_API_KEY;
-      if (!key) return NextResponse.json({ error: "Konfigurasi server tidak lengkap" }, { status: 500 });
-      const r = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${key}` },
-        body: JSON.stringify({
-          model: safeModelId, max_tokens: outTokens,
-          messages: [{ role: "system", content: SYSTEM }, { role: "user", content: prompt }],
-        }),
-      });
-      if (!r.ok) {
-        const errText = await r.text().catch(() => "(no body)");
-        console.error(`[generate] openai error ${r.status}:`, errText);
-        return NextResponse.json({ error: `OpenAI error (${r.status})` }, { status: 502 });
-      }
-      const data = await r.json();
-      text = data.choices?.[0]?.message?.content || "";
-
-    } else {
-      const key = process.env.OPENROUTER_API_KEY;
-      if (!key) return NextResponse.json({ error: "Konfigurasi server tidak lengkap" }, { status: 500 });
-      const r = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${key}`,
-          "HTTP-Referer": process.env.SITE_URL || "http://localhost:3000",
-          "X-Title": "Artikel SEO",
-        },
-        body: JSON.stringify({
-          model: safeModelId, max_tokens: outTokens,
-          messages: [{ role: "system", content: SYSTEM }, { role: "user", content: prompt }],
-        }),
-      });
-      if (!r.ok) {
-        const errText = await r.text().catch(() => "(no body)");
-        console.error(`[generate] openrouter error ${r.status}:`, errText);
-        return NextResponse.json({ error: `OpenRouter error (${r.status})` }, { status: 502 });
-      }
-      const data = await r.json();
-      text = data.choices?.[0]?.message?.content || "";
+      return NextResponse.json({ error: res.error || "Model tidak menghasilkan konten" }, { status: res.status || 502 });
     }
 
     if (aiCleaning) text = cleanAIContent(text);
@@ -372,7 +396,7 @@ export async function POST(req: NextRequest) {
 
         await supabase.from("articles").insert({
           user_id: userId, title, keyword,
-          model_id: safeModelId, content: text,
+          model_id: usedModel, content: text,
           word_count: wordCount, credits_used: isAdmin ? 0 : cost + (!isFreePlan ? imageCost : 0),
         });
       } catch { /* silently ignore history save errors */ }
