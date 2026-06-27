@@ -3,6 +3,7 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { MODELS, ModelInfo, WPSite, Config, UserData, defaultCfg, FREE_MODEL_ID, FREE_MAX_WORDS, CREDIT_COST, SVG_CREDIT_COST } from "@/lib/constants";
 import { generateArticle } from "@/lib/api";
+import { slugify } from "@/lib/slug";
 import { Sec, Inp, RunBtn, Badge } from "./ui";
 import SettingsForm from "./SettingsForm";
 import OutlineEditor from "./OutlineEditor";
@@ -63,6 +64,12 @@ function SingleTab({ wpSites, addWp, removeWp, user, refreshUser }: {
   const [model, setModel] = useState<ModelInfo>(defaultModel);
   const [keyword, setKeyword] = useState("");
   const [title, setTitle] = useState("");
+  const [slug, setSlug] = useState("");
+  const slugEdited = useRef(false);
+  // Auto-isi slug dari keyword selama user belum mengeditnya manual
+  useEffect(() => {
+    if (!slugEdited.current) setSlug(slugify(keyword));
+  }, [keyword]);
   const [outlineRows, setOutlineRows] = useState<{ type: string; text: string }[]>([]);
   const [wpSel, setWpSel] = useState<WPSite | null>(null);
   const [loading, setLoading] = useState(false);
@@ -149,6 +156,22 @@ function SingleTab({ wpSites, addWp, removeWp, user, refreshUser }: {
                 </div>
               )}
             </div>
+            {/* Slug — permalink WordPress, bisa diedit. Otomatis dari keyword. */}
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center justify-between">
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Slug (URL)</label>
+                {slugEdited.current && keyword.trim() && (
+                  <button onClick={() => { slugEdited.current = false; setSlug(slugify(keyword)); }}
+                    title="Reset slug dari keyword"
+                    className="text-[10px] text-amber-400 hover:text-amber-300 transition-colors">↺ Auto</button>
+                )}
+              </div>
+              <input value={slug}
+                onChange={e => { slugEdited.current = true; setSlug(slugify(e.target.value)); }}
+                placeholder="otomatis-dari-keyword"
+                className="bg-slate-900 border border-slate-700/60 text-slate-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-amber-500/60 placeholder-slate-700" />
+              <p className="text-[10px] text-slate-600 truncate">🔗 /{slug || "..."}</p>
+            </div>
           </div>
         </div>
 
@@ -185,7 +208,7 @@ function SingleTab({ wpSites, addWp, removeWp, user, refreshUser }: {
         )}
         {loading && <WritingLoader />}
         {error && <div className="flex-1 flex items-center justify-center"><div className="bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 text-red-300 text-sm max-w-md">✗ {error}</div></div>}
-        {result && <ResultPanel content={result} keyword={keyword} model={currentModel} wpSites={wpSel ? [wpSel] : wpSites} synds={cfg.synds} />}
+        {result && <ResultPanel content={result} keyword={keyword} slug={slug} model={currentModel} wpSites={wpSel ? [wpSel] : wpSites} synds={cfg.synds} userId={user?.id} />}
       </div>
     </div>
   );

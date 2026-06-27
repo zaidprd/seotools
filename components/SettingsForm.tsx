@@ -125,7 +125,7 @@ export default function SettingsForm({ cfg, set, model, setModel, wpSites, addWp
             {isPro && parseInt(cfg.imgCount || "0") > 0 && (
               <div className="mt-2 pt-2 border-t border-slate-800/60">
                 <p className="text-[10px] text-slate-500">
-                  💡 Ilustrasi SVG AI disisipkan otomatis saat artikel dibuat. Setiap gambar = <span className="text-amber-400 font-bold">{SVG_CREDIT_COST} 💎</span>
+                  💡 Gambar AI (foto realistis) disisipkan otomatis saat artikel dibuat. Setiap gambar = <span className="text-amber-400 font-bold">{SVG_CREDIT_COST} 💎</span>
                 </p>
                 <div className="mt-1.5 bg-slate-900/60 border border-slate-700/50 rounded-lg px-2.5 py-1.5">
                   <p className="text-[10px] text-slate-400">

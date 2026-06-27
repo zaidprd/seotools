@@ -21,30 +21,56 @@ function sanitizeHtml(dirty: string): string {
 type CheckLevel = "ok" | "warn" | "fail";
 interface SEOCheck { label: string; level: CheckLevel; detail?: string; }
 
+// Stopword Indonesia + kata tanya — diabaikan saat mencocokkan keyword frasa, supaya
+// long-tail seperti "apa itu panel lvmdp" tetap cocok dengan H2 "Fungsi Panel LVMDP".
+const STOPWORDS = new Set(["apa","itu","yang","dan","di","ke","dari","untuk","adalah","cara","kenapa","mengapa","bagaimana","dengan","pada","atau","ini","saja","agar","sang"]);
+
+// Cek apakah teks mengandung keyword. Untuk keyword frasa yang jarang muncul utuh, anggap
+// cocok bila SEMUA kata inti (di luar stopword, >2 huruf) muncul di teks — menghindari
+// penilaian "gagal" yang tidak adil untuk long-tail keyword.
+function keywordMatches(text: string, kw: string): boolean {
+  const t = text.toLowerCase();
+  if (t.includes(kw)) return true;
+  const coreWords = kw.split(/\s+/).filter(w => w.length > 2 && !STOPWORDS.has(w));
+  if (coreWords.length >= 2) return coreWords.every(w => t.includes(w));
+  return false;
+}
+
 function analyzeSEO(content: string, keyword: string) {
   if (!keyword.trim()) return null;
   const kw = keyword.toLowerCase().trim();
-  const plain = content.replace(/<[^>]+>/g, " ").toLowerCase();
+  const plain = content.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").toLowerCase();
   const words = plain.split(/\s+/).filter(Boolean);
   const total = words.length;
-  const kwCount = plain.split(kw).length - 1;
+  // Density ala RankMath/Yoast: hitung "keyword + kombinasi". Ambil yang terbanyak antara
+  // frasa utuh dan inti keyword (stopword/kata tanya dibuang, mis. "panel lvmdp").
+  const coreKw = kw.split(/\s+/).filter(w => w.length > 2 && !STOPWORDS.has(w)).join(" ");
+  const occ = (hay: string, needle: string) => needle ? hay.split(needle).length - 1 : 0;
+  const kwCount = Math.max(occ(plain, kw), coreKw && coreKw !== kw ? occ(plain, coreKw) : 0);
   const density = total > 0 ? (kwCount / total) * 100 : 0;
   const first100 = words.slice(0, 100).join(" ");
-  const h1 = content.match(/^#\s+(.+)/m) || content.match(/<h1[^>]*>([^<]+)<\/h1>/i);
-  const h2h3 = [...(content.matchAll(/^#{2,3}\s+.+/gm) || []), ...(content.matchAll(/<h[23][^>]*>[^<]+<\/h[23]>/gi) || [])];
+  // Ekstrak teks H1 & H2/H3 dengan strip tag dalam (mis. <strong>) agar deteksi keyword akurat
+  const stripTags = (s: string) => s.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  const h1Match = content.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i) || content.match(/^#\s+(.+)/m);
+  const h1Text = h1Match ? stripTags(h1Match[1]) : "";
+  const h2h3Texts = [
+    ...[...content.matchAll(/<h[23][^>]*>([\s\S]*?)<\/h[23]>/gi)].map(m => stripTags(m[1])),
+    ...[...content.matchAll(/^#{2,3}\s+(.+)/gm)].map(m => m[1]),
+  ];
   const metaMatch = content.match(/META:\s*(.+)/i);
   const meta = metaMatch ? metaMatch[1].trim() : "";
   const sentences = plain.split(/[.!?]+/).filter(s => s.trim().split(/\s+/).length > 3);
   const avgSent = sentences.length > 0 ? sentences.reduce((s, x) => s + x.trim().split(/\s+/).length, 0) / sentences.length : 0;
 
+  // Ambang density mengikuti standar Yoast/RankMath: ideal 1–2.5%, minimal 0.5%.
   const checks: SEOCheck[] = [
-    { label: "Keyword density 0.5–2.5%", level: density >= 0.8 && density <= 2.0 ? "ok" : density >= 0.5 && density <= 2.5 ? "warn" : "fail", detail: `${density.toFixed(1)}%` },
-    { label: "Keyword di 100 kata pertama", level: first100.includes(kw) ? "ok" : "fail" },
-    { label: "Keyword di H1", level: (h1 ? h1[1] || h1[0] : "").toLowerCase().includes(kw) ? "ok" : "fail" },
-    { label: "Keyword di H2/H3", level: h2h3.some(h => h[0].toLowerCase().includes(kw)) ? "ok" : "warn" },
+    { label: "Keyword density 1–2.5%", level: density >= 1 && density <= 2.5 ? "ok" : density >= 0.5 && density <= 3 ? "warn" : "fail", detail: `${density.toFixed(2)}% · ${kwCount}x` },
+    { label: "Keyword di 100 kata pertama", level: keywordMatches(first100, kw) ? "ok" : "fail" },
+    { label: "Keyword di H1", level: keywordMatches(h1Text, kw) ? "ok" : "fail" },
+    { label: "Keyword di H2/H3", level: h2h3Texts.some(h => keywordMatches(h, kw)) ? "ok" : "warn" },
     { label: "Panjang artikel", level: total >= 600 ? "ok" : total >= 300 ? "warn" : "fail", detail: `${total} kata` },
     { label: "Meta description 120–160 kar", level: meta.length >= 120 && meta.length <= 160 ? "ok" : meta.length > 0 ? "warn" : "fail", detail: meta ? `${meta.length} kar` : "Tidak ada" },
-    { label: "Keyword di meta description", level: meta.toLowerCase().includes(kw) ? "ok" : meta ? "warn" : "fail" },
+    { label: "Keyword di meta description", level: meta && keywordMatches(meta, kw) ? "ok" : meta ? "warn" : "fail" },
     { label: "Ada seksi FAQ", level: /faq|pertanyaan umum/i.test(content) ? "ok" : "warn" },
     { label: "Ada kesimpulan", level: /kesimpulan|penutup|conclusion/i.test(content) ? "ok" : "warn" },
     { label: "Rata-rata kalimat", level: avgSent <= 18 ? "ok" : avgSent <= 22 ? "warn" : "fail", detail: `${avgSent.toFixed(1)} kata/kalimat` },
@@ -94,14 +120,12 @@ function SEOPanel({ content, keyword }: { content: string; keyword: string }) {
 }
 
 // ─── TipTap Toolbar ────────────────────────────────────────────────────────────
-function TipTapToolbar({ editor, wpSite, onUpload, onAISvg, onAIPhoto, isUploading, isAIGenerating, isPhotoGenerating, uploadError }: {
+function TipTapToolbar({ editor, wpSite, onUpload, onAIPhoto, isUploading, isPhotoGenerating, uploadError }: {
   editor: ReturnType<typeof useEditor>;
   wpSite: WPSite | null;
   onUpload: (file: File) => void;
-  onAISvg: () => void;
   onAIPhoto: () => void;
   isUploading: boolean;
-  isAIGenerating: boolean;
   isPhotoGenerating: boolean;
   uploadError: string | null;
 }) {
@@ -147,13 +171,6 @@ function TipTapToolbar({ editor, wpSite, onUpload, onAISvg, onAIPhoto, isUploadi
       <input ref={fileInputRef} type="file" accept="image/*" className="hidden"
         onChange={e => { const f = e.target.files?.[0]; if (f) onUpload(f); e.target.value = ""; }} />
 
-
-      {/* AI SVG — ilustrasi vektor */}
-      <button onClick={onAISvg} disabled={isAIGenerating} title="Generate ilustrasi vektor (SVG) dengan AI"
-        className="text-[11px] px-2 py-1.5 rounded-lg border border-violet-500/30 text-violet-400 hover:bg-violet-500/5 disabled:opacity-50 transition-all flex items-center gap-1">
-        {isAIGenerating ? <><span className="w-2.5 h-2.5 border border-violet-400 border-t-transparent rounded-full animate-spin" />Generating...</> : "✨ AI SVG"}
-      </button>
-
       {/* AI Foto — foto realistis via Cloudflare Flux */}
       <button onClick={onAIPhoto} disabled={isPhotoGenerating} title="Generate foto realistis dengan AI (Cloudflare Flux)"
         className="text-[11px] px-2 py-1.5 rounded-lg border border-sky-500/30 text-sky-400 hover:bg-sky-500/5 disabled:opacity-50 transition-all flex items-center gap-1">
@@ -166,8 +183,8 @@ function TipTapToolbar({ editor, wpSite, onUpload, onAISvg, onAIPhoto, isUploadi
 }
 
 // ─── Main ResultPanel ──────────────────────────────────────────────────────────
-export default function ResultPanel({ content: initialContent, keyword = "", model, wpSites, synds, userId, onContentChange }: {
-  content: string; keyword?: string; model: ModelInfo; wpSites: WPSite[]; synds: Synds; userId?: string;
+export default function ResultPanel({ content: initialContent, keyword = "", slug = "", model, wpSites, synds, userId, onContentChange }: {
+  content: string; keyword?: string; slug?: string; model: ModelInfo; wpSites: WPSite[]; synds: Synds; userId?: string;
   onContentChange?: (html: string) => void;
 }) {
   const [mode, setMode] = useState<"preview" | "edit">("preview");
@@ -189,10 +206,8 @@ export default function ResultPanel({ content: initialContent, keyword = "", mod
   const [copied, setCopied] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
-  const [isAIGenerating, setIsAIGenerating] = useState(false);
   const [isPhotoGenerating, setIsPhotoGenerating] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
-  const [showSvgPreview, setShowSvgPreview] = useState<string | null>(null);
   const [showPhotoPreview, setShowPhotoPreview] = useState<string | null>(null);
   const [showSeoPanel, setShowSeoPanel] = useState(false);
   const touchStartX = useRef(0);
@@ -274,33 +289,6 @@ export default function ResultPanel({ content: initialContent, keyword = "", mod
     setIsUploading(false);
   };
 
-  const handleAISvg = async () => {
-    if (!userId) { setAiError("Login diperlukan"); return; }
-    const desc = window.prompt("Deskripsi ilustrasi SVG (contoh: diagram alur SEO, infografis langkah-langkah, ilustrasi konsep):");
-    if (!desc) return;
-    setIsAIGenerating(true); setAiError(null);
-    try {
-      const res = await fetch("/api/generate-svg", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: desc, keyword }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-      // Tampilkan preview sebelum insert
-      setShowSvgPreview(data.svg);
-    } catch (e: any) { setAiError(e.message); }
-    setIsAIGenerating(false);
-  };
-
-  const insertSvg = (svg: string) => {
-    // Convert SVG ke data URI lalu insert sebagai image
-    const b64 = btoa(unescape(encodeURIComponent(svg)));
-    const src = `data:image/svg+xml;base64,${b64}`;
-    editor?.chain().focus().setImage({ src, alt: "Ilustrasi AI" }).run();
-    setShowSvgPreview(null);
-  };
-
   const handleAIPhoto = async () => {
     if (!userId) { setAiError("Login diperlukan"); return; }
     const desc = window.prompt("Deskripsi foto (contoh: panel listrik industri di ruang kontrol, close-up, pencahayaan profesional):");
@@ -344,57 +332,26 @@ export default function ResultPanel({ content: initialContent, keyword = "", mod
     });
   }, []);
 
-  // Upload semua gambar base64 di konten ke WP Media Library.
-  // SVG otomatis dikonversi ke WebP — tidak perlu plugin WordPress.
-  // Return { html dengan URL WP, firstMediaId = ID gambar pertama untuk featured_media }
-  const uploadBase64ToWP = useCallback(async (
-    html: string, site: WPSite
-  ): Promise<{ html: string; firstMediaId?: number }> => {
-    const regex = /<img([^>]*?)src="(data:([^;]+);base64,([^"]+))"([^>]*?)>/gi;
+  // Konversi gambar SVG base64 → WebP base64 (server tidak punya Canvas untuk render SVG).
+  // Gambar raster (JPEG/PNG/WebP) dibiarkan base64 — diupload ke WP di server (anti-CORS),
+  // dan gambar pertama otomatis dijadikan featured image oleh route /api/publish/wordpress.
+  const convertSvgImagesToWebp = useCallback(async (html: string): Promise<string> => {
+    const regex = /<img([^>]*?)src="data:image\/svg\+xml;base64,([^"]+)"([^>]*?)>/gi;
+    const matches = [...html.matchAll(regex)];
     let result = html;
-    let firstMediaId: number | undefined;
-    const matches: Array<{ full: string; pre: string; dataUrl: string; mime: string; b64: string; post: string }> = [];
-    let m: RegExpExecArray | null;
-    while ((m = regex.exec(html)) !== null) {
-      matches.push({ full: m[0], pre: m[1], dataUrl: m[2], mime: m[3], b64: m[4], post: m[5] });
-    }
-    for (const img of matches) {
+    for (const m of matches) {
       try {
-        let uploadBlob: Blob;
-        let uploadFilename: string;
-        if (img.mime === "image/svg+xml") {
-          // Konversi SVG → WebP agar kompatibel dengan WordPress tanpa plugin
-          uploadBlob = await svgToWebP(img.b64);
-          uploadFilename = `artikel-seo-img-${Date.now()}.webp`;
-        } else {
-          const byteStr = atob(img.b64);
-          const bytes = new Uint8Array(byteStr.length);
-          for (let i = 0; i < byteStr.length; i++) bytes[i] = byteStr.charCodeAt(i);
-          uploadBlob = new Blob([bytes], { type: img.mime });
-          const mimeToExt: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/gif": "gif", "image/webp": "webp" };
-          const ext = mimeToExt[img.mime] || "png";
-          uploadFilename = `artikel-seo-img-${Date.now()}.${ext}`;
-        }
-        const file = new File([uploadBlob], uploadFilename, { type: uploadBlob.type });
-        const fd = new FormData();
-        fd.append("file", file);
-        const r = await fetch(`${site.url.replace(/\/+$/, "")}/wp-json/wp/v2/media`, {
-          method: "POST",
-          headers: {
-            "Authorization": `Basic ${btoa(`${site.user}:${site.pass}`)}`,
-            "Content-Disposition": `attachment; filename="${file.name}"`,
-          },
-          body: fd,
+        const blob = await svgToWebP(m[2]);
+        const dataUrl: string = await new Promise((res, rej) => {
+          const fr = new FileReader();
+          fr.onload = () => res(fr.result as string);
+          fr.onerror = rej;
+          fr.readAsDataURL(blob);
         });
-        if (r.ok) {
-          const data = await r.json();
-          if (!firstMediaId) firstMediaId = data.id as number; // gambar pertama jadi featured image
-          const wpUrl: string = data.source_url;
-          result = result.replace(img.full, `<img${img.pre}src="${wpUrl}"${img.post}>`);
-        }
-      } catch { /* pertahankan base64 jika upload gagal */ }
+        result = result.replace(m[0], `<img${m[1]}src="${dataUrl}"${m[3]}>`);
+      } catch { /* pertahankan SVG base64 jika konversi gagal */ }
     }
-    return { html: result, firstMediaId };
+    return result;
   }, [svgToWebP]);
 
   const publish = async () => {
@@ -402,21 +359,19 @@ export default function ResultPanel({ content: initialContent, keyword = "", mod
     setPublishing(true); setPubResult(null); setPubError(null);
     try {
       let content = htmlContent;
-      let featuredMediaId: number | undefined;
-      // Upload gambar base64 → URL WP, ambil ID pertama sebagai featured image
-      if (/data:[^"]+;base64,/.test(content)) {
-        const { html, firstMediaId } = await uploadBase64ToWP(content, wpSel);
-        content = html;
-        featuredMediaId = firstMediaId;
+      // SVG base64 → WebP base64 dulu (server tak bisa render SVG). Raster diupload di server.
+      if (/data:image\/svg\+xml;base64,/.test(content)) {
+        content = await convertSvgImagesToWebp(content);
       }
       // Tempel structured data (Article + FAQPage) untuk rich result / AI Overview
       content += buildJsonLd(initialContent, title, keyword || undefined);
       const r = await publishToWordPress(wpSel, {
-        title, content,
+        title,
+        slug: slug || undefined,
+        content,
         status: scheduledAt ? "future" : postStatus,
         scheduledAt: scheduledAt || undefined,
         focusKeyword: keyword || undefined,
-        featuredMediaId,
       });
       setPubResult({ link: r.link });
     } catch (e: any) { setPubError(e.message); }
@@ -494,30 +449,6 @@ export default function ResultPanel({ content: initialContent, keyword = "", mod
         </div>
       )}
 
-      {/* SVG Preview Modal */}
-      {showSvgPreview && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-2xl flex flex-col gap-4 p-5 shadow-2xl">
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-bold text-white">Preview Ilustrasi SVG</p>
-              <button onClick={() => setShowSvgPreview(null)} className="text-slate-500 hover:text-white text-lg leading-none">✕</button>
-            </div>
-            <div className="bg-white rounded-xl overflow-hidden"
-              dangerouslySetInnerHTML={{ __html: showSvgPreview }} />
-            <div className="flex gap-2 justify-end">
-              <button onClick={() => setShowSvgPreview(null)}
-                className="text-xs px-4 py-2 rounded-lg border border-slate-700 text-slate-400 hover:text-white transition-colors">
-                Batal
-              </button>
-              <button onClick={() => insertSvg(showSvgPreview)}
-                className="text-xs px-4 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-white font-bold transition-colors">
-                ✓ Sisipkan ke Artikel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Photo Preview Modal (Cloudflare Flux) */}
       {showPhotoPreview && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
@@ -578,10 +509,8 @@ export default function ResultPanel({ content: initialContent, keyword = "", mod
               editor={editor}
               wpSite={wpSel}
               onUpload={handleUpload}
-              onAISvg={handleAISvg}
               onAIPhoto={handleAIPhoto}
               isUploading={isUploading}
-              isAIGenerating={isAIGenerating}
               isPhotoGenerating={isPhotoGenerating}
               uploadError={uploadError}
             />

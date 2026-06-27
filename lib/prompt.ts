@@ -44,10 +44,12 @@ KUALITAS DAN E-E-A-T ${currentYear}:
 9. WAJIB: setiap paragraf PENDEK, hanya 30-40 kata (2-3 kalimat). Paragraf yang lebih panjang HARUS dipecah jadi beberapa paragraf. Ini bikin artikel lega, nyaman dibaca, dan ramah mobile.
 10. Recency marker: tahun "${currentYear}" wajib muncul minimal 1x secara natural
 
-KEYWORD DAN SEMANTIK:
-11. Keyword "${keyword}" muncul di 100 kata pertama
-12. Gunakan sinonim dan variasi keyword secara natural — hindari repetisi kata yang sama 3x berturut-turut dalam 1 paragraf
-13. Sebutkan entitas terkait yang relevan: konsep, istilah teknis, merek, atau lembaga yang berkaitan dengan topik
+KEYWORD DAN SEMANTIK (target kepadatan Yoast/RankMath 1–1.5%):
+11. Keyword "${keyword}" muncul di 100 kata pertama (idealnya dalam 1-2 kalimat awal)
+12. KEPADATAN KEYWORD — WAJIB: keyword utama "${keyword}" beserta kombinasi kata intinya harus muncul natural sekitar 1x per 90-110 kata, tersebar merata di paragraf pembuka, minimal 2 subjudul (H2), isi tiap seksi, FAQ, dan kesimpulan. Target density 1–1.5% (artikel 1.500 kata ≈ 15-18 kemunculan; 1.000 kata ≈ 10-12). JANGAN keyword stuffing — pakai bentuk natural & variasi, jangan menumpuk di satu paragraf.
+13. Gunakan sinonim dan variasi LSI secara natural — hindari mengulang kata yang sama 3x berturut-turut dalam 1 paragraf
+14. Sebutkan entitas terkait yang relevan: konsep, istilah teknis, merek, atau lembaga yang berkaitan dengan topik
+15. Keyword utama WAJIB muncul di minimal 1 subjudul (H2/H3) secara natural
 
 FAQ (format wajib untuk schema compatibility):
 14. Seksi ## FAQ dengan 5-7 pertanyaan & jawaban
@@ -93,17 +95,17 @@ ${withBold ? "- Bold kata kunci dan konsep penting untuk skimmability." : ""}
 ${connectWeb ? `- Sertakan data atau statistik terkini ${currentYear} — WAJIB sebut nama sumber secara eksplisit di teks.` : ""}
 
 ${hasInternalLink ? `=== INTERNAL LINKING ===
-Sisipkan 2-4 internal link ke situs: ${baseUrl}
-${hasManualPages ? `ATURAN FORMAT:
-- Gunakan HANYA URL persis dari daftar berikut — DILARANG membuat path atau slug baru yang tidak ada di daftar.
+${hasManualPages ? `Sisipkan 2-4 internal link ke situs ${baseUrl}.
+ATURAN FORMAT (WAJIB — CEGAH LINK 404):
+- Gunakan HANYA URL persis dari daftar berikut — DILARANG KERAS membuat path atau slug baru yang tidak ada di daftar (link mengarang = 404).
 - Format: [anchor text deskriptif](URL-persis-dari-daftar)
-- Halaman yang tersedia:
-${internalLinkPages}` : `ATURAN FORMAT:
-- Markdown: [teks anchor deskriptif](${baseUrl}/path-halaman)
-- Path: slug pendek bahasa Indonesia (huruf kecil, tanda hubung, tanpa spasi)
-- BENAR: [cara memulai bisnis online](${baseUrl}/cara-memulai-bisnis-online)
-- SALAH: duplikasi domain di URL
-- Buat path URL yang relevan dengan topik konten.`}
+- Pilih halaman yang paling relevan dengan topik. Halaman yang tersedia:
+${internalLinkPages}` : `Sisipkan 1-2 internal link ke HALAMAN UTAMA (beranda) situs: ${baseUrl}/
+ATURAN FORMAT (WAJIB — CEGAH LINK 404):
+- Tautkan HANYA ke beranda: ${baseUrl}/ — JANGAN menautkan ke halaman lain.
+- DILARANG KERAS mengarang path/slug halaman seperti ${baseUrl}/judul-artikel atau ${baseUrl}/nama-topik. Halaman seperti itu belum tentu ada dan akan menghasilkan error 404.
+- Gunakan anchor text natural yang relevan dengan nama brand/situs.
+- Format: [anchor text relevan](${baseUrl}/)`}
 ` : ""}
 ${hasManualExtLinks ? `=== EXTERNAL LINKING ===
 Sisipkan 1-3 external link ke sumber berikut sebagai referensi atau kutipan:
