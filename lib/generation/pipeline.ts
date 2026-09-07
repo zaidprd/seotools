@@ -147,9 +147,9 @@ export async function runGenerationPipeline(input: GenerationInput, creditsUsed:
     system: SYSTEM,
     messages: [{
       role: "user",
-      content: `Tahap 1 — susun strategi artikel berdasarkan input berikut. Tentukan intent utama, kebutuhan pembaca, sudut bahasan yang tidak generik, entitas relevan, dan outline yang menjawab topik secara tuntas. Untuk artikel panjang, buat 5–8 bagian H2 yang memiliki fungsi berbeda; gunakan H3 hanya jika benar-benar membantu mengurai bagian. Hindari heading yang isinya akan saling mengulang.\n${JSON.stringify(context)}\n\nKembalikan HANYA JSON valid dengan bentuk {"searchIntent":"...","audience":"...","angle":"...","outline":["..."],"entities":["..."]}.`,
+      content: `Tahap 1 — susun strategi artikel berdasarkan input berikut. Tentukan intent utama, kebutuhan pembaca, sudut bahasan yang tidak generik, entitas relevan, dan outline yang menjawab topik secara tuntas. Untuk artikel panjang, buat 5–8 bagian H2 yang memiliki fungsi berbeda; gunakan H3 hanya jika benar-benar membantu mengurai bagian. Hindari heading yang isinya akan saling mengulang.\n\nJaga JSON tetap ringkas: searchIntent, audience, dan angle masing-masing maksimal 20 kata; outline maksimal 8 item dengan maksimal 12 kata per item; entities maksimal 8 item.\n${JSON.stringify(context)}\n\nKembalikan HANYA JSON valid dengan bentuk {"searchIntent":"...","audience":"...","angle":"...","outline":["..."],"entities":["..."]}.`,
     }],
-    maxTokens: 1_500,
+    maxTokens: 2_000,
     temperature: 0.2,
   }, parseStrategy);
 

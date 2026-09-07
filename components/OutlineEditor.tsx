@@ -17,10 +17,9 @@ export default function OutlineEditor({ rows, setRows }: { rows: Row[]; setRows:
   return (
     <div className="flex flex-col gap-2">
       <div className="flex gap-1.5 flex-wrap">
-        {["H1", "H2", "H3", "Paragraf"].map(t => <button key={t} onClick={() => add(t)} className="text-[10px] px-2.5 py-1 rounded-lg border border-slate-700 hover:border-amber-500/40 text-slate-400 hover:text-amber-400 transition-all">{t}</button>)}
-        <button onClick={() => add("🛒 Tombol Beli")} className="text-[10px] px-2.5 py-1 rounded-lg border border-amber-500/20 bg-amber-500/5 text-amber-500 hover:bg-amber-500/10 transition-all">🛒 Tombol Beli</button>
+        {["H2", "H3", "Paragraf"].map(t => <button key={t} onClick={() => add(t)} className="text-[10px] px-2.5 py-1 rounded-lg border border-slate-700 hover:border-amber-500/40 text-slate-400 hover:text-amber-400 transition-all">{t}</button>)}
       </div>
-      {rows.length === 0 && <p className="text-[11px] text-slate-700 text-center py-3">Tambahkan elemen outline di atas</p>}
+      {rows.length === 0 && <p className="text-[11px] text-slate-500 text-center py-3">Opsional. Biarkan kosong agar struktur SEO dibuat otomatis.</p>}
       {rows.map((row, i) => (
         <div key={i} draggable onDragStart={() => drag.current = i} onDragOver={e => e.preventDefault()} onDrop={() => onDrop(i)} className="flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-lg px-2 py-1.5 cursor-grab active:cursor-grabbing group">
           <span className="text-slate-700 text-xs">⠿</span>
