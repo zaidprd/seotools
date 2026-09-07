@@ -17,19 +17,19 @@ export default function ModelSelector({ sel, set, credits, isPro, isAio, isAdmin
   if (!isPro) {
     return (
       <div className="flex flex-col gap-1">
-        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">AI Model</label>
+        <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">AI Model</label>
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-3 flex flex-col gap-2">
           <div className="flex items-center justify-between px-2 py-2 rounded-lg bg-slate-800/60 border border-slate-700">
             <div className="flex items-center gap-2">
               <span className="text-xs text-slate-300">{FREE_MODEL_LABEL}</span>
             </div>
-            <span className="text-[10px] bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 px-2 py-0.5 rounded-full font-bold">1 💎</span>
+            <span className="text-xs bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 px-2 py-0.5 rounded-full font-bold">1 💎</span>
           </div>
-          <p className="text-[10px] text-slate-600 text-center leading-relaxed">
+          <p className="text-xs text-slate-600 text-center leading-relaxed">
             Upgrade untuk akses GPT-4.1 Mini, GPT-4.1, dan GPT-5.4
           </p>
           <button onClick={() => setShowUpgrade(true)}
-            className="text-[10px] text-amber-400 hover:text-amber-300 border border-amber-500/20 hover:border-amber-500/40 py-1.5 rounded-lg transition-colors">
+            className="text-xs text-amber-400 hover:text-amber-300 border border-amber-500/20 hover:border-amber-500/40 py-1.5 rounded-lg transition-colors">
             Lihat Model Lainnya →
           </button>
         </div>
@@ -46,7 +46,7 @@ export default function ModelSelector({ sel, set, credits, isPro, isAio, isAdmin
                     <span className="flex items-center gap-2 text-xs text-slate-300">
                       {m.label}
                     </span>
-                    <span className="text-[10px] text-amber-400 font-bold">{m.credits} 💎</span>
+                    <span className="text-xs text-amber-400 font-bold">{m.credits} 💎</span>
                   </div>
                 ))}
               </div>
@@ -65,7 +65,7 @@ export default function ModelSelector({ sel, set, credits, isPro, isAio, isAdmin
 
   return (
     <div className="flex flex-col gap-1">
-      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center justify-between">
+      <label className="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center justify-between">
         <span>AI Model</span>
         <span className="text-amber-400 normal-case font-normal">
           {isAdmin ? "💎 Unlimited" : `💎 ${credits} kredit tersisa`}
@@ -95,7 +95,7 @@ export default function ModelSelector({ sel, set, credits, isPro, isAio, isAdmin
                                         "text-blue-400 border-blue-500/30 bg-blue-500/10"
                 }`}>{m.badge}</span>
               </span>
-              <span className={`text-[10px] font-bold ${canAfford ? "text-amber-400" : "text-slate-600"}`}>
+              <span className={`text-xs font-bold ${canAfford ? "text-amber-400" : "text-slate-600"}`}>
                 {m.credits} 💎
               </span>
             </button>

@@ -90,13 +90,13 @@ export default function DashboardHome() {
 
       {/* Payment success toast */}
       {paymentToast && (
-        <div className="fixed top-4 right-4 z-50 bg-emerald-500 text-white rounded-2xl px-5 py-4 shadow-2xl shadow-emerald-500/30 flex items-start gap-3 max-w-sm animate-pulse-once">
+        <div className="fixed top-4 right-4 z-50 bg-emerald-500 text-slate-900 rounded-2xl px-5 py-4 shadow-2xl shadow-emerald-500/30 flex items-start gap-3 max-w-sm animate-pulse-once">
           <span className="text-2xl flex-shrink-0">🎉</span>
           <div>
             <p className="font-black text-sm">Pembayaran Berhasil!</p>
             <p className="text-[12px] text-emerald-100 mt-0.5">Paket dan kuota kata sudah diaktifkan. Selamat menulis!</p>
           </div>
-          <button onClick={() => setPaymentToast(false)} className="text-emerald-200 hover:text-white text-xs ml-2 flex-shrink-0">✕</button>
+          <button onClick={() => setPaymentToast(false)} aria-label="Tutup pemberitahuan" className="ml-2 grid h-11 w-11 flex-shrink-0 place-items-center text-emerald-950 hover:text-slate-900">×</button>
         </div>
       )}
 
@@ -106,46 +106,46 @@ export default function DashboardHome() {
           <div className="absolute top-0 right-0 w-40 h-40 bg-amber-500/10 rounded-full -translate-y-10 translate-x-10 blur-2xl pointer-events-none" />
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-amber-400 text-xs font-bold tracking-widest uppercase mb-1">Selamat Datang</p>
-              <h1 className="text-xl font-black text-white mb-1" style={{ fontFamily: "Sora,sans-serif" }}>
+              <p className="text-amber-700 text-xs font-bold tracking-widest uppercase mb-1">Selamat datang</p>
+              <h1 className="text-xl font-black text-slate-900 mb-1" style={{ fontFamily: "Sora,sans-serif" }}>
                 Hai, {name}! 👋
               </h1>
-              <p className="text-sm text-slate-400">
+              <p className="text-sm text-slate-500">
                 {wordsRemaining !== null
-                  ? <>Kuota kamu: <span className="text-amber-400 font-bold">{wordsRemaining.toLocaleString("id-ID")} kata</span> tersisa.</>
+                  ? <>Kuota kamu: <span className="text-amber-700 font-bold">{wordsRemaining.toLocaleString("id-ID")} kata</span> tersisa.</>
                   : <>Siap membuat artikel setelah paket atau trial aktif.</>}
                 {!isPro && " Lihat pilihan paket untuk mulai."}
               </p>
             </div>
-            <button onClick={dismissBanner} className="text-slate-600 hover:text-slate-400 text-xs flex-shrink-0 transition-colors">✕</button>
+            <button onClick={dismissBanner} aria-label="Tutup sambutan" className="grid h-11 w-11 flex-shrink-0 place-items-center text-slate-600 hover:text-slate-900">×</button>
           </div>
         </div>
       )}
 
-      {/* Tools Grid */}
+      {/* Mulai bekerja Grid */}
       <div className="mb-8">
-        <h2 className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-4">Tools</h2>
-        <div className="grid grid-cols-2 gap-4">
+        <h1 className="mb-4 text-3xl font-black text-slate-900" style={{ fontFamily: "Sora,sans-serif" }}>Mulai menulis</h1>
+        <div className="grid gap-4 md:grid-cols-2">
           <Link href="/dashboard/generate"
-            className="group bg-slate-900/40 border border-slate-800 hover:border-amber-500/40 rounded-2xl p-6 transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-amber-500/5">
+            className="group bg-white border border-stone-200 hover:border-amber-500/40 rounded-2xl p-6 transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-amber-500/5">
             <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-3xl mb-4 shadow-lg shadow-amber-500/20 group-hover:shadow-amber-500/30 transition-shadow">⚡</div>
-            <h3 className="font-bold text-lg text-white mb-1">1-Click Blog Post</h3>
-            <p className="text-sm text-slate-400">Masukkan keyword, AI tulis artikel SEO lengkap dalam &lt; 60 detik</p>
-            <span className="inline-flex items-center gap-1 text-amber-400 text-xs font-semibold mt-3">Mulai Generate →</span>
+            <h3 className="font-bold text-lg text-slate-900 mb-1">Tulis satu artikel</h3>
+            <p className="text-sm text-slate-500">Masukkan kata kunci, susun draf, lalu tinjau sebelum diterbitkan.</p>
+            <span className="inline-flex items-center gap-1 text-amber-700 text-xs font-semibold mt-3">Mulai menulis →</span>
           </Link>
 
           <Link href="/dashboard/bulk"
-            className={`group bg-slate-900/40 border rounded-2xl p-6 transition-all hover:-translate-y-0.5 ${
-              isPro ? "border-slate-800 hover:border-blue-500/40 hover:shadow-xl hover:shadow-blue-500/5" : "border-slate-800 opacity-80"
+            className={`group bg-white border rounded-2xl p-6 transition-all hover:-translate-y-0.5 ${
+              isPro ? "border-stone-200 hover:border-blue-500/40 hover:shadow-xl hover:shadow-blue-500/5" : "border-stone-200 opacity-80"
             }`}>
             <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-3xl mb-4 shadow-lg shadow-blue-500/20 group-hover:shadow-blue-500/30 transition-shadow">⊞</div>
             <div className="flex items-center gap-2 mb-1">
-              <h3 className="font-bold text-lg text-white">Bulk Article Generation</h3>
-              {!isPro && <span className="text-[10px] text-amber-400 border border-amber-500/20 bg-amber-500/10 px-1.5 py-0.5 rounded-full">PRO</span>}
+              <h3 className="font-bold text-lg text-slate-900">Penulisan beberapa artikel</h3>
+              {!isPro && <span className="text-xs text-amber-700 border border-amber-500/20 bg-amber-500/10 px-1.5 py-0.5 rounded-full">PRO</span>}
             </div>
-            <p className="text-sm text-slate-400">Generate puluhan artikel sekaligus dari daftar keyword</p>
-            <span className={`inline-flex items-center gap-1 text-xs font-semibold mt-3 ${isPro ? "text-blue-400" : "text-slate-600"}`}>
-              {isPro ? "Mulai Bulk →" : "Upgrade untuk akses →"}
+            <p className="text-sm text-slate-500">Siapkan beberapa draf dari daftar kata kunci</p>
+            <span className={`inline-flex items-center gap-1 text-xs font-semibold mt-3 ${isPro ? "text-blue-400" : "text-slate-500"}`}>
+              {isPro ? "Buka penulisan massal →" : "Lihat paket untuk akses →"}
             </span>
           </Link>
         </div>
@@ -154,36 +154,36 @@ export default function DashboardHome() {
       {/* Recent Articles */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-bold text-slate-500 uppercase tracking-widest">Dokumen Terakhir</h2>
-          <Link href="/documents" className="text-xs text-amber-400 hover:text-amber-300 transition-colors">Lihat semua →</Link>
+          <h2 className="text-xl font-bold text-slate-900">Draf terbaru</h2>
+          <Link href="/documents" className="text-xs text-amber-700 hover:text-amber-800 transition-colors">Lihat semua →</Link>
         </div>
-        <div className="bg-slate-900/30 border border-slate-800 rounded-2xl overflow-hidden">
+        <div className="bg-white border border-stone-200 rounded-2xl overflow-hidden">
           {loadingArticles ? (
             <div className="flex items-center justify-center py-10">
-              <div className="w-5 h-5 rounded-full border-2 border-slate-700 border-t-amber-500 animate-spin" />
+              <div className="w-5 h-5 rounded-full border-2 border-stone-300 border-t-amber-500 animate-spin" />
             </div>
           ) : articles.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 gap-2">
               <p className="text-3xl">📝</p>
               <p className="text-slate-500 text-sm">Belum ada artikel</p>
-              <Link href="/dashboard/generate" className="text-amber-400 text-xs hover:text-amber-300">Buat artikel pertamamu →</Link>
+              <Link href="/dashboard/generate" className="text-amber-700 text-xs hover:text-amber-800">Buat artikel pertamamu →</Link>
             </div>
           ) : (
             <div className="divide-y divide-slate-800">
               {articles.map(a => (
-                <div key={a.id} className="flex items-center gap-4 px-5 py-3.5 hover:bg-slate-900/40 transition-colors group">
+                <div key={a.id} className="flex items-center gap-4 px-5 py-3.5 hover:bg-white transition-colors group">
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-white truncate">{a.title || a.keyword || "Tanpa judul"}</p>
+                    <p className="text-sm font-semibold text-slate-900 truncate">{a.title || a.keyword || "Tanpa judul"}</p>
                     <div className="flex items-center gap-3 mt-0.5">
-                      <span className="text-[11px] text-slate-500">{a.keyword}</span>
-                      <span className="text-[11px] text-slate-600">·</span>
-                      <span className="text-[11px] text-slate-500">{(a.word_count || 0).toLocaleString()} kata</span>
-                      <span className="text-[11px] text-slate-600">·</span>
-                      <span className="text-[11px] text-slate-500">{new Date(a.created_at).toLocaleDateString("id-ID")}</span>
+                      <span className="text-xs text-slate-500">{a.keyword}</span>
+                      <span className="text-xs text-slate-500">·</span>
+                      <span className="text-xs text-slate-500">{(a.word_count || 0).toLocaleString()} kata</span>
+                      <span className="text-xs text-slate-500">·</span>
+                      <span className="text-xs text-slate-500">{new Date(a.created_at).toLocaleDateString("id-ID")}</span>
                     </div>
                   </div>
                   <Link href={`/dashboard/articles/${a.id}`}
-                    className="text-[11px] text-slate-600 group-hover:text-amber-400 border border-transparent group-hover:border-amber-500/20 px-2.5 py-1 rounded-lg transition-all">
+                    className="text-xs text-slate-500 group-hover:text-amber-700 border border-transparent group-hover:border-amber-500/20 px-2.5 py-1 rounded-lg transition-all">
                     Editor →
                   </Link>
                 </div>
@@ -194,34 +194,34 @@ export default function DashboardHome() {
       </div>
 
       {/* Plan Info */}
-      <div className="bg-slate-900/30 border border-slate-800 rounded-2xl p-5">
+      <div className="bg-white border border-stone-200 rounded-2xl p-5">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-1">Paket Kamu</h2>
+            <h2 className="mb-1 text-xl font-bold text-slate-900">Paket Anda</h2>
             <div className="flex items-center gap-2">
-              <span className={`text-sm font-black ${isPro ? "text-amber-400" : "text-slate-400"}`}>
+              <span className={`text-sm font-black ${isPro ? "text-amber-700" : "text-slate-500"}`}>
                 {isPro ? (user?.plan || "").toUpperCase() : "GRATIS"}
               </span>
-              <span className={`text-[10px] px-2 py-0.5 rounded-full border font-bold ${isPro ? "text-emerald-400 border-emerald-800 bg-emerald-950/30" : "text-slate-500 border-slate-700 bg-slate-900"}`}>
-                {isPro ? "AKTIF" : "FREE TIER"}
+              <span className={`rounded-full border px-2 py-1 text-xs font-bold ${isPro ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-stone-300 bg-white text-slate-600"}`}>
+                {isPro ? "AKTIF" : "BELUM AKTIF"}
               </span>
             </div>
           </div>
           {!isPro
             ? <Link href="/pricing" className="bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold text-sm px-4 py-2 rounded-xl transition-all hover:shadow-lg hover:shadow-amber-500/25">Upgrade</Link>
-            : <Link href="/account" className="text-xs text-slate-400 hover:text-amber-400 border border-slate-700 hover:border-amber-500/30 px-3 py-1.5 rounded-lg transition-all">Kelola Akun</Link>
+            : <Link href="/account" className="text-xs text-slate-500 hover:text-amber-700 border border-stone-300 hover:border-amber-500/30 px-3 py-1.5 rounded-lg transition-all">Kelola akun</Link>
           }
         </div>
         <div>
           <div className="flex justify-between text-xs text-slate-500 mb-1.5">
             <span>{wordsTotal ? "Pemakaian kata bulan ini" : "Status penggunaan"}</span>
-            <span className="text-amber-400 font-semibold">{wordsTotal ? `${wordsUsed.toLocaleString("id-ID")} / ${wordsTotal.toLocaleString("id-ID")} kata` : "Aktifkan paket untuk memulai"}</span>
+            <span className="text-amber-700 font-semibold">{wordsTotal ? `${wordsUsed.toLocaleString("id-ID")} / ${wordsTotal.toLocaleString("id-ID")} kata` : "Aktifkan paket untuk memulai"}</span>
           </div>
-          <div className="w-full bg-slate-800 rounded-full h-1.5">
+          <div className="w-full bg-stone-100 rounded-full h-1.5">
             <div className={`h-1.5 rounded-full transition-all ${progressPct > 80 ? "bg-red-500" : "bg-amber-500"}`}
               style={{ width: `${progressPct}%` }} />
           </div>
-          <p className="text-[11px] text-slate-600 mt-1.5">{wordsRemaining !== null ? `${wordsRemaining.toLocaleString("id-ID")} kata tersisa` : "Trial memberi 1 artikel hingga 2.000 kata"}</p>
+          <p className="text-xs text-slate-500 mt-1.5">{wordsRemaining !== null ? `${wordsRemaining.toLocaleString("id-ID")} kata tersisa` : "Trial memberi 1 artikel hingga 2.000 kata"}</p>
         </div>
       </div>
     </div>

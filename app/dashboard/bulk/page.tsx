@@ -49,12 +49,12 @@ function BulkRowCard({ row, index, onSelectTitle, onRegenTitles, onKeywordsChang
     } catch { return row.content; }
   }, [row.content, row.editedHtml]);
   return (
-    <div className="border border-slate-800 rounded-xl overflow-hidden">
-      <div className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-slate-800/20 transition-colors" onClick={() => setOpen(!open)}>
-        <span className="w-6 h-6 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center text-[10px] text-slate-500 font-bold flex-shrink-0">{index + 1}</span>
+    <div className="border border-stone-200 rounded-xl overflow-hidden">
+      <div className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-stone-100/20 transition-colors" onClick={() => setOpen(!open)}>
+        <span className="w-6 h-6 rounded-full bg-white border border-stone-300 flex items-center justify-center text-xs text-slate-500 font-bold flex-shrink-0">{index + 1}</span>
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-semibold text-slate-200 truncate">{row.topic}</p>
-          {row.selectedTitle && <p className="text-[10px] text-slate-500 truncate">{row.selectedTitle}</p>}
+          <p className="text-xs font-semibold text-slate-800 truncate">{row.topic}</p>
+          {row.selectedTitle && <p className="text-xs text-slate-500 truncate">{row.selectedTitle}</p>}
         </div>
         {row.status === "genTitles" && <><span className="w-3 h-3 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" /><Badge text="Gen judul..." v="loading" /></>}
         {row.status === "idle" && row.titles.length > 0 && <Badge text="Siap" v="success" />}
@@ -62,30 +62,30 @@ function BulkRowCard({ row, index, onSelectTitle, onRegenTitles, onKeywordsChang
         {row.status === "selesai" && <Badge text="Selesai" v="success" />}
         {row.status === "error" && <Badge text="Gagal" v="error" />}
         <button onClick={e => { e.stopPropagation(); onRemove(); }} title="Hapus baris ini"
-          className="text-slate-600 hover:text-red-400 text-xs w-5 h-5 flex items-center justify-center rounded hover:bg-red-500/10 transition-colors flex-shrink-0">✕</button>
-        <span className="text-slate-700 text-xs">{open ? "▲" : "▼"}</span>
+          className="text-slate-500 hover:text-red-400 text-xs w-5 h-5 flex items-center justify-center rounded hover:bg-red-500/10 transition-colors flex-shrink-0">✕</button>
+        <span className="text-slate-400 text-xs">{open ? "▲" : "▼"}</span>
       </div>
       {open && (
-        <div className="border-t border-slate-800 px-4 py-3 flex flex-col gap-2.5 bg-slate-950/30">
+        <div className="border-t border-stone-200 px-4 py-3 flex flex-col gap-2.5 bg-stone-50">
           {row.status !== "selesai" && (
             <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Judul Artikel (bisa diedit)</label>
+              <label className="text-sm font-semibold text-slate-700">Judul Artikel (bisa diedit)</label>
               <input value={row.selectedTitle} onChange={e => onTitleEdit(e.target.value)} placeholder="Ketik judul artikel di sini..."
-                className="w-full bg-slate-900 border border-amber-500/30 text-amber-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-amber-500/60 placeholder-slate-700" />
+                className="min-h-11 w-full rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:border-amber-500/60 placeholder-stone-400" />
             </div>
           )}
           {row.titles.length > 0 && row.status !== "selesai" && (
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center justify-between">
-                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Saran Judul (klik untuk pakai)</p>
+                <p className="text-sm font-semibold text-slate-700">Saran Judul (klik untuk pakai)</p>
                 <button onClick={onRegenTitles} disabled={row.status === "genTitles"}
-                  className="text-[10px] text-amber-400 hover:text-amber-300 border border-amber-500/20 px-2 py-0.5 rounded transition-colors disabled:opacity-40">
-                  🔄 Regen
+                  className="text-xs text-amber-700 hover:text-amber-800 border border-amber-500/20 px-2 py-0.5 rounded transition-colors disabled:opacity-40">
+                  Buat ulang
                 </button>
               </div>
               {row.titles.map((t, ti) => (
                 <button key={ti} onClick={() => onSelectTitle(t)}
-                  className={`text-left text-xs px-3 py-2 rounded-lg border transition-all ${row.selectedTitle === t ? "bg-amber-500/10 border-amber-500/30 text-amber-300" : "border-slate-700 text-slate-400 hover:border-slate-600 hover:text-slate-200"}`}>
+                  className={`text-left text-xs px-3 py-2 rounded-lg border transition-all ${row.selectedTitle === t ? "bg-amber-500/10 border-amber-500/30 text-amber-800" : "border-stone-300 text-slate-500 hover:border-slate-600 hover:text-slate-800"}`}>
                   {t}
                 </button>
               ))}
@@ -93,39 +93,39 @@ function BulkRowCard({ row, index, onSelectTitle, onRegenTitles, onKeywordsChang
           )}
           {row.status !== "selesai" && (
             <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Keyword Fokus <span className="text-slate-600 normal-case font-normal">(target SEO utama)</span></label>
+              <label className="text-sm font-semibold text-slate-700">Kata kunci utama <span className="text-slate-500 normal-case font-normal">(target SEO utama)</span></label>
               <input value={row.keyword} onChange={e => onKeywordEdit(e.target.value)} placeholder="cth: panel kapasitor"
-                className="w-full bg-slate-900 border border-emerald-700/40 text-emerald-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-500/60 placeholder-slate-700" />
+                className="min-h-11 w-full rounded-lg border border-emerald-300 bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:border-emerald-500/60 placeholder-stone-400" />
             </div>
           )}
           {row.status !== "selesai" && (
             <div>
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1">Keywords Tambahan</label>
+              <label className="text-sm font-semibold text-slate-700 block mb-1">Kata kunci tambahan</label>
               <input value={row.keywords} onChange={e => onKeywordsChange(e.target.value)} placeholder="keyword1, keyword2..."
-                className="w-full bg-slate-900 border border-slate-700 text-slate-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-amber-500/60 placeholder-slate-700" />
+                className="w-full bg-white border border-stone-300 text-slate-800 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-amber-500/60 placeholder-stone-400" />
             </div>
           )}
           {row.status === "selesai" && row.content && (
             <>
               <div className="flex items-center gap-2 flex-wrap">
-                <button onClick={onEdit} className="text-[11px] px-2.5 py-1 rounded border border-amber-500/40 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 transition-all w-fit font-semibold">✏️ Edit & Gambar</button>
-                <button onClick={copy} className="text-[11px] px-2.5 py-1 rounded border border-slate-700 hover:border-slate-600 text-slate-400 hover:text-white transition-all w-fit">{copied ? "✓ Disalin" : "Salin"}</button>
-                {row.editedHtml && <span className="text-[10px] text-amber-400/70">• sudah diedit</span>}
-                {row.pub === "publishing" && <span className="text-[10px] text-blue-400 flex items-center gap-1"><span className="w-2.5 h-2.5 border border-blue-400 border-t-transparent rounded-full animate-spin" />Mengirim ke WP...</span>}
-                {row.pub === "published" && <a href={row.pubLink} target="_blank" rel="noopener" className="text-[10px] text-emerald-400 hover:underline">✓ {row.scheduledFor ? `Terjadwal ${row.scheduledFor.replace("T", " ").slice(0, 16)}` : "Terpublish"} →</a>}
-                {row.pub === "puberror" && <span className="text-[10px] text-red-400">✗ {row.pubError}</span>}
+                <button onClick={onEdit} className="min-h-11 rounded-lg border border-amber-500/40 px-3 py-2 text-sm bg-amber-500/10 text-amber-800 hover:bg-amber-500/20 transition-all w-fit font-semibold">✏️ Edit dan gambar</button>
+                <button onClick={copy} className="min-h-11 rounded-lg border border-stone-300 px-3 py-2 text-sm hover:border-slate-600 text-slate-500 hover:text-slate-900 transition-all w-fit">{copied ? "✓ Disalin" : "Salin"}</button>
+                {row.editedHtml && <span className="text-xs text-amber-700/70">• sudah diedit</span>}
+                {row.pub === "publishing" && <span className="text-xs text-blue-400 flex items-center gap-1"><span className="w-2.5 h-2.5 border border-blue-400 border-t-transparent rounded-full animate-spin" />Mengirim ke WordPress...</span>}
+                {row.pub === "published" && <a href={row.pubLink} target="_blank" rel="noopener" className="text-xs text-emerald-700 hover:underline">✓ {row.scheduledFor ? `Terjadwal ${row.scheduledFor.replace("T", " ").slice(0, 16)}` : "Sudah terbit"} →</a>}
+                {row.pub === "puberror" && <span className="text-xs text-red-400">✗ {row.pubError}</span>}
               </div>
-              <div className="max-h-72 overflow-y-auto bg-slate-900 rounded-lg p-4
-                [&_h1]:text-lg [&_h1]:font-black [&_h1]:text-white [&_h1]:mb-2 [&_h1]:mt-3
-                [&_h2]:text-base [&_h2]:font-bold [&_h2]:text-white [&_h2]:mb-2 [&_h2]:mt-4
-                [&_h3]:text-sm [&_h3]:font-bold [&_h3]:text-slate-200 [&_h3]:mb-1.5 [&_h3]:mt-3
-                [&_p]:text-xs [&_p]:text-slate-300 [&_p]:leading-relaxed [&_p]:mb-2
-                [&_strong]:text-white [&_strong]:font-bold [&_em]:italic
-                [&_ul]:list-disc [&_ul]:pl-4 [&_ul]:mb-2 [&_ol]:list-decimal [&_ol]:pl-4 [&_ol]:mb-2 [&_li]:text-xs [&_li]:text-slate-300 [&_li]:mb-1
-                [&_a]:text-amber-400 [&_a]:underline
+              <div className="max-h-72 overflow-y-auto bg-white rounded-lg p-4
+                [&_h1]:text-lg [&_h1]:font-black [&_h1]:text-slate-900 [&_h1]:mb-2 [&_h1]:mt-3
+                [&_h2]:text-base [&_h2]:font-bold [&_h2]:text-slate-900 [&_h2]:mb-2 [&_h2]:mt-4
+                [&_h3]:text-sm [&_h3]:font-bold [&_h3]:text-slate-800 [&_h3]:mb-1.5 [&_h3]:mt-3
+                [&_p]:text-xs [&_p]:text-slate-400 [&_p]:leading-relaxed [&_p]:mb-2
+                [&_strong]:text-slate-900 [&_strong]:font-bold [&_em]:italic
+                [&_ul]:list-disc [&_ul]:pl-4 [&_ul]:mb-2 [&_ol]:list-decimal [&_ol]:pl-4 [&_ol]:mb-2 [&_li]:text-xs [&_li]:text-slate-400 [&_li]:mb-1
+                [&_a]:text-amber-700 [&_a]:underline
                 [&_table]:w-full [&_table]:border-collapse [&_table]:mb-2 [&_table]:text-xs
-                [&_th]:border [&_th]:border-slate-700 [&_th]:px-2 [&_th]:py-1 [&_th]:bg-slate-800 [&_th]:text-white
-                [&_td]:border [&_td]:border-slate-700/60 [&_td]:px-2 [&_td]:py-1 [&_td]:text-slate-300
+                [&_th]:border [&_th]:border-stone-300 [&_th]:px-2 [&_th]:py-1 [&_th]:bg-stone-100 [&_th]:text-slate-900
+                [&_td]:border [&_td]:border-stone-300 [&_td]:px-2 [&_td]:py-1 [&_td]:text-slate-400
                 [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-lg [&_img]:my-2 [&_img]:block"
                 dangerouslySetInnerHTML={{ __html: previewHtml }} />
             </>
@@ -150,7 +150,7 @@ export default function BulkPage() {
   const [running, setRunning] = useState(false);
   const [genLoading, setGenLoading] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
-  // Publish ke WordPress
+  // Kirim ke WordPress
   const [pubMode, setPubMode] = useState<"draft" | "publish" | "schedule">("schedule");
   const [schedStart, setSchedStart] = useState("");
   const [schedPerDay, setSchedPerDay] = useState(3);
@@ -244,7 +244,7 @@ export default function BulkPage() {
     setRunning(false);
   };
 
-  // Publish semua artikel selesai ke WordPress (Draft / Publish langsung / Schedule bertahap).
+  // Publish semua artikel selesai ke WordPress (Draft / Terbitkan langsung / Schedule bertahap).
   const publishAll = async () => {
     if (!wpSel) return;
     if (pubMode === "schedule" && !schedStart) return;
@@ -295,70 +295,70 @@ export default function BulkPage() {
 
   return (
     <div className="h-full flex flex-col" style={{ fontFamily: "'DM Sans',sans-serif" }}>
-      <div className="border-b border-slate-800/60 pl-14 pr-6 lg:px-6 py-3 flex items-center gap-3 bg-[#0c0e14]">
+      <div className="border-b border-stone-200 pl-14 pr-6 lg:px-6 py-3 flex items-center gap-3 bg-[#f7f4ed]">
         <span className="text-xl">⊞</span>
         <div>
-          <h1 className="font-bold text-white text-sm">Bulk Article Generation</h1>
-          <p className="text-[11px] text-slate-500">Generate banyak artikel sekaligus</p>
+          <h1 className="text-3xl font-bold text-slate-900" style={{ fontFamily: "Sora,sans-serif" }}>Tulis banyak artikel</h1>
+          <p className="text-sm text-slate-500">Siapkan beberapa draf dari daftar kata kunci</p>
         </div>
-        {!isPro && <span className="ml-auto text-[10px] text-amber-400 border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 rounded-full">Hanya 1 artikel gratis</span>}
+        {!isPro && <span className="ml-auto text-xs text-amber-700 border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 rounded-full">Hanya 1 artikel gratis</span>}
       </div>
 
-      <div className="flex flex-1 gap-5 overflow-hidden px-5 py-5 relative">
-        {showUpgrade && <UpgradePopup onClose={() => setShowUpgrade(false)} reason="Kredit tidak cukup untuk melanjutkan" />}
+      <div className="relative flex flex-1 flex-col gap-5 overflow-auto px-4 py-5 sm:px-5 lg:flex-row lg:overflow-hidden">
+        {showUpgrade && <UpgradePopup onClose={() => setShowUpgrade(false)} reason="Kuota belum mencukupi untuk melanjutkan" />}
         {/* Free plan overlay */}
         {!isPro && (
-          <div className="absolute inset-0 z-30 bg-[#0c0e14]/85 backdrop-blur-sm flex items-center justify-center rounded-xl">
+          <div className="absolute inset-0 z-30 flex items-center justify-center rounded-xl bg-[#f7f4ed]/95">
             <div className="text-center max-w-sm px-8 py-10">
               <div className="text-5xl mb-4">⊞</div>
-              <h3 className="font-black text-xl text-white mb-2" style={{ fontFamily: "Sora,sans-serif" }}>Bulk Generation</h3>
-              <p className="text-slate-400 text-sm mb-6 leading-relaxed">Generate banyak artikel sekaligus tersedia mulai paket <span className="text-amber-400 font-bold">Starter</span>.</p>
+              <h3 className="font-black text-xl text-slate-900 mb-2" style={{ fontFamily: "Sora,sans-serif" }}>Tulis banyak artikel</h3>
+              <p className="text-slate-500 text-sm mb-6 leading-relaxed">Fitur beberapa draf tersedia mulai paket <span className="text-amber-700 font-bold">Starter</span>.</p>
               <a href="/pricing" className="inline-block bg-amber-500 hover:bg-amber-400 text-slate-900 font-black px-6 py-3 rounded-xl transition-all hover:shadow-lg hover:shadow-amber-500/25 text-sm">
-                Upgrade ke Starter →
+                Lihat paket Starter →
               </a>
-              <p className="text-slate-600 text-xs mt-3">Mulai dari Rp 99rb/bulan · 20 kredit</p>
+              <p className="text-slate-500 text-xs mt-3">Pilih paket sesuai kebutuhan kuota kata Anda.</p>
             </div>
           </div>
         )}
 
-        <div className="w-80 flex-shrink-0 flex flex-col gap-3 overflow-y-auto pb-6 pr-1">
-          <div className="border border-slate-800 rounded-xl overflow-hidden flex-shrink-0">
-            <div className="bg-slate-900/80 px-4 py-3"><span className="text-[11px] font-black text-slate-300 uppercase tracking-widest">Topik Artikel</span></div>
-            <div className="px-4 py-3 bg-slate-950/40 flex flex-col gap-2.5">
+        <div className="w-full flex-shrink-0 flex flex-col gap-3 pb-6 lg:w-80 lg:overflow-y-auto lg:pr-1">
+          <div className="border border-stone-200 rounded-xl overflow-hidden flex-shrink-0">
+            <div className="bg-stone-50 px-4 py-3"><span className="text-sm font-bold text-slate-800">Topik artikel</span></div>
+            <div className="px-4 py-3 bg-stone-50 flex flex-col gap-2.5">
               {/* Toggle mode judul */}
               <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Mode Judul</label>
-                <div className="flex gap-1 bg-slate-900 border border-slate-700/60 rounded-lg p-1">
+                <label className="text-sm font-semibold text-slate-700">Cara membuat judul</label>
+                <div className="flex gap-1 bg-white border border-stone-300 rounded-lg p-1">
                   <button onClick={() => setTitleMode("ai")}
-                    className={`flex-1 text-[11px] font-bold py-1.5 rounded-md transition-all ${titleMode === "ai" ? "bg-amber-500/15 text-amber-400 border border-amber-500/30" : "text-slate-500 border border-transparent hover:text-slate-300"}`}>
-                    ✨ AI Otomatis
+                    className={`flex-1 text-xs font-bold py-1.5 rounded-md transition-all ${titleMode === "ai" ? "bg-amber-500/15 text-amber-700 border border-amber-500/30" : "text-slate-500 border border-transparent hover:text-slate-400"}`}>
+                    Otomatis
                   </button>
                   <button onClick={() => setTitleMode("manual")}
-                    className={`flex-1 text-[11px] font-bold py-1.5 rounded-md transition-all ${titleMode === "manual" ? "bg-amber-500/15 text-amber-400 border border-amber-500/30" : "text-slate-500 border border-transparent hover:text-slate-300"}`}>
-                    ✍️ Ketik Manual
+                    className={`flex-1 text-xs font-bold py-1.5 rounded-md transition-all ${titleMode === "manual" ? "bg-amber-500/15 text-amber-700 border border-amber-500/30" : "text-slate-500 border border-transparent hover:text-slate-400"}`}>
+                    Tulis manual
                   </button>
                 </div>
               </div>
               <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                  {titleMode === "ai" ? "Topik / Keyword (1 per baris)" : "Judul Artikel (1 per baris)"}
+                <label className="text-sm font-semibold text-slate-700">
+                  {titleMode === "ai" ? "Topik / kata kunci (1 per baris)" : "Judul artikel (1 per baris)"}
                 </label>
                 <textarea value={topicInput} onChange={e => setTopicInput(e.target.value)} rows={5}
                   placeholder={titleMode === "ai"
                     ? "panel maker listrik\ncara diet sehat\nbisnis online 2026"
                     : "5 Cara Memulai Bisnis Online di 2026\nPanduan Lengkap Diet Sehat untuk Pemula\nTips Memilih Panel Listrik yang Tepat"}
-                  className="bg-slate-900 border border-slate-700/60 text-slate-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-amber-500/60 placeholder-slate-700 resize-none" />
-                <p className="text-[10px] text-slate-600">
+                  className="bg-white border border-stone-300 text-slate-800 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-amber-500/60 placeholder-stone-400 resize-none" />
+                <p className="text-xs text-slate-500">
                   {titleMode === "ai"
-                    ? "AI akan buatkan 5 saran judul per topik, kamu tinggal pilih."
-                    : "Tiap baris langsung jadi judul artikel — bisa diedit lagi nanti."}
+                    ? "Sistem akan menyiapkan 5 saran judul per topik untuk Anda pilih."
+                    : "Setiap baris menjadi judul artikel dan tetap dapat diedit."}
                 </p>
               </div>
               <button onClick={generateTitlesForAll} disabled={!topicInput.trim() || genLoading}
-                className="w-full py-2.5 rounded-lg font-bold text-xs bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-amber-500/40 text-amber-400 transition-all disabled:opacity-40 flex items-center justify-center gap-2">
+                className="min-h-11 w-full rounded-lg bg-white px-3 py-2 text-sm font-bold hover:bg-amber-50 border border-stone-300 hover:border-amber-500/40 text-amber-700 transition-all disabled:opacity-40 flex items-center justify-center gap-2">
                 {genLoading
-                  ? <><span className="w-3 h-3 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />Generate Judul...</>
-                  : titleMode === "ai" ? <>✨ Generate 5 Judul per Topik</> : <>➕ Tambah ke Antrian</>}
+                  ? <><span className="w-3 h-3 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />Membuat judul...</>
+                  : titleMode === "ai" ? <>Buat 5 judul per topik</> : <>➕ Tambah ke Antrian</>}
               </button>
             </div>
           </div>
@@ -368,25 +368,25 @@ export default function BulkPage() {
             credits={credits} isPro={isPro} />
           <RunBtn onClick={runAll} loading={running}
             disabled={!validRows.length || credits < cost}
-            label={`Generate (${validRows.length} artikel · ${validRows.length * cost} 💎)`}
+            label={`Buat ${validRows.length} artikel`}
             sublabel={`${rows.filter(r => r.status === "selesai").length}/${rows.length}`} />
 
           {/* Panel publish ke WordPress — muncul setelah ada artikel selesai */}
           {doneRows.length > 0 && (
-            <div className="border border-blue-900/40 bg-blue-950/20 rounded-xl overflow-hidden flex-shrink-0">
-              <div className="bg-blue-950/40 px-4 py-3 flex items-center justify-between">
-                <span className="text-[11px] font-black text-blue-300 uppercase tracking-widest">🌐 Publish ke WordPress</span>
-                <span className="text-[10px] text-slate-500">{doneRows.length - unpublishedCount}/{doneRows.length}</span>
+            <div className="flex-shrink-0 overflow-hidden rounded-xl border border-blue-200 bg-blue-50">
+              <div className="flex items-center justify-between border-b border-blue-100 bg-blue-50 px-4 py-3">
+                <span className="text-sm font-bold text-blue-900">Kirim ke WordPress</span>
+                <span className="text-xs text-slate-500">{doneRows.length - unpublishedCount}/{doneRows.length}</span>
               </div>
               <div className="px-4 py-3 flex flex-col gap-2.5">
-                {!wpSel && <p className="text-[10px] text-amber-400/80 leading-relaxed">Pilih situs WordPress dulu di pengaturan di atas (bagian WordPress).</p>}
+                {!wpSel && <p className="text-xs text-amber-700/80 leading-relaxed">Pilih situs WordPress dulu di pengaturan di atas (bagian WordPress).</p>}
 
                 <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Status Publikasi</label>
-                  <div className="flex gap-1 bg-slate-900 border border-slate-700/60 rounded-lg p-1">
-                    {([["draft", "Draft"], ["publish", "Publish"], ["schedule", "Jadwal"]] as const).map(([v, label]) => (
+                  <label className="text-sm font-semibold text-slate-700">Status penerbitan</label>
+                  <div className="flex gap-1 bg-white border border-stone-300 rounded-lg p-1">
+                    {([["draft", "Draf"], ["publish", "Terbitkan"], ["schedule", "Jadwalkan"]] as const).map(([v, label]) => (
                       <button key={v} onClick={() => setPubMode(v)}
-                        className={`flex-1 text-[10px] font-bold py-1.5 rounded-md transition-all ${pubMode === v ? "bg-blue-500/20 text-blue-300 border border-blue-500/40" : "text-slate-500 border border-transparent hover:text-slate-300"}`}>
+                        className={`min-h-11 flex-1 rounded-md border text-sm font-bold transition-all ${pubMode === v ? "border-blue-300 bg-white text-blue-800" : "border-transparent text-slate-600 hover:text-slate-900"}`}>
                         {label}
                       </button>
                     ))}
@@ -396,19 +396,19 @@ export default function BulkPage() {
                 {pubMode === "schedule" && (
                   <>
                     <div className="flex flex-col gap-1">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Mulai Tayang</label>
+                      <label className="text-sm font-semibold text-slate-700">Mulai tayang</label>
                       <input type="datetime-local" value={schedStart} onChange={e => setSchedStart(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-700 text-slate-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500/40" />
+                        className="w-full bg-white border border-stone-300 text-slate-800 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500/40" />
                     </div>
                     <div className="flex items-center gap-2">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex-shrink-0">Frekuensi</label>
+                      <label className="text-sm font-semibold text-slate-700 flex-shrink-0">Frekuensi</label>
                       <select value={schedPerDay} onChange={e => setSchedPerDay(Number(e.target.value))}
-                        className="bg-slate-900 border border-slate-700 text-slate-200 text-xs rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500/40">
+                        className="bg-white border border-stone-300 text-slate-800 text-xs rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500/40">
                         {[1, 2, 3, 4, 5, 6, 8, 10].map(n => <option key={n} value={n}>{n}</option>)}
                       </select>
-                      <span className="text-[10px] text-slate-500">artikel / hari</span>
+                      <span className="text-xs text-slate-500">artikel / hari</span>
                     </div>
-                    <p className="text-[10px] text-slate-600 leading-relaxed">
+                    <p className="text-xs text-slate-500 leading-relaxed">
                       {unpublishedCount} artikel disebar otomatis mulai jadwal di atas. WordPress yang menayangkan.
                     </p>
                   </>
@@ -416,11 +416,11 @@ export default function BulkPage() {
 
                 <button onClick={publishAll}
                   disabled={!wpSel || publishingAll || unpublishedCount === 0 || (pubMode === "schedule" && !schedStart)}
-                  className="w-full py-2.5 rounded-lg font-bold text-xs bg-blue-600 hover:bg-blue-500 text-white transition-all disabled:opacity-40 flex items-center justify-center gap-2">
+                  className="w-full py-2.5 rounded-lg font-bold text-xs bg-blue-600 hover:bg-blue-500 text-slate-900 transition-all disabled:opacity-40 flex items-center justify-center gap-2">
                   {publishingAll
                     ? <><span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />Mengirim...</>
                     : pubMode === "schedule" ? <>📅 Jadwalkan {unpublishedCount} Artikel</>
-                    : pubMode === "publish" ? <>⬆ Publish {unpublishedCount} Artikel</>
+                    : pubMode === "publish" ? <>⬆ Terbitkan {unpublishedCount} artikel</>
                     : <>💾 Kirim {unpublishedCount} sebagai Draft</>}
                 </button>
               </div>
@@ -428,21 +428,21 @@ export default function BulkPage() {
           )}
         </div>
 
-        <div className="flex-1 flex flex-col gap-3 overflow-hidden">
+        <div className="min-h-[420px] flex-1 flex flex-col gap-3 overflow-hidden">
           {rows.length === 0
             ? <div className="flex-1 flex flex-col items-center justify-center gap-3 text-center py-12">
-                <div className="w-14 h-14 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-2xl">⊞</div>
-                <p className="text-slate-500 text-sm">Masukkan topik lalu klik <span className="text-amber-400 font-semibold">Generate Judul</span></p>
+                <div className="w-14 h-14 rounded-2xl bg-white border border-stone-200 flex items-center justify-center text-2xl">⊞</div>
+                <p className="text-slate-500 text-sm">Masukkan topik lalu klik <span className="text-amber-700 font-semibold">Buat judul</span></p>
               </div>
             : <div className="flex-1 flex flex-col gap-2.5 overflow-hidden">
                 {/* Header antrian */}
                 <div className="flex items-center justify-between flex-shrink-0">
-                  <p className="text-[11px] font-bold text-slate-400">
-                    Antrian Artikel <span className="text-slate-600">({rows.length})</span>
+                  <p className="text-xs font-bold text-slate-500">
+                    Daftar artikel <span className="text-slate-500">({rows.length})</span>
                   </p>
                   <button onClick={clearQueue}
-                    className="text-[10px] text-slate-500 hover:text-red-400 border border-slate-700 hover:border-red-500/30 px-2 py-1 rounded-lg transition-colors">
-                    🗑 Bersihkan Antrian
+                    className="text-xs text-slate-500 hover:text-red-400 border border-stone-300 hover:border-red-500/30 px-2 py-1 rounded-lg transition-colors">
+                    🗑 Kosongkan daftar
                   </button>
                 </div>
                 <div className="flex-1 overflow-y-auto flex flex-col gap-2.5 pb-2">
@@ -466,14 +466,14 @@ export default function BulkPage() {
       {editingIdx !== null && rows[editingIdx] && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 md:p-8"
           onClick={() => setEditingIdx(null)}>
-          <div className="bg-[#0c0e14] border border-slate-700 rounded-2xl w-full max-w-5xl h-[90vh] flex flex-col overflow-hidden shadow-2xl"
+          <div className="bg-[#f7f4ed] border border-stone-300 rounded-2xl w-full max-w-5xl h-[90vh] flex flex-col overflow-hidden shadow-2xl"
             onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-5 py-3 border-b border-slate-800 flex-shrink-0">
+            <div className="flex items-center justify-between px-5 py-3 border-b border-stone-200 flex-shrink-0">
               <div className="min-w-0">
-                <p className="text-sm font-bold text-white truncate">{rows[editingIdx].selectedTitle || rows[editingIdx].topic}</p>
-                <p className="text-[10px] text-slate-500">Edit artikel & tambah gambar — perubahan otomatis dipakai saat publish</p>
+                <p className="text-sm font-bold text-slate-900 truncate">{rows[editingIdx].selectedTitle || rows[editingIdx].topic}</p>
+                <p className="text-xs text-slate-500">Edit artikel & tambah gambar — perubahan otomatis dipakai saat publish</p>
               </div>
-              <button onClick={() => setEditingIdx(null)} className="text-slate-400 hover:text-white text-xl leading-none flex-shrink-0 ml-3">✕</button>
+              <button onClick={() => setEditingIdx(null)} className="text-slate-500 hover:text-slate-900 text-xl leading-none flex-shrink-0 ml-3">✕</button>
             </div>
             <div className="flex-1 overflow-hidden p-4">
               <ResultPanel

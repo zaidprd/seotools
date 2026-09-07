@@ -132,12 +132,12 @@ function SingleTab({ wpSites, addWp, removeWp, user, refreshUser }: {
       <div className="w-80 flex-shrink-0 flex flex-col gap-3 overflow-y-auto pb-6 pr-1">
         <div className="border border-slate-800 rounded-xl overflow-hidden">
           <div className="bg-slate-900/80 px-4 py-3">
-            <span className="text-[11px] font-black text-slate-300 uppercase tracking-widest">1-Click Blog Post</span>
+            <span className="text-xs font-black text-slate-300 uppercase tracking-widest">1-Click Blog Post</span>
           </div>
           <div className="px-4 py-3 bg-slate-950/40 flex flex-col gap-3">
             <Inp label="Keyword Utama *" val={keyword} set={setKeyword} placeholder="cth: cara memulai bisnis online" maxLen={500} />
             <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Judul</label>
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Judul</label>
               <div className="flex gap-1.5">
                 <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Kosongkan untuk auto-generate..."
                   className="flex-1 bg-slate-900 border border-slate-700/60 text-slate-200 text-xs rounded-lg px-3 py-2.5 focus:outline-none focus:border-amber-500/60 placeholder-slate-700" />
@@ -148,7 +148,7 @@ function SingleTab({ wpSites, addWp, removeWp, user, refreshUser }: {
               </div>
               {titleSuggestions.length > 0 && (
                 <div className="flex flex-col gap-1 mt-1 bg-slate-900 border border-slate-700 rounded-lg p-2">
-                  <p className="text-[10px] text-slate-500 mb-1">Pilih judul:</p>
+                  <p className="text-xs text-slate-500 mb-1">Pilih judul:</p>
                   {titleSuggestions.map((t, i) => (
                     <button key={i} onClick={() => { setTitle(t); setTitleSuggestions([]); }}
                       className="text-left text-xs text-slate-300 hover:text-amber-400 hover:bg-slate-800 px-2 py-1 rounded transition-colors">{t}</button>
@@ -159,18 +159,18 @@ function SingleTab({ wpSites, addWp, removeWp, user, refreshUser }: {
             {/* Slug — permalink WordPress, bisa diedit. Otomatis dari keyword. */}
             <div className="flex flex-col gap-1">
               <div className="flex items-center justify-between">
-                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Slug (URL)</label>
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Slug (URL)</label>
                 {slugEdited.current && keyword.trim() && (
                   <button onClick={() => { slugEdited.current = false; setSlug(slugify(keyword)); }}
                     title="Reset slug dari keyword"
-                    className="text-[10px] text-amber-400 hover:text-amber-300 transition-colors">↺ Auto</button>
+                    className="text-xs text-amber-400 hover:text-amber-300 transition-colors">↺ Auto</button>
                 )}
               </div>
               <input value={slug}
                 onChange={e => { slugEdited.current = true; setSlug(slugify(e.target.value)); }}
                 placeholder="otomatis-dari-keyword"
                 className="bg-slate-900 border border-slate-700/60 text-slate-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-amber-500/60 placeholder-slate-700" />
-              <p className="text-[10px] text-slate-600 truncate">🔗 /{slug || "..."}</p>
+              <p className="text-xs text-slate-600 truncate">🔗 /{slug || "..."}</p>
             </div>
           </div>
         </div>
@@ -190,7 +190,7 @@ function SingleTab({ wpSites, addWp, removeWp, user, refreshUser }: {
 
         {credits === 0 && (
           <button onClick={() => setShowUpgrade(true)}
-            className="w-full py-2 text-[11px] text-amber-400 border border-amber-500/20 rounded-xl hover:bg-amber-500/5 transition-colors">
+            className="w-full py-2 text-xs text-amber-400 border border-amber-500/20 rounded-xl hover:bg-amber-500/5 transition-colors">
             💎 Kredit habis — Upgrade sekarang
           </button>
         )}
@@ -229,10 +229,10 @@ function BulkRowCard({ row, index, onSelectTitle, onRegenTitles, onKeywordsChang
   return (
     <div className="border border-slate-800 rounded-xl overflow-hidden">
       <div className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-slate-800/20 transition-colors" onClick={() => setOpen(!open)}>
-        <span className="w-6 h-6 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center text-[10px] text-slate-500 font-bold flex-shrink-0">{index + 1}</span>
+        <span className="w-6 h-6 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center text-xs text-slate-500 font-bold flex-shrink-0">{index + 1}</span>
         <div className="flex-1 min-w-0">
           <p className="text-xs font-semibold text-slate-200 truncate">{row.topic}</p>
-          {row.selectedTitle && <p className="text-[10px] text-slate-500 truncate">{row.selectedTitle}</p>}
+          {row.selectedTitle && <p className="text-xs text-slate-500 truncate">{row.selectedTitle}</p>}
         </div>
         {row.status === "genTitles" && <><span className="w-3 h-3 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" /><Badge text="Gen judul..." v="loading" /></>}
         {row.status === "idle" && row.titles.length > 0 && <Badge text="Siap" v="success" />}
@@ -246,9 +246,9 @@ function BulkRowCard({ row, index, onSelectTitle, onRegenTitles, onKeywordsChang
           {row.titles.length > 0 && row.status !== "selesai" && (
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center justify-between">
-                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Pilih Judul</p>
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Pilih Judul</p>
                 <button onClick={onRegenTitles} disabled={row.status === "genTitles"}
-                  className="text-[10px] text-amber-400 hover:text-amber-300 border border-amber-500/20 px-2 py-0.5 rounded transition-colors disabled:opacity-40">
+                  className="text-xs text-amber-400 hover:text-amber-300 border border-amber-500/20 px-2 py-0.5 rounded transition-colors disabled:opacity-40">
                   🔄 Generate Lagi
                 </button>
               </div>
@@ -262,14 +262,14 @@ function BulkRowCard({ row, index, onSelectTitle, onRegenTitles, onKeywordsChang
           )}
           {row.status !== "selesai" && (
             <div>
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1">Keywords Tambahan</label>
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-widest block mb-1">Keywords Tambahan</label>
               <input value={row.keywords} onChange={e => onKeywordsChange(e.target.value)} placeholder="keyword1, keyword2..."
                 className="w-full bg-slate-900 border border-slate-700 text-slate-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-amber-500/60 placeholder-slate-700" />
             </div>
           )}
           {row.status === "selesai" && row.content && (
             <>
-              <div className="flex gap-2"><button onClick={copy} className="text-[11px] px-2.5 py-1 rounded border border-slate-700 hover:border-slate-600 text-slate-400 hover:text-white transition-all">{copied ? "✓ Disalin" : "Salin"}</button></div>
+              <div className="flex gap-2"><button onClick={copy} className="text-xs px-2.5 py-1 rounded border border-slate-700 hover:border-slate-600 text-slate-400 hover:text-white transition-all">{copied ? "✓ Disalin" : "Salin"}</button></div>
               <div className="max-h-56 overflow-y-auto bg-slate-900 rounded-lg p-3"><pre className="text-xs text-slate-300 whitespace-pre-wrap leading-relaxed font-sans">{row.content}</pre></div>
             </>
           )}
@@ -348,10 +348,10 @@ function BulkTab({ wpSites, addWp, removeWp, user, refreshUser }: {
       {showUpgrade && <UpgradePopup onClose={() => setShowUpgrade(false)} reason="Kredit tidak cukup untuk melanjutkan" />}
       <div className="w-80 flex-shrink-0 flex flex-col gap-3 overflow-y-auto pb-6 pr-1">
         <div className="border border-slate-800 rounded-xl overflow-hidden">
-          <div className="bg-slate-900/80 px-4 py-3"><span className="text-[11px] font-black text-slate-300 uppercase tracking-widest">Bulk Article Generation</span></div>
+          <div className="bg-slate-900/80 px-4 py-3"><span className="text-xs font-black text-slate-300 uppercase tracking-widest">Bulk Article Generation</span></div>
           <div className="px-4 py-3 bg-slate-950/40 flex flex-col gap-2.5">
             <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Topik / Keyword (1 per baris)</label>
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Topik / Keyword (1 per baris)</label>
               <textarea value={topicInput} onChange={e => setTopicInput(e.target.value)} rows={5}
                 placeholder={"panel maker listrik\ncara diet sehat\nbisnis online 2026"}
                 className="bg-slate-900 border border-slate-700/60 text-slate-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-amber-500/60 placeholder-slate-700 resize-none" />
@@ -433,19 +433,19 @@ export default function Dashboard() {
               <div className="w-7 h-7 rounded-lg bg-amber-500 flex items-center justify-center font-black text-[#0c0e14] text-sm">A</div>
               <span className="font-black tracking-tight"><span className="text-white">Artikel</span><span className="text-amber-400"> SEO</span></span>
             </a>
-            {wpSites.length > 0 && <span className="text-[10px] text-blue-400 border border-blue-800/50 bg-blue-950/30 px-2.5 py-0.5 rounded-full">🌐 {wpSites.length} situs</span>}
+            {wpSites.length > 0 && <span className="text-xs text-blue-400 border border-blue-800/50 bg-blue-950/30 px-2.5 py-0.5 rounded-full">🌐 {wpSites.length} situs</span>}
             {user && (
-              <span className={`text-[10px] px-2.5 py-0.5 rounded-full border font-bold ${credits > 0 ? "text-amber-400 border-amber-800/50 bg-amber-950/30" : "text-red-400 border-red-800/50 bg-red-950/30"}`}>
+              <span className={`text-xs px-2.5 py-0.5 rounded-full border font-bold ${credits > 0 ? "text-amber-400 border-amber-800/50 bg-amber-950/30" : "text-red-400 border-red-800/50 bg-red-950/30"}`}>
                 💎 {credits} kredit
               </span>
             )}
           </div>
           <div className="flex items-center gap-2">
             {isPro
-              ? <span className="text-[10px] text-emerald-400 border border-emerald-800/50 bg-emerald-950/30 px-2.5 py-0.5 rounded-full font-bold">✓ {user?.plan?.toUpperCase()}</span>
-              : <a href="/pricing" className="text-[11px] bg-amber-500 hover:bg-amber-400 text-[#0c0e14] font-black px-3.5 py-1.5 rounded-lg transition-colors">Upgrade Pro</a>
+              ? <span className="text-xs text-emerald-400 border border-emerald-800/50 bg-emerald-950/30 px-2.5 py-0.5 rounded-full font-bold">✓ {user?.plan?.toUpperCase()}</span>
+              : <a href="/pricing" className="text-xs bg-amber-500 hover:bg-amber-400 text-[#0c0e14] font-black px-3.5 py-1.5 rounded-lg transition-colors">Upgrade Pro</a>
             }
-            <button onClick={logout} className="text-[11px] text-slate-500 hover:text-slate-300 px-2 py-1 transition-colors">Keluar</button>
+            <button onClick={logout} className="text-xs text-slate-500 hover:text-slate-300 px-2 py-1 transition-colors">Keluar</button>
           </div>
         </div>
       </header>

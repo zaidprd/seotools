@@ -27,7 +27,7 @@ export default function ArticleEditorPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  const [featuredPresetText, setFeaturedPresetText] = useState("");
+
   const latestDraft = useRef<ArticleDraft | null>(null);
 
   useEffect(() => { latestDraft.current = draft; }, [draft]);
@@ -43,7 +43,7 @@ export default function ArticleEditorPage() {
       .then((article) => {
         if (active && article) {
           setDraft(article);
-          setFeaturedPresetText(article.featured_preset ? JSON.stringify(article.featured_preset, null, 2) : "");
+
         }
       })
       .catch((error: Error) => { if (active) setMessage(error.message); })
@@ -54,16 +54,6 @@ export default function ArticleEditorPage() {
   const save = useCallback(async (fields?: DraftFields) => {
     const current = fields || latestDraft.current;
     if (!current) return;
-    let featuredPreset: Record<string, unknown> | null = null;
-    if (featuredPresetText.trim()) {
-      try {
-        featuredPreset = JSON.parse(featuredPresetText) as Record<string, unknown>;
-        if (!featuredPreset || Array.isArray(featuredPreset)) throw new Error();
-      } catch {
-        setMessage("Preset featured harus berupa JSON object yang valid.");
-        return;
-      }
-    }
 
     setSaving(true);
     setMessage(null);
@@ -77,7 +67,7 @@ export default function ArticleEditorPage() {
           content_html: current.content_html,
           slug: current.slug,
           meta_description: current.meta_description,
-          featured_preset: featuredPreset,
+          featured_preset: current.featured_preset,
         }),
       });
       const data = await response.json();
@@ -96,20 +86,20 @@ export default function ArticleEditorPage() {
     setMessage(null);
   };
 
-  if (loading) return <div className="p-6 text-sm text-slate-400">Memuat artikel...</div>;
-  if (!draft) return <div className="p-6 text-sm text-red-400">{message || "Artikel tidak ditemukan."}</div>;
+  if (loading) return <div className="grid min-h-[50vh] place-items-center p-6 text-sm text-slate-600">Memuat artikel...</div>;
+  if (!draft) return <div className="p-6 text-sm text-red-700">{message || "Artikel tidak ditemukan."}</div>;
 
   return (
-    <main className="max-w-5xl mx-auto p-6 pb-12" style={{ fontFamily: "'DM Sans',sans-serif" }}>
+    <main className="max-w-6xl mx-auto px-4 py-6 pb-12 sm:px-6 lg:px-8" style={{ fontFamily: "'DM Sans',sans-serif" }}>
       <div className="flex flex-wrap items-center gap-3 justify-between mb-6">
         <div>
-          <Link href="/documents" className="text-xs text-amber-400 hover:text-amber-300">← Kembali ke dokumen</Link>
-          <h1 className="mt-2 text-2xl font-black text-white" style={{ fontFamily: "Sora,sans-serif" }}>Editor artikel</h1>
+          <Link href="/documents" className="text-sm font-semibold text-amber-700 hover:text-amber-900">← Kembali ke dokumen</Link>
+          <h1 className="mt-2 text-3xl font-black text-slate-900" style={{ fontFamily: "Sora,sans-serif" }}>Editor artikel</h1>
         </div>
         <div className="flex items-center gap-3 text-xs">
-          {message && <span className={message === "Tersimpan" ? "text-emerald-400" : "text-red-400"}>{message}</span>}
+          {message && <span className={message === "Tersimpan" ? "text-emerald-700" : "text-red-700"}>{message}</span>}
           <button onClick={() => save()} disabled={saving}
-            className="bg-amber-500 hover:bg-amber-400 disabled:opacity-60 text-slate-950 font-bold px-4 py-2 rounded-xl transition-colors">
+            className="min-h-11 bg-amber-500 hover:bg-amber-400 disabled:opacity-60 text-slate-950 font-bold px-5 py-2 rounded-xl transition-colors">
             {saving ? "Menyimpan..." : "Simpan draft"}
           </button>
         </div>
@@ -118,36 +108,35 @@ export default function ArticleEditorPage() {
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_280px]">
         <section className="space-y-4">
           <input value={draft.title || ""} onChange={(event) => update("title", event.target.value)} placeholder="Judul artikel"
-            className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-lg font-bold text-white outline-none focus:border-amber-500/60" />
-          <textarea value={draft.content_html ?? draft.content ?? ""} onChange={(event) => update("content_html", event.target.value)}
-            placeholder="Tulis HTML artikel di sini..." rows={24}
-            className="w-full resize-y bg-slate-950 border border-slate-800 rounded-xl p-4 font-mono text-sm leading-relaxed text-slate-200 outline-none focus:border-amber-500/60" />
-          <p className="text-[11px] text-slate-500">Konten editor disimpan sebagai HTML final. Konten hasil generasi asli tetap dipertahankan.</p>
+            className="w-full rounded-xl border border-stone-300 bg-white px-5 py-4 text-xl font-bold text-slate-900 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-100" />
+          <div className="rounded-2xl border border-stone-200 bg-white shadow-sm">
+            <div className="border-b border-stone-100 px-5 py-3 text-sm font-semibold text-slate-600">Isi artikel</div>
+            <div contentEditable suppressContentEditableWarning role="textbox" aria-multiline="true" data-placeholder="Mulai tulis artikel..." onInput={(event) => update("content_html", event.currentTarget.innerHTML)} className="article-editor min-h-[620px] px-5 py-6 outline-none sm:px-8" dangerouslySetInnerHTML={{ __html: draft.content_html ?? draft.content ?? "" }} />
+          </div>
+          <p className="text-xs text-slate-500">Perubahan disimpan sebagai draf artikel. Tinjau kembali format sebelum diterbitkan.</p>
         </section>
 
-        <aside className="h-fit space-y-4 rounded-2xl border border-slate-800 bg-slate-900/30 p-4">
+        <aside className="h-fit space-y-5 rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
           <div>
-            <label className="block mb-1.5 text-xs font-bold text-slate-400">Keyword</label>
-            <p className="text-sm text-slate-300">{draft.keyword || "—"}</p>
+            <label className="block mb-1.5 text-sm font-bold text-slate-700">Kata kunci</label>
+            <p className="text-sm text-slate-600">{draft.keyword || "—"}</p>
           </div>
           <div>
-            <label className="block mb-1.5 text-xs font-bold text-slate-400">Slug</label>
+            <label className="block mb-1.5 text-sm font-bold text-slate-700">Alamat artikel</label>
             <input value={draft.slug || ""} onChange={(event) => update("slug", event.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))} placeholder="slug-artikel"
-              className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 outline-none focus:border-amber-500/60" />
+              className="min-h-11 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-100" />
           </div>
           <div>
-            <label className="block mb-1.5 text-xs font-bold text-slate-400">Meta description</label>
+            <label className="block mb-1.5 text-sm font-bold text-slate-700">Deskripsi pencarian</label>
             <textarea value={draft.meta_description || ""} onChange={(event) => update("meta_description", event.target.value)} maxLength={500} rows={4}
-              className="w-full resize-y bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 outline-none focus:border-amber-500/60" />
+              className="w-full resize-y rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-100" />
+          </div>
+          <div className="rounded-xl bg-amber-50 p-3">
+            <p className="text-sm font-semibold text-amber-900">Gambar utama</p>
+            <p className="mt-1 text-xs leading-relaxed text-amber-800">Pilihan gambar utama yang dibuat sebelumnya tetap tersimpan bersama draf.</p>
           </div>
           <div>
-            <label className="block mb-1.5 text-xs font-bold text-slate-400">Preset featured (JSON)</label>
-            <textarea value={featuredPresetText} onChange={(event) => { setFeaturedPresetText(event.target.value); setMessage(null); }} rows={5}
-              placeholder='{ "template": "..." }'
-              className="w-full resize-y bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 font-mono text-xs text-slate-200 outline-none focus:border-amber-500/60" />
-          </div>
-          <div>
-            <p className="text-[11px] text-slate-500">Terakhir disimpan: {new Date(draft.updated_at || draft.created_at).toLocaleString("id-ID")}</p>
+            <p className="text-xs text-slate-500">Terakhir disimpan: {new Date(draft.updated_at || draft.created_at).toLocaleString("id-ID")}</p>
           </div>
         </aside>
       </div>

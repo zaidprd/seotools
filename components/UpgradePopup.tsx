@@ -4,19 +4,19 @@ import { useRouter } from "next/navigation";
 export default function UpgradePopup({ onClose, reason }: { onClose: () => void; reason?: string }) {
   const router = useRouter();
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-slate-900 border border-amber-500/30 rounded-2xl p-7 max-w-sm w-full shadow-2xl" onClick={e => e.stopPropagation()}>
-        <div className="text-4xl mb-3 text-center">💎</div>
-        <h3 className="font-black text-xl text-white mb-2 text-center">{reason || "Kredit Habis"}</h3>
-        <p className="text-sm text-slate-400 text-center mb-5 leading-relaxed">
-          Upgrade untuk terus membuat artikel SEO berkualitas tinggi tanpa batas.
+    <div className="fixed inset-0 bg-slate-950/45 z-50 flex items-center justify-center p-4" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="upgrade-title">
+      <div className="bg-white border border-stone-200 rounded-2xl p-7 max-w-sm w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+        <div className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-xl bg-amber-100 text-xl text-amber-800">✦</div>
+        <h3 id="upgrade-title" className="font-black text-xl text-slate-900 mb-2 text-center">{reason || "Kuota belum mencukupi"}</h3>
+        <p className="text-sm text-slate-600 text-center mb-5 leading-relaxed">
+          Pilih paket dengan kuota kata yang sesuai agar Anda dapat melanjutkan menulis.
         </p>
         <div className="flex flex-col gap-2">
           <button onClick={() => router.push("/pricing")}
-            className="w-full bg-amber-500 hover:bg-amber-400 text-slate-900 font-black py-3 rounded-xl transition-colors">
-            Lihat Paket & Harga
+            className="w-full min-h-11 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black py-3 rounded-xl transition-colors">
+            Lihat paket dan harga
           </button>
-          <button onClick={onClose} className="w-full text-slate-500 hover:text-slate-300 text-xs py-2 transition-colors">
+          <button onClick={onClose} className="w-full min-h-11 text-slate-600 hover:text-slate-900 text-sm py-2 transition-colors">
             Nanti saja
           </button>
         </div>

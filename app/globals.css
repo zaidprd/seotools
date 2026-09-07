@@ -2,31 +2,50 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --page: #f7f4ed;
+  --surface: #fffefa;
+  --surface-muted: #f1ede4;
+  --ink: #172033;
+  --muted: #64748b;
+  --line: #ddd8ce;
+  --amber: #d97706;
+  --amber-soft: #fff3d6;
+  --success: #047857;
+}
 * { box-sizing: border-box; }
-html, body { padding: 0; margin: 0; background: #f8f7f3; color: #1e293b; }
+html { scroll-behavior: smooth; }
+html, body { padding: 0; margin: 0; background: var(--page); color: var(--ink); }
+body { min-width: 320px; font-family: "DM Sans", sans-serif; }
+button, a, input, textarea, select { -webkit-tap-highlight-color: transparent; }
+button, a { transition: color .18s ease, background-color .18s ease, border-color .18s ease, box-shadow .18s ease, transform .18s ease; }
+:focus-visible { outline: 3px solid rgba(217,119,6,.35); outline-offset: 2px; }
+::selection { background: #fde6ad; color: #172033; }
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #d6d3d1; border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: #a8a29e; }
 
-/* Warm editorial surface applied to the article workspace and its existing controls. */
-.editorial-workspace .bg-slate-900, .editorial-workspace .bg-slate-900\/80, .editorial-workspace .bg-slate-900\/60, .editorial-workspace .bg-slate-950\/40, .editorial-workspace .bg-slate-950\/30, .editorial-workspace .bg-\[\#111a28\] { background-color: #fff !important; }
-.editorial-workspace .border-slate-800, .editorial-workspace .border-slate-800\/70, .editorial-workspace .border-slate-800\/60, .editorial-workspace .border-slate-700, .editorial-workspace .border-slate-700\/60 { border-color: #e7e5e4 !important; }
-.editorial-workspace .text-slate-100, .editorial-workspace .text-slate-200, .editorial-workspace .text-slate-300 { color: #334155 !important; }
-.editorial-workspace .text-slate-400, .editorial-workspace .text-slate-500, .editorial-workspace .text-slate-600, .editorial-workspace .text-slate-700 { color: #64748b !important; }
-.editorial-workspace .text-white { color: #0f172a !important; }
-.editorial-workspace input:not([type="checkbox"]), .editorial-workspace textarea, .editorial-workspace select { background-color: #fff; color: #1e293b; }
-.editorial-workspace ::placeholder { color: #a8a29e; }
-.editorial-workspace .bg-blue-950\/30 { background-color: #eff6ff !important; }
-.editorial-workspace .bg-emerald-500\/5 { background-color: #ecfdf5 !important; }
-.editorial-workspace .bg-amber-500\/5, .editorial-workspace .bg-amber-500\/10 { background-color: #fffbeb !important; }
 
 @keyframes float { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-12px) } }
 .animate-float { animation: float 6s ease-in-out infinite; }
 
 @keyframes dzikirFade {
-  0%        { opacity: 0; transform: translateY(4px); }
-  20%, 80%  { opacity: 1; transform: translateY(0); }
-  100%      { opacity: 0; transform: translateY(-4px); }
+  0% { opacity: 0; transform: translateY(4px); }
+  20%, 80% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-4px); }
 }
 .animate-dzikir { animation: dzikirFade 2s ease-in-out; }
+
+.article-editor { color: #334155; font-family: "DM Sans", sans-serif; font-size: 16px; line-height: 1.8; }
+.article-editor:empty::before { content: attr(data-placeholder); color: #a8a29e; }
+.article-editor h1, .article-editor h2, .article-editor h3 { color: #172033; font-family: "Sora", sans-serif; line-height: 1.3; margin: 1.5em 0 .55em; }
+.article-editor h1 { font-size: 1.8rem; } .article-editor h2 { font-size: 1.4rem; } .article-editor h3 { font-size: 1.15rem; }
+.article-editor p, .article-editor ul, .article-editor ol { margin: 0 0 1em; }
+.article-editor ul, .article-editor ol { padding-left: 1.5rem; }
+.article-editor a { color: #b45309; text-decoration: underline; }
+.article-editor img { max-width: 100%; height: auto; border-radius: .75rem; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}

@@ -7,26 +7,27 @@ import { getWPSites, saveWPSites } from "@/lib/wp-sites";
 import { WPSite, PLANS } from "@/lib/constants";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
-interface UserProfile {
+interface UserProfil {
   id: string; email: string; plan: string; credits: number; credits_used: number;
   articles_used: number; plan_expires_at?: string; full_name?: string;
   notif_newsletter?: boolean; notif_article?: boolean;
+  monthly_word_quota?: number | null; monthly_words_used?: number | null;
 }
 
-const TABS = ["Profile", "Integrasi", "Billing", "Pemakaian", "Notifikasi"] as const;
+const TABS = ["Profil", "Integrasi", "Paket dan pembayaran", "Pemakaian", "Notifikasi"] as const;
 type Tab = typeof TABS[number];
 
-export default function SettingsPage() {
+export default function PengaturanPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<Tab>("Profile");
-  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [activeTab, setActiveTab] = useState<Tab>("Profil");
+  const [profile, setProfil] = useState<UserProfil | null>(null);
   const [loading, setLoading] = useState(true);
   const [authUser, setAuthUser] = useState<any>(null);
 
-  // Profile tab
+  // Profil tab
   const [fullName, setFullName] = useState("");
-  const [savingProfile, setSavingProfile] = useState(false);
-  const [profileMsg, setProfileMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+  const [savingProfil, setSavingProfil] = useState(false);
+  const [profileMsg, setProfilMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
 
   // Password
   const [newPwd, setNewPwd] = useState("");
@@ -47,11 +48,11 @@ export default function SettingsPage() {
   // Usage chart
   const [usageData, setUsageData] = useState<{ date: string; articles: number; credits: number }[]>([]);
 
-  const fetchProfile = useCallback(async (uid: string) => {
+  const fetchProfil = useCallback(async (uid: string) => {
     const res = await fetch(`/api/user?userId=${uid}`);
     if (res.ok) {
-      const data: UserProfile = await res.json();
-      setProfile(data);
+      const data: UserProfil = await res.json();
+      setProfil(data);
       setFullName(data.full_name || "");
       setNotifNewsletter(data.notif_newsletter ?? false);
       setNotifArticle(data.notif_article ?? false);
@@ -84,19 +85,19 @@ export default function SettingsPage() {
     createClient().auth.getUser().then(({ data: { user } }) => {
       if (!user) { router.push("/login"); return; }
       setAuthUser(user);
-      fetchProfile(user.id).then(() => setLoading(false));
+      fetchProfil(user.id).then(() => setLoading(false));
       fetchUsage(user.id);
     });
   }, []);
 
-  const saveProfile = async () => {
+  const saveProfil = async () => {
     if (!authUser) return;
-    setSavingProfile(true);
+    setSavingProfil(true);
     const sb = createClient();
     const { error } = await sb.from("users").update({ full_name: fullName }).eq("id", authUser.id);
-    setProfileMsg(error ? { type: "err", text: error.message } : { type: "ok", text: "Profile berhasil disimpan!" });
-    setSavingProfile(false);
-    setTimeout(() => setProfileMsg(null), 3000);
+    setProfilMsg(error ? { type: "err", text: error.message } : { type: "ok", text: "Profil berhasil disimpan!" });
+    setSavingProfil(false);
+    setTimeout(() => setProfilMsg(null), 3000);
   };
 
   const updatePassword = async () => {
@@ -158,21 +159,24 @@ export default function SettingsPage() {
   const planData = PLANS.find(p => p.id === (profile?.plan || "free"));
   const creditsTotal = planData?.credits ?? 1;
   const creditsUsed = profile?.credits_used ?? 0;
-  const progressPct = creditsTotal > 0 ? Math.min(100, Math.round((creditsUsed / creditsTotal) * 100)) : 0;
+  const wordQuota = profile?.monthly_word_quota ?? null;
+  const wordsUsed = profile?.monthly_words_used ?? 0;
+  const wordsRemaining = wordQuota === null ? null : Math.max(0, wordQuota - wordsUsed);
+  const progressPct = wordQuota ? Math.min(100, Math.round((wordsUsed / wordQuota) * 100)) : 0;
 
   return (
     <AppShell>
       <div className="p-6 max-w-3xl mx-auto" style={{ fontFamily: "'DM Sans',sans-serif" }}>
         <div className="mb-6">
-          <h1 className="text-2xl font-black text-white" style={{ fontFamily: "Sora,sans-serif" }}>Settings</h1>
-          <p className="text-slate-500 text-sm">Kelola profil, integrasi, dan preferensi kamu</p>
+          <h1 className="text-3xl font-black text-slate-900" style={{ fontFamily: "Sora,sans-serif" }}>Pengaturan</h1>
+          <p className="text-slate-500 text-sm">Kelola profil, integrasi, paket, dan preferensi Anda</p>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 bg-slate-900/40 border border-slate-800 rounded-xl p-1 mb-6 overflow-x-auto">
+        <div className="flex gap-1 bg-white border border-stone-200 rounded-xl p-1 mb-6 overflow-x-auto">
           {TABS.map(tab => (
             <button key={tab} onClick={() => setActiveTab(tab)}
-              className={`flex-shrink-0 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${activeTab === tab ? "bg-amber-500 text-slate-900" : "text-slate-400 hover:text-white"}`}>
+              className={`flex-shrink-0 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${activeTab === tab ? "bg-amber-500 text-slate-900" : "text-slate-500 hover:text-slate-900"}`}>
               {tab}
             </button>
           ))}
@@ -180,43 +184,43 @@ export default function SettingsPage() {
 
         {loading ? (
           <div className="flex items-center justify-center py-16">
-            <div className="w-6 h-6 rounded-full border-2 border-slate-700 border-t-amber-500 animate-spin" />
+            <div className="w-6 h-6 rounded-full border-2 border-stone-300 border-t-amber-500 animate-spin" />
           </div>
         ) : (
-          <div className="bg-slate-900/30 border border-slate-800 rounded-2xl p-6">
+          <div className="bg-white border border-stone-200 rounded-2xl p-6">
 
             {/* ─── PROFILE ─── */}
-            {activeTab === "Profile" && (
+            {activeTab === "Profil" && (
               <div className="flex flex-col gap-5">
                 <div>
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-widest block mb-1.5">Nama Lengkap</label>
+                  <label className="text-sm font-semibold text-slate-700 block mb-1.5">Nama Lengkap</label>
                   <input value={fullName} onChange={e => setFullName(e.target.value)}
                     placeholder="Masukkan nama lengkap..."
-                    className="w-full bg-slate-900 border border-slate-700 text-slate-200 text-sm rounded-xl px-4 py-2.5 focus:outline-none focus:border-amber-500/60 placeholder-slate-600" />
+                    className="h-11 w-full bg-white border border-stone-300 text-slate-800 text-sm rounded-xl px-4 focus:outline-none focus:border-amber-500/60 placeholder-stone-400" />
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-widest block mb-1.5">Email</label>
+                  <label className="text-sm font-semibold text-slate-700 block mb-1.5">Email</label>
                   <input value={profile?.email || ""} readOnly
-                    className="w-full bg-slate-900/40 border border-slate-800 text-slate-500 text-sm rounded-xl px-4 py-2.5 cursor-not-allowed" />
+                    className="h-11 w-full bg-white border border-stone-200 text-slate-500 text-sm rounded-xl px-4 cursor-not-allowed" />
                 </div>
-                <button onClick={saveProfile} disabled={savingProfile}
+                <button onClick={saveProfil} disabled={savingProfil}
                   className="w-fit bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold text-sm px-5 py-2.5 rounded-xl transition-all disabled:opacity-60">
-                  {savingProfile ? "Menyimpan..." : "Simpan Profile"}
+                  {savingProfil ? "Menyimpan..." : "Simpan Profil"}
                 </button>
-                {profileMsg && <p className={`text-sm ${profileMsg.type === "ok" ? "text-emerald-400" : "text-red-400"}`}>{profileMsg.text}</p>}
+                {profileMsg && <p className={`text-sm ${profileMsg.type === "ok" ? "text-emerald-700" : "text-red-400"}`}>{profileMsg.text}</p>}
 
-                <div className="border-t border-slate-800 pt-5">
-                  <p className="text-sm font-bold text-white mb-3">Update Password</p>
+                <div className="border-t border-stone-200 pt-5">
+                  <p className="text-sm font-bold text-slate-900 mb-3">Ubah kata sandi</p>
                   <div className="flex gap-2">
                     <input type="password" value={newPwd} onChange={e => setNewPwd(e.target.value)}
                       placeholder="Password baru (min 6 karakter)"
-                      className="flex-1 bg-slate-900 border border-slate-700 text-slate-200 text-sm rounded-xl px-4 py-2.5 focus:outline-none focus:border-amber-500/60 placeholder-slate-600" />
+                      className="flex-1 bg-white border border-stone-300 text-slate-800 text-sm rounded-xl px-4 py-2.5 focus:outline-none focus:border-amber-500/60 placeholder-stone-400" />
                     <button onClick={updatePassword} disabled={savingPwd || !newPwd}
-                      className="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-semibold text-sm px-4 py-2.5 rounded-xl transition-all disabled:opacity-40">
+                      className="bg-stone-100 hover:bg-slate-700 border border-stone-300 text-slate-800 font-semibold text-sm px-4 py-2.5 rounded-xl transition-all disabled:opacity-40">
                       {savingPwd ? "..." : "Update"}
                     </button>
                   </div>
-                  {pwdMsg && <p className={`text-sm mt-2 ${pwdMsg.type === "ok" ? "text-emerald-400" : "text-red-400"}`}>{pwdMsg.text}</p>}
+                  {pwdMsg && <p className={`text-sm mt-2 ${pwdMsg.type === "ok" ? "text-emerald-700" : "text-red-400"}`}>{pwdMsg.text}</p>}
                 </div>
               </div>
             )}
@@ -225,62 +229,62 @@ export default function SettingsPage() {
             {activeTab === "Integrasi" && (
               <div className="flex flex-col gap-5">
                 <div>
-                  <h3 className="font-bold text-white mb-1">WordPress Sites</h3>
-                  <p className="text-xs text-slate-500 mb-4">Tidak perlu install plugin. Gunakan Application Password dari WP Admin → Users → Profile.</p>
+                  <h3 className="font-bold text-slate-900 mb-1">Situs WordPress</h3>
+                  <p className="text-xs text-slate-500 mb-4">Tidak perlu install plugin. Gunakan Kata sandi aplikasi dari WP Admin → Users → Profil.</p>
                   {wpSites.length > 0 ? (
                     <div className="flex flex-col gap-2 mb-4">
                       {wpSites.map(s => (
-                        <div key={s.id} className="flex items-center gap-3 bg-slate-900/60 border border-slate-800 rounded-xl px-4 py-3">
+                        <div key={s.id} className="flex items-center gap-3 bg-white border border-stone-200 rounded-xl px-4 py-3">
                           <span className="text-blue-400 text-sm">🌐</span>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-white">{s.name}</p>
-                            <p className="text-[11px] text-slate-500 truncate">{s.url}</p>
+                            <p className="text-sm font-semibold text-slate-900">{s.name}</p>
+                            <p className="text-xs text-slate-500 truncate">{s.url}</p>
                           </div>
-                          <button onClick={() => removeWpSite(s.id)} className="text-slate-600 hover:text-red-400 text-xs transition-colors">Hapus</button>
+                          <button onClick={() => removeWpSite(s.id)} className="text-slate-500 hover:text-red-400 text-xs transition-colors">Hapus</button>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm text-slate-600 mb-4">Belum ada situs yang terhubung.</p>
+                    <p className="text-sm text-slate-500 mb-4">Belum ada situs yang terhubung.</p>
                   )}
                 </div>
 
-                <div className="border border-slate-700/50 rounded-xl p-4 flex flex-col gap-3">
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Tambah Situs Baru</p>
+                <div className="border border-stone-300 rounded-xl p-4 flex flex-col gap-3">
+                  <p className="text-sm font-semibold text-slate-700">Tambahkan situs</p>
                   {[
                     { label: "Nama Situs", key: "name", placeholder: "cth: Blog Utama" },
                     { label: "URL WordPress", key: "url", placeholder: "https://blog.example.com" },
                     { label: "Username", key: "user", placeholder: "admin" },
-                    { label: "Application Password", key: "pass", placeholder: "xxxx xxxx xxxx xxxx xxxx xxxx" },
+                    { label: "Kata sandi aplikasi", key: "pass", placeholder: "xxxx xxxx xxxx xxxx xxxx xxxx" },
                   ].map(f => (
                     <div key={f.key}>
-                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">{f.label}</label>
+                      <label className="text-sm font-semibold text-slate-700 block mb-1">{f.label}</label>
                       <input value={(wpForm as any)[f.key]} onChange={e => setWpForm(p => ({ ...p, [f.key]: e.target.value }))}
                         placeholder={f.placeholder} type={f.key === "pass" ? "password" : "text"}
-                        className="w-full bg-slate-900 border border-slate-700 text-slate-200 text-xs rounded-lg px-3 py-2.5 focus:outline-none focus:border-amber-500/60 placeholder-slate-600" />
+                        className="h-11 w-full bg-white border border-stone-300 text-slate-800 text-sm rounded-lg px-3 focus:outline-none focus:border-amber-500/60 placeholder-stone-400" />
                     </div>
                   ))}
                   <button onClick={testWPConnection} disabled={testingWp}
-                    className="bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm px-4 py-2.5 rounded-xl transition-all disabled:opacity-60 flex items-center gap-2">
-                    {testingWp ? <><span className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />Testing...</> : "🔗 Uji Koneksi & Simpan"}
+                    className="bg-blue-600 hover:bg-blue-500 text-slate-900 font-bold text-sm px-4 py-2.5 rounded-xl transition-all disabled:opacity-60 flex items-center gap-2">
+                    {testingWp ? <><span className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />Menguji...</> : "🔗 Uji koneksi dan simpan"}
                   </button>
-                  {wpMsg && <p className={`text-sm ${wpMsg.type === "ok" ? "text-emerald-400" : "text-red-400"}`}>{wpMsg.text}</p>}
+                  {wpMsg && <p className={`text-sm ${wpMsg.type === "ok" ? "text-emerald-700" : "text-red-400"}`}>{wpMsg.text}</p>}
                 </div>
               </div>
             )}
 
             {/* ─── BILLING ─── */}
-            {activeTab === "Billing" && (
+            {activeTab === "Paket dan pembayaran" && (
               <div className="flex flex-col gap-5">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-xs text-slate-500 uppercase tracking-widest mb-1">Paket Aktif</p>
                     <div className="flex items-center gap-2">
-                      <span className={`text-xl font-black ${isPro ? "text-amber-400" : "text-slate-400"}`}>
+                      <span className={`text-xl font-black ${isPro ? "text-amber-700" : "text-slate-500"}`}>
                         {isPro ? profile?.plan?.toUpperCase() : "GRATIS"}
                       </span>
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full border font-bold ${isPro ? "text-emerald-400 border-emerald-800 bg-emerald-950/30" : "text-slate-500 border-slate-700 bg-slate-900"}`}>
-                        {isPro ? "AKTIF" : "FREE TIER"}
+                      <span className={`text-xs px-2 py-0.5 rounded-full border font-bold ${isPro ? "text-emerald-700 border-emerald-800 bg-emerald-950/30" : "text-slate-500 border-stone-300 bg-white"}`}>
+                        {isPro ? "AKTIF" : "BELUM AKTIF"}
                       </span>
                     </div>
                     {profile?.plan_expires_at && (
@@ -295,26 +299,26 @@ export default function SettingsPage() {
                   </button>
                 </div>
 
-                <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-4">
+                <div className="bg-white border border-stone-200 rounded-xl p-4">
                   <div className="flex justify-between text-sm mb-2">
-                    <span className="text-slate-400">Kredit terpakai</span>
-                    <span className="text-amber-400 font-bold">{creditsUsed} / {creditsTotal} 💎</span>
+                    <span className="text-slate-600">Pemakaian kata</span>
+                    <span className="text-amber-700 font-bold">{wordQuota !== null ? `${wordsUsed.toLocaleString("id-ID")} / ${wordQuota.toLocaleString("id-ID")} kata` : "Belum tersedia"}</span>
                   </div>
-                  <div className="w-full bg-slate-800 rounded-full h-2 mb-2">
+                  <div className="w-full bg-stone-100 rounded-full h-2 mb-2">
                     <div className={`h-2 rounded-full transition-all ${progressPct > 80 ? "bg-red-500" : progressPct > 60 ? "bg-amber-500" : "bg-emerald-500"}`}
                       style={{ width: `${progressPct}%` }} />
                   </div>
-                  <p className="text-xs text-slate-600">{profile?.credits ?? 0} kredit tersisa</p>
+                  <p className="text-xs text-slate-500">{wordsRemaining !== null ? `${wordsRemaining.toLocaleString("id-ID")} kata tersisa` : "Aktifkan paket untuk melihat kuota kata."}</p>
                 </div>
 
-                <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-4">
-                  <p className="text-sm font-bold text-white mb-1">Total Artikel</p>
-                  <p className="text-2xl font-black text-amber-400">{profile?.articles_used ?? 0}</p>
-                  <p className="text-xs text-slate-500">artikel berhasil digenerate</p>
+                <div className="bg-white border border-stone-200 rounded-xl p-4">
+                  <p className="text-sm font-bold text-slate-900 mb-1">Total Artikel</p>
+                  <p className="text-2xl font-black text-amber-700">{profile?.articles_used ?? 0}</p>
+                  <p className="text-xs text-slate-500">artikel telah dibuat</p>
                 </div>
 
-                <div className="border-t border-slate-800 pt-4">
-                  <p className="text-sm font-bold text-white mb-1">Hapus Akun</p>
+                <div className="border-t border-stone-200 pt-4">
+                  <p className="text-sm font-bold text-slate-900 mb-1">Hapus Akun</p>
                   <p className="text-xs text-slate-500 mb-3">Tindakan ini permanen dan tidak dapat dibatalkan. Semua data akan dihapus.</p>
                   <button onClick={cancelAccount}
                     className="text-red-400 hover:text-red-300 text-sm border border-red-500/20 hover:border-red-500/40 px-4 py-2 rounded-xl transition-all hover:bg-red-500/5">
@@ -327,43 +331,39 @@ export default function SettingsPage() {
             {/* ─── PEMAKAIAN ─── */}
             {activeTab === "Pemakaian" && (
               <div className="flex flex-col gap-5">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-4">
-                    <p className="text-xs text-slate-500 mb-1">Artikel bulan ini</p>
-                    <p className="text-2xl font-black text-amber-400">
-                      {usageData.reduce((s, d) => s + d.articles, 0)}
-                    </p>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="rounded-xl border border-stone-200 bg-white p-4">
+                    <p className="mb-1 text-sm text-slate-600">Artikel bulan ini</p>
+                    <p className="text-2xl font-black text-amber-700">{usageData.reduce((s, d) => s + d.articles, 0)}</p>
                   </div>
-                  <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-4">
-                    <p className="text-xs text-slate-500 mb-1">Kredit terpakai bulan ini</p>
-                    <p className="text-2xl font-black text-amber-400">
-                      {usageData.reduce((s, d) => s + d.credits, 0)} 💎
-                    </p>
+                  <div className="rounded-xl border border-stone-200 bg-white p-4">
+                    <p className="mb-1 text-sm text-slate-600">Kata tersisa</p>
+                    <p className="text-2xl font-black text-amber-700">{wordsRemaining !== null ? wordsRemaining.toLocaleString("id-ID") : "—"}</p>
                   </div>
                 </div>
 
                 <div>
-                  <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Pemakaian 30 Hari Terakhir</p>
+                  <p className="text-sm font-semibold text-slate-700 mb-3">Pemakaian 30 Hari Terakhir</p>
                   <div className="h-52">
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={usageData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#1e2535" />
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
                         <XAxis dataKey="date" tick={{ fill: "#475569", fontSize: 10 }}
                           tickLine={false} axisLine={false}
                           interval={Math.floor(usageData.length / 6)} />
                         <YAxis tick={{ fill: "#475569", fontSize: 10 }} tickLine={false} axisLine={false} />
                         <Tooltip
-                          contentStyle={{ background: "#0f1117", border: "1px solid #1e293b", borderRadius: "8px", fontSize: "12px" }}
-                          labelStyle={{ color: "#94a3b8" }}
+                          contentStyle={{ background: "#ffffff", border: "1px solid #d6d3d1", borderRadius: "8px", fontSize: "12px" }}
+                          labelStyle={{ color: "#475569" }}
                           itemStyle={{ color: "#f59e0b" }} />
                         <Line type="monotone" dataKey="articles" stroke="#f59e0b" strokeWidth={2} dot={false} name="Artikel" />
-                        <Line type="monotone" dataKey="credits" stroke="#3b82f6" strokeWidth={2} dot={false} name="Kredit" />
+
                       </LineChart>
                     </ResponsiveContainer>
                   </div>
                   <div className="flex gap-4 mt-2 justify-center">
-                    <div className="flex items-center gap-1.5 text-[11px] text-slate-400"><span className="w-3 h-0.5 bg-amber-500 inline-block" />Artikel</div>
-                    <div className="flex items-center gap-1.5 text-[11px] text-slate-400"><span className="w-3 h-0.5 bg-blue-500 inline-block" />Kredit</div>
+                    <div className="flex items-center gap-1.5 text-xs text-slate-500"><span className="w-3 h-0.5 bg-amber-500 inline-block" />Artikel</div>
+
                   </div>
                 </div>
               </div>
@@ -372,14 +372,14 @@ export default function SettingsPage() {
             {/* ─── NOTIFIKASI ─── */}
             {activeTab === "Notifikasi" && (
               <div className="flex flex-col gap-5">
-                <p className="text-sm text-slate-400">Kelola preferensi notifikasi email kamu.</p>
+                <p className="text-sm text-slate-500">Kelola preferensi notifikasi email kamu.</p>
                 {[
                   { label: "Newsletter & Update Produk", desc: "Info fitur baru, tips SEO, dan promo", val: notifNewsletter, set: setNotifNewsletter },
                   { label: "Email Setelah Artikel Selesai", desc: "Notifikasi saat artikel berhasil digenerate", val: notifArticle, set: setNotifArticle },
                 ].map(n => (
-                  <div key={n.label} className="flex items-center justify-between bg-slate-900/50 border border-slate-800 rounded-xl p-4">
+                  <div key={n.label} className="flex items-center justify-between bg-white border border-stone-200 rounded-xl p-4">
                     <div>
-                      <p className="text-sm font-semibold text-white">{n.label}</p>
+                      <p className="text-sm font-semibold text-slate-900">{n.label}</p>
                       <p className="text-xs text-slate-500 mt-0.5">{n.desc}</p>
                     </div>
                     <button onClick={() => n.set(!n.val)}
@@ -392,7 +392,7 @@ export default function SettingsPage() {
                   className="w-fit bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold text-sm px-5 py-2.5 rounded-xl transition-all disabled:opacity-60">
                   {savingNotif ? "Menyimpan..." : "Simpan Preferensi"}
                 </button>
-                <p className="text-xs text-slate-600">Email notifikasi akan dikirim ke {profile?.email}. Fitur email aktif saat Resend API dikonfigurasi.</p>
+                <p className="text-xs text-slate-500">Email notifikasi akan dikirim ke {profile?.email}. Fitur email aktif saat Resend API dikonfigurasi.</p>
               </div>
             )}
           </div>
