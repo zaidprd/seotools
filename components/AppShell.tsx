@@ -43,7 +43,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     const sb = createClient();
     sb.auth.getUser().then(({ data: { user } }) => {
       if (!user) { router.push("/login"); return; }
-      fetch(`/api/user`).then(r => r.json()).then(setUserInfo);
+      fetch(`/api/user`)
+        .then(async r => r.ok ? r.json() : null)
+        .then(data => data && setUserInfo(data));
     });
   }, []);
 
@@ -150,7 +152,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-semibold text-white truncate">
-                    {userInfo.full_name || userInfo.email.split("@")[0]}
+                    {userInfo.full_name || userInfo.email?.split("@")[0] || "Pengguna"}
                   </p>
                   <span className={`inline-flex text-[9px] font-bold px-1.5 py-0.5 rounded border ${planBadge}`}>
                     {planLabel}
