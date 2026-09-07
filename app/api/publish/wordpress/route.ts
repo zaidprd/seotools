@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/supabase/require-auth";
 import { validateOutboundUrl } from "@/lib/validate-url";
 import { checkPlanStatus } from "@/lib/plan-status";
-import { createClient } from "@supabase/supabase-js";
+import { replaceJsonLdWithArticleSchema } from "@/lib/wp-publish";
 
 export const runtime = "nodejs";
 
@@ -71,19 +71,12 @@ export async function POST(req: NextRequest) {
     const { user, errorResponse } = await requireAuth();
     if (errorResponse) return errorResponse;
 
-    // Paket trial yang sudah dibayar juga berhak mempublikasikan artikelnya.
     const planStatus = await checkPlanStatus(user.id);
-    let hasPaidTrial = false;
-    if (!planStatus.isAdmin && planStatus.plan === "free") {
-      const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
-      const { data } = await sb.from("payments").select("id").eq("user_id", user.id).eq("product_id", "trial_article").eq("status", "paid").limit(1).maybeSingle();
-      hasPaidTrial = Boolean(data);
-    }
-    if (!planStatus.isAdmin && planStatus.plan === "free" && !hasPaidTrial) {
-      return NextResponse.json({ error: "Publish ke WordPress memerlukan paket atau artikel trial aktif." }, { status: 403 });
-    }
-    if (!planStatus.isAdmin && !hasPaidTrial && planStatus.isExpired) {
-      return NextResponse.json({ error: "Paket kamu sudah expired. Silakan perpanjang untuk melanjutkan." }, { status: 403 });
+    if (!planStatus.isAdmin && (planStatus.plan === "free" || planStatus.isExpired)) {
+      return NextResponse.json(
+        { error: "Publish ke WordPress memerlukan paket aktif." },
+        { status: 403 }
+      );
     }
 
     const { site, post }: {
@@ -105,6 +98,8 @@ export async function POST(req: NextRequest) {
 
     // Upload featured image dan gambar body secara terpisah.
     let content = post.content;
+    // Do not publish JSON-LD supplied by the client. Rebuild the constrained schema
+    // from the final content after image processing instead.
     let featuredMediaId = post.featuredMediaId;
     if (!featuredMediaId && post.featuredImageDataUrl) {
       featuredMediaId = await uploadDataImage(post.featuredImageDataUrl, urlCheck.url.origin, auth, "featured-artikel");
@@ -113,6 +108,7 @@ export async function POST(req: NextRequest) {
     if (/<img[^>]+src="data:[^"]+;base64,/.test(content)) {
       content = await uploadBase64Images(content, urlCheck.url.origin, auth);
     }
+    content = replaceJsonLdWithArticleSchema(content, post.title, post.focusKeyword);
 
     const wpBody: Record<string, unknown> = {
       title: post.title,

@@ -145,6 +145,10 @@ export default function DocumentsPage() {
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onClick={() => router.push(`/dashboard/articles/${a.id}`)}
+                              className="text-[11px] text-amber-400 hover:text-amber-300 border border-amber-500/20 hover:border-amber-500/40 px-2 py-1 rounded-lg transition-all">
+                              Editor
+                            </button>
                             <button onClick={() => handleCopyId(a.id)}
                               className="text-[11px] text-slate-400 hover:text-white border border-slate-700 hover:border-slate-600 px-2 py-1 rounded-lg transition-all">
                               {copied === a.id ? "✓" : "ID"}

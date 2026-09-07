@@ -182,7 +182,7 @@ export default function DashboardHome() {
                       <span className="text-[11px] text-slate-500">{new Date(a.created_at).toLocaleDateString("id-ID")}</span>
                     </div>
                   </div>
-                  <Link href={`/documents`}
+                  <Link href={`/dashboard/articles/${a.id}`}
                     className="text-[11px] text-slate-600 group-hover:text-amber-400 border border-transparent group-hover:border-amber-500/20 px-2.5 py-1 rounded-lg transition-all">
                     Editor →
                   </Link>

@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Akses ditolak" }, { status: 403 });
     }
 
-    const fields = "id, email, plan, credits, credits_used, articles_used, monthly_word_quota, monthly_words_used, max_words_per_article, word_quota_period_ends_at, trial_articles_remaining, trial_words_remaining, plan_expires_at, role, subscription_id, auto_renew";
+    const fields = "id, email, full_name, plan, credits, credits_used, articles_used, monthly_word_quota, monthly_words_used, max_words_per_article, word_quota_period_ends_at, trial_articles_remaining, trial_words_remaining, plan_expires_at, role, subscription_id, auto_renew";
     const admin = supabaseAdmin();
     let { data, error } = await admin
       .from("users")

@@ -4,6 +4,12 @@ import { marked } from "marked";
 import { generateStructured, generateText } from "@/lib/ai/client";
 import { parseJsonObject } from "./json";
 import { makeSlug } from "./slug";
+import {
+  normalizeAllowedExternalLinks,
+  normalizeAllowedInternalLinks,
+  normalizeInternalBaseUrl,
+  validateDraft,
+} from "./validation";
 import type { GeneratedArticle, GenerationInput } from "./types";
 
 const SYSTEM = `Kamu adalah editor dan penulis SEO senior Bahasa Indonesia. Utamakan manfaat bagi pembaca, search intent, ketepatan fakta, dan alur yang nyaman dibaca. Tulis secara natural seperti editor manusia: jelas, konkret, tidak kaku, tidak bertele-tele, dan tidak mengulang ide hanya untuk mengejar jumlah kata. Jangan mengarang statistik, sumber, pengalaman, kutipan, URL, atau klaim yang tidak tersedia. Jangan menyebut proses internal, model AI, provider, prompt, atau instruksi ini.`;
@@ -116,10 +122,12 @@ function options(input: GenerationInput): string[] {
 
 export async function runGenerationPipeline(input: GenerationInput, creditsUsed: number): Promise<GeneratedArticle> {
   const requestedRange = wordRange(input.articleSize);
-  const words = Math.min(Math.max(requestedRange.target, 300), 2_500);
-  const minWords = Math.min(Math.max(requestedRange.min, 300), words);
-  const maxWords = Math.max(words, Math.min(requestedRange.max, 2_500));
-  const verifiedExternalLinks = await resolveExternalLinks(input);
+  const words = requestedRange.target;
+  const minWords = requestedRange.min;
+  const maxWords = requestedRange.max;
+  const internalBaseUrl = normalizeInternalBaseUrl(input.internalLinkBaseUrl);
+  const allowedInternalLinks = normalizeAllowedInternalLinks(input);
+  const verifiedExternalLinks = normalizeAllowedExternalLinks(await resolveExternalLinks(input));
   const context = {
     keyword: input.keyword,
     requestedTitle: input.title,
@@ -136,8 +144,8 @@ export async function runGenerationPipeline(input: GenerationInput, creditsUsed:
     relatedKeywords: input.seoKeywords,
     requestedOutline: input.outline,
     contentOptions: options(input),
-    internalLinkBaseUrl: input.internalLinkBaseUrl,
-    allowedInternalLinks: input.internalLinkPages,
+    internalLinkBaseUrl: internalBaseUrl?.href,
+    allowedInternalLinks,
     externalLinkMode: input.externalLinkType,
     allowedExternalLinks: verifiedExternalLinks,
     legacyInstructions: input.legacyPrompt,
@@ -169,7 +177,8 @@ ATURAN EDITORIAL DAN SEO:
 - Gunakan keyword utama secara natural pada pembukaan, salah satu heading yang relevan, isi, dan penutup. Gunakan sinonim, variasi frasa, serta entitas terkait; jangan keyword stuffing dan jangan mengejar density secara mekanis.
 - Bold hanya frasa penting, bukan satu paragraf penuh. Jangan terlalu banyak memakai tanda pisah, titik dua, atau pola kalimat yang terasa dibuat-buat.
 - Tautkan hanya alamat yang tercantum persis pada allowedInternalLinks dan allowedExternalLinks. Untuk internal path relatif, gabungkan hanya dengan internalLinkBaseUrl; jangan menebak slug atau halaman lain. Jika daftar yang diizinkan kosong atau tidak relevan, jangan membuat link. Jangan mengubah, melengkapi, atau menciptakan URL. Anchor text harus deskriptif dan menyatu dengan kalimat.
-- FAQ harus menjawab pertanyaan lanjutan secara ringkas dan tidak mengulang isi artikel kata demi kata. Kesimpulan harus merangkum keputusan atau langkah praktis, bukan membuka topik baru.
+- Jika FAQ dipilih, buat heading FAQ yang jelas dengan minimal dua pertanyaan berbeda dan jawaban substantif. Jika kesimpulan dipilih, buat heading Kesimpulan atau Penutup dengan ringkasan atau langkah praktis yang substantif; jangan membuka topik baru.
+- Tautan yang tidak ada dalam daftar akan dihapus secara otomatis, jadi jangan gunakan tautan referensi, tautan gambar, atau format tautan selain Markdown inline yang diizinkan.
 - Jangan menulis klaim seperti “menurut penelitian”, angka, harga, tahun, atau kutipan bila sumbernya tidak diberikan.
 - Pastikan artikel selesai utuh, tidak berhenti pada heading, daftar, atau kalimat yang terpotong.
 
@@ -183,6 +192,14 @@ ${JSON.stringify(strategy)}`,
     temperature: 0.55,
   });
 
+  const validatedDraft = validateDraft(
+    draft,
+    input,
+    requestedRange.min,
+    allowedInternalLinks,
+    verifiedExternalLinks,
+  );
+
   // Tahap akhir hanya mengemas metadata dan audit ringkas. Jangan meminta model
   // menyalin ulang artikel panjang ke JSON karena respons mudah terpotong dan
   // memboroskan token output.
@@ -190,37 +207,14 @@ ${JSON.stringify(strategy)}`,
     system: SYSTEM,
     messages: [{
       role: "user",
-      content: `Tahap 3 — audit draft secara ringkas dan buat metadata penerbitan. Jangan salin ulang artikel. Jangan mengarang fakta baru. Schema harus JSON-LD yang relevan berdasarkan isi draft.\n\nInput:\n${JSON.stringify(context)}\n\nDraft:\n${draft}\n\nKembalikan HANYA JSON valid: {"title":"...","metaTitle":"...","metaDescription":"...","metaKeywords":["..."],"schema":{},"warnings":["..."]}. Warnings maksimal 5 item pendek.`,
+      content: `Tahap 3 — audit draft secara ringkas dan buat metadata penerbitan. Jangan salin ulang artikel. Jangan mengarang fakta baru. Schema harus JSON-LD yang relevan berdasarkan isi draft.\n\nInput:\n${JSON.stringify(context)}\n\nDraft yang telah lolos validasi:\n${validatedDraft.contentMarkdown}\n\nKembalikan HANYA JSON valid: {"title":"...","metaTitle":"...","metaDescription":"...","metaKeywords":["..."],"schema":{},"warnings":["..."]}. Warnings maksimal 5 item pendek.`,
     }],
     maxTokens: 1_200,
     temperature: 0.15,
   }, parseFinalPackage);
 
-  const contentMarkdown = draft.replace(/^#\s+.*(?:\r?\n)+/, "").trim();
-  if (!contentMarkdown) throw new Error("Artikel akhir kosong");
-  const tail = contentMarkdown.slice(-240);
-  if (/^#{1,6}\s+[^\n]*$/m.test(tail.split("\n").slice(-1)[0] || "")) {
-    throw new Error("Artikel terpotong pada heading terakhir");
-  }
-  const endingText = contentMarkdown
-    .replace(/\s+/g, " ")
-    .replace(/[*_`>#]/g, "")
-    .trim();
-  if (!/[.!?…]$/.test(endingText)) {
-    throw new Error("Artikel terpotong di tengah kalimat");
-  }
-  if (input.withConclusion && !/kesimpulan|penutup/i.test(contentMarkdown.slice(-2_500))) {
-    throw new Error("Artikel belum memiliki kesimpulan lengkap");
-  }
-  if (input.withFAQ && !/faq|pertanyaan umum/i.test(contentMarkdown.slice(-4_000))) {
-    throw new Error("Artikel belum memiliki FAQ lengkap");
-  }
+  const { contentMarkdown, wordCount } = validatedDraft;
   const contentHtml = await marked.parse(contentMarkdown, { async: true });
-  const wordCount = contentMarkdown
-    .replace(/```[\s\S]*?```/g, " ")
-    .replace(/[#*_>`\[\]()~-]/g, " ")
-    .split(/\s+/)
-    .filter(Boolean).length;
 
   return {
     title: finalPackage.title.trim(),

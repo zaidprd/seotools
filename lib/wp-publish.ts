@@ -93,36 +93,84 @@ export async function uploadImagesToWP(
   return { html: result, firstMediaId };
 }
 
-// Bangun structured data JSON-LD (Article + FAQPage) dari markdown artikel.
-// FAQ diambil dari pasangan "**P: ...?**" / "**A:** ...". Hasilnya tag <script> siap
-// ditempel ke akhir konten WordPress — sinyal kuat untuk rich result & AI Overview 2026.
-export function buildJsonLd(md: string, title: string, keyword?: string): string {
-  const faqs: { q: string; a: string }[] = [];
+type Faq = { question: string; answer: string };
+type JsonLdNode = Record<string, unknown>;
+
+const MAX_HEADLINE_LENGTH = 110;
+const MAX_KEYWORD_LENGTH = 120;
+const MAX_FAQS = 10;
+const MAX_FAQ_QUESTION_LENGTH = 300;
+const MAX_FAQ_ANSWER_LENGTH = 2_000;
+
+function normalizeSchemaText(value: string, maxLength: number): string {
+  return value
+    .replace(/<[^>]*>/g, " ")
+    .replace(/[*_#>`]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, maxLength);
+}
+
+function extractFaqs(markdown: string): Faq[] {
+  const faqs: Faq[] = [];
   const re = /\*\*P:\s*([^*\n]+?)\*\*\s*\n+\s*\*\*A:\*\*\s*([\s\S]*?)(?=\n\s*\*\*P:|\n#{1,3}\s|\n\n\n|$)/gi;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(md)) !== null) {
-    const q = m[1].trim().replace(/\s+/g, " ");
-    const a = m[2].trim().replace(/[*_#>]/g, "").replace(/\s+/g, " ");
-    if (q && a) faqs.push({ q, a });
+  let match: RegExpExecArray | null;
+
+  while ((match = re.exec(markdown)) !== null && faqs.length < MAX_FAQS) {
+    const question = normalizeSchemaText(match[1], MAX_FAQ_QUESTION_LENGTH);
+    const answer = normalizeSchemaText(match[2], MAX_FAQ_ANSWER_LENGTH);
+    if (question && answer) faqs.push({ question, answer });
   }
-  const graph: Record<string, unknown>[] = [{
+
+  return faqs;
+}
+
+function createArticleSchema(title: string, keyword?: string, faqs: Faq[] = []): JsonLdNode[] {
+  const headline = normalizeSchemaText(title, MAX_HEADLINE_LENGTH);
+  if (!headline) return [];
+
+  const normalizedKeyword = keyword ? normalizeSchemaText(keyword, MAX_KEYWORD_LENGTH) : "";
+  const graph: JsonLdNode[] = [{
     "@type": "Article",
-    headline: title.slice(0, 110),
-    ...(keyword ? { keywords: keyword } : {}),
+    headline,
+    ...(normalizedKeyword ? { keywords: normalizedKeyword } : {}),
     dateModified: new Date().toISOString().slice(0, 10),
   }];
+
   if (faqs.length >= 2) {
     graph.push({
       "@type": "FAQPage",
-      mainEntity: faqs.map(f => ({
+      mainEntity: faqs.map(({ question, answer }) => ({
         "@type": "Question",
-        name: f.q,
-        acceptedAnswer: { "@type": "Answer", text: f.a },
+        name: question,
+        acceptedAnswer: { "@type": "Answer", text: answer },
       })),
     });
   }
-  const json = JSON.stringify({ "@context": "https://schema.org", "@graph": graph });
+
+  return graph;
+}
+
+function serializeJsonLd(graph: JsonLdNode[]): string {
+  if (graph.length === 0) return "";
+  // Escape '<' so serialized data cannot terminate the script element.
+  const json = JSON.stringify({ "@context": "https://schema.org", "@graph": graph }).replace(/</g, "\\u003c");
   return `\n<script type="application/ld+json">${json}</script>`;
+}
+
+// Build constrained JSON-LD from article markdown, rather than accepting schema text.
+export function buildJsonLd(markdown: string, title: string, keyword?: string): string {
+  return serializeJsonLd(createArticleSchema(title, keyword, extractFaqs(markdown)));
+}
+
+// Remove client-provided JSON-LD and attach only the validated Article schema.
+// The server uses this with the final HTML sent to WordPress.
+export function replaceJsonLdWithArticleSchema(html: string, title: string, keyword?: string): string {
+  const content = html.replace(
+    /\s*<script\b(?=[^>]*\btype\s*=\s*(?:"application\/ld\+json"|'application\/ld\+json'|application\/ld\+json\b))[^>]*>[\s\S]*?<\/script\s*>/gi,
+    ""
+  );
+  return `${content}${serializeJsonLd(createArticleSchema(title, keyword))}`;
 }
 
 // Hitung waktu tayang terjadwal untuk artikel ke-`index` (0-based).
