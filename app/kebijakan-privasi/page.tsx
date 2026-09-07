@@ -7,13 +7,13 @@ export const metadata = {
 
 export default function KebijakanPrivasi() {
   return (
-    <div className="min-h-screen bg-[#f7f4ed] text-slate-700" style={{ fontFamily: "'DM Sans',sans-serif" }}>
+    <div className="min-h-screen bg-[#f8fafc] text-slate-700">
       <header className="border-b border-stone-200 px-6 py-4">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-amber-500 flex items-center justify-center font-black text-[#0c0e14] text-sm">A</div>
-            <span className="font-black tracking-tight" style={{ fontFamily: "Sora,sans-serif" }}>
-              <span className="text-slate-900">Artikel</span><span className="text-amber-700"> SEO</span>
+            <div className="w-7 h-7 rounded-lg bg-emerald-500 flex items-center justify-center font-black text-[#0c0e14] text-sm">A</div>
+            <span className="font-black tracking-tight">
+              <span className="text-slate-900">Artikel</span><span className="text-emerald-700"> SEO</span>
             </span>
           </Link>
           <Link href="/" className="text-sm text-slate-500 hover:text-slate-900 transition-colors">← Kembali</Link>
@@ -22,7 +22,7 @@ export default function KebijakanPrivasi() {
 
       <main className="max-w-4xl mx-auto px-6 py-12">
         <div className="mb-10">
-          <h1 className="text-3xl font-black text-slate-900 mb-3" style={{ fontFamily: "Sora,sans-serif" }}>Kebijakan Privasi</h1>
+          <h1 className="text-3xl font-black text-slate-900 mb-3">Kebijakan Privasi</h1>
           <p className="text-slate-500 text-sm">Berlaku efektif: 1 Januari 2026 · Terakhir diperbarui: 4 Juni 2026</p>
         </div>
 
@@ -111,7 +111,7 @@ export default function KebijakanPrivasi() {
               <li><strong className="text-slate-900">Portabilitas:</strong> Mengekspor riwayat artikel Anda</li>
               <li><strong className="text-slate-900">Pembatasan:</strong> Membatasi pemrosesan data dalam kondisi tertentu</li>
             </ul>
-            <p className="mt-2">Ajukan permintaan melalui <a href="mailto:support@zaidly.com" className="text-amber-700 hover:underline">support@zaidly.com</a>. Kami akan merespons dalam 7 hari kerja.</p>
+            <p className="mt-2">Ajukan permintaan melalui <a href="mailto:support@zaidly.com" className="text-emerald-700 hover:underline">support@zaidly.com</a>. Kami akan merespons dalam 7 hari kerja.</p>
           </section>
 
           <section>
@@ -132,7 +132,7 @@ export default function KebijakanPrivasi() {
           <section>
             <h2 className="text-lg font-bold text-slate-900 mb-3">10. Kontak</h2>
             <p>Untuk pertanyaan, permintaan data, atau laporan pelanggaran privasi, hubungi kami di:</p>
-            <p className="mt-2"><a href="mailto:support@zaidly.com" className="text-amber-700 hover:underline">support@zaidly.com</a></p>
+            <p className="mt-2"><a href="mailto:support@zaidly.com" className="text-emerald-700 hover:underline">support@zaidly.com</a></p>
           </section>
         </div>
       </main>

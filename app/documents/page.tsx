@@ -69,16 +69,16 @@ export default function DocumentsPage() {
 
   return (
     <AppShell>
-      <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8" style={{ fontFamily: "'DM Sans',sans-serif" }}>
+      <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-black text-slate-900" style={{ fontFamily: "Sora,sans-serif" }}>Dokumen</h1>
+            <h1 className="text-3xl font-black text-slate-900">Dokumen</h1>
             <p className="text-slate-500 text-sm">{total} artikel tersimpan</p>
           </div>
           <button onClick={() => router.push("/dashboard/generate")}
-            className="min-h-11 bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold text-sm px-4 py-2.5 rounded-xl transition-all hover:shadow-lg hover:shadow-amber-500/25 flex items-center gap-2">
-            ✦ Buat artikel baru
+            className="min-h-11 bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold text-sm px-4 py-2.5 rounded-xl transition-all  flex items-center gap-2">
+            ＋ Buat artikel baru
           </button>
         </div>
 
@@ -87,20 +87,20 @@ export default function DocumentsPage() {
           <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm">🔍</span>
           <input value={search} onChange={e => { setSearch(e.target.value); setPage(0); }}
             placeholder="Cari berdasarkan judul atau kata kunci..."
-            className="h-11 w-full bg-white border border-stone-200 text-slate-800 text-sm rounded-xl pl-9 pr-4 focus:outline-none focus:border-amber-500/40 placeholder-stone-400" />
+            className="h-11 w-full bg-white border border-stone-200 text-slate-800 text-sm rounded-xl pl-9 pr-4 focus:outline-none focus:border-emerald-500/40 placeholder-stone-400" />
         </div>
 
         {/* Table */}
         <div className="bg-white border border-stone-200 rounded-2xl overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center py-16">
-              <div className="w-6 h-6 rounded-full border-2 border-stone-300 border-t-amber-500 animate-spin" />
+              <div className="w-6 h-6 rounded-full border-2 border-stone-300 border-t-emerald-500 animate-spin" />
             </div>
           ) : articles.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 gap-3">
-              <p className="text-3xl">📝</p>
+              <p className="text-3xl">▤</p>
               <p className="text-slate-500 text-sm">{search ? "Tidak ada hasil ditemukan" : "Belum ada artikel"}</p>
-              {!search && <button onClick={() => router.push("/dashboard/generate")} className="text-amber-700 text-xs hover:text-amber-800">Buat artikel pertama →</button>}
+              {!search && <button onClick={() => router.push("/dashboard/generate")} className="text-emerald-700 text-xs hover:text-emerald-800">Buat artikel pertama →</button>}
             </div>
           ) : (
             <>
@@ -108,7 +108,7 @@ export default function DocumentsPage() {
                 {articles.map(a => <article key={a.id} className="rounded-xl border border-stone-200 bg-white p-4 shadow-sm">
                   <div className="flex items-start justify-between gap-3"><div className="min-w-0"><h2 className="truncate text-base font-bold text-slate-900">{a.title || "Tanpa judul"}</h2><p className="mt-1 truncate text-sm text-slate-500">{a.keyword || "Tanpa kata kunci"}</p></div>{a.published_to ? <span className="flex-shrink-0 rounded-full bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-700">Terbit</span> : <span className="flex-shrink-0 rounded-full bg-stone-100 px-2 py-1 text-xs font-semibold text-slate-600">Draf</span>}</div>
                   <dl className="mt-4 grid grid-cols-2 gap-3 border-y border-stone-100 py-3 text-sm"><div><dt className="text-slate-500">Jumlah kata</dt><dd className="font-semibold text-slate-800">{(a.word_count || 0).toLocaleString("id-ID")}</dd></div><div><dt className="text-slate-500">Dibuat</dt><dd className="font-semibold text-slate-800">{new Date(a.created_at).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })}</dd></div></dl>
-                  <div className="mt-4 grid grid-cols-[1fr_44px_44px] gap-2"><button onClick={() => router.push(`/dashboard/articles/${a.id}`)} className="min-h-11 rounded-lg bg-amber-500 px-4 text-sm font-bold text-slate-950">Buka editor</button><button onClick={() => handleCopyId(a.id)} aria-label="Salin ID artikel" className="grid h-11 w-11 place-items-center rounded-lg border border-stone-300 text-sm font-semibold text-slate-700">{copied === a.id ? "✓" : "ID"}</button><button onClick={() => deleteId === a.id ? handleDelete(a.id) : setDeleteId(a.id)} aria-label={deleteId === a.id ? "Konfirmasi hapus artikel" : "Hapus artikel"} className={`grid h-11 w-11 place-items-center rounded-lg border text-sm ${deleteId === a.id ? "border-red-300 bg-red-50 text-red-700" : "border-stone-300 text-slate-600"}`}>{deleteId === a.id ? "✓" : "×"}</button></div>
+                  <div className="mt-4 grid grid-cols-[1fr_44px_44px] gap-2"><button onClick={() => router.push(`/dashboard/articles/${a.id}`)} className="min-h-11 rounded-lg bg-emerald-500 px-4 text-sm font-bold text-slate-950">Buka editor</button><button onClick={() => handleCopyId(a.id)} aria-label="Salin ID artikel" className="grid h-11 w-11 place-items-center rounded-lg border border-stone-300 text-sm font-semibold text-slate-700">{copied === a.id ? "✓" : "ID"}</button><button onClick={() => deleteId === a.id ? handleDelete(a.id) : setDeleteId(a.id)} aria-label={deleteId === a.id ? "Konfirmasi hapus artikel" : "Hapus artikel"} className={`grid h-11 w-11 place-items-center rounded-lg border text-sm ${deleteId === a.id ? "border-red-300 bg-red-50 text-red-700" : "border-stone-300 text-slate-600"}`}>{deleteId === a.id ? "✓" : "×"}</button></div>
                 </article>)}
               </div>
               <div className="hidden overflow-x-auto md:block">
@@ -145,7 +145,7 @@ export default function DocumentsPage() {
                         <td className="px-4 py-3">
                           <div className="flex items-center justify-end gap-1.5">
                             <button onClick={() => router.push(`/dashboard/articles/${a.id}`)}
-                              className="min-h-11 text-sm text-amber-700 hover:text-amber-800 border border-amber-500/20 hover:border-amber-500/40 px-3 py-2 rounded-lg transition-all">
+                              className="min-h-11 text-sm text-emerald-700 hover:text-emerald-800 border border-emerald-500/20 hover:border-emerald-500/40 px-3 py-2 rounded-lg transition-all">
                               Editor
                             </button>
                             <button onClick={() => handleCopyId(a.id)}
@@ -186,7 +186,7 @@ export default function DocumentsPage() {
                       const p = Math.max(0, Math.min(page - 2, totalPages - 5)) + i;
                       return (
                         <button key={p} onClick={() => setPage(p)}
-                          className={`text-xs px-3 py-1.5 border rounded-lg transition-all ${p === page ? "border-amber-500/40 bg-amber-500/10 text-amber-700" : "border-stone-200 text-slate-500 hover:border-stone-300 hover:text-slate-900"}`}>
+                          className={`text-xs px-3 py-1.5 border rounded-lg transition-all ${p === page ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-700" : "border-stone-200 text-slate-500 hover:border-stone-300 hover:text-slate-900"}`}>
                           {p + 1}
                         </button>
                       );

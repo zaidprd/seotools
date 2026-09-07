@@ -109,7 +109,7 @@ export default function AccountPage() {
   const planColor = isAdmin
     ? "text-yellow-300 bg-yellow-500/10 border-yellow-500/30"
     : isPro
-      ? "text-amber-700 bg-amber-500/10 border-amber-500/30"
+      ? "text-emerald-700 bg-emerald-500/10 border-emerald-500/30"
       : "text-slate-500 bg-stone-100 border-stone-300";
   const planLabel = isAdmin ? "OWNER" : (profile?.plan || "free").toUpperCase();
 
@@ -122,7 +122,7 @@ export default function AccountPage() {
 
   return (
     <AppShell>
-      <div className="p-6 max-w-3xl mx-auto" style={{ fontFamily: "'DM Sans',sans-serif" }}>
+      <div className="p-6 max-w-3xl mx-auto">
 
         {/* Banner expired */}
         {isExpired && (
@@ -141,14 +141,14 @@ export default function AccountPage() {
 
         {/* Warning H-7 */}
         {isWarning && !isExpired && (
-          <div className="mb-5 flex items-center gap-3 bg-amber-500/10 border border-amber-500/30 rounded-2xl px-5 py-4">
+          <div className="mb-5 flex items-center gap-3 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl px-5 py-4">
             <span className="text-2xl">⏰</span>
             <div className="flex-1">
-              <p className="text-amber-800 font-bold text-sm">Paket berakhir dalam {daysLeft} hari</p>
-              <p className="text-amber-700/70 text-xs mt-0.5">Perpanjang sekarang agar akses tidak terputus.</p>
+              <p className="text-emerald-800 font-bold text-sm">Paket berakhir dalam {daysLeft} hari</p>
+              <p className="text-emerald-700/70 text-xs mt-0.5">Perpanjang sekarang agar akses tidak terputus.</p>
             </div>
             <button onClick={handleRenew} disabled={renewLoading}
-              className="flex-shrink-0 bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold text-sm px-4 py-2 rounded-xl transition-all disabled:opacity-50">
+              className="flex-shrink-0 bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold text-sm px-4 py-2 rounded-xl transition-all disabled:opacity-50">
               {renewLoading ? "Memproses..." : "Perpanjang"}
             </button>
           </div>
@@ -167,7 +167,7 @@ export default function AccountPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-black text-slate-900" style={{ fontFamily: "Sora,sans-serif" }}>Akun</h1>
+            <h1 className="text-3xl font-black text-slate-900">Akun</h1>
             <p className="text-slate-500 text-sm">Informasi akun dan riwayat aktivitas</p>
           </div>
           <button onClick={logout}
@@ -178,7 +178,7 @@ export default function AccountPage() {
 
         {loading ? (
           <div className="flex items-center justify-center py-20">
-            <div className="w-8 h-8 rounded-full border-2 border-stone-300 border-t-amber-500 animate-spin" />
+            <div className="w-8 h-8 rounded-full border-2 border-stone-300 border-t-emerald-500 animate-spin" />
           </div>
         ) : (
           <div className="flex flex-col gap-5">
@@ -186,7 +186,7 @@ export default function AccountPage() {
             {/* Profil card */}
             <div className="bg-white border border-stone-200 rounded-2xl p-6 flex items-center gap-5">
               <div className={`w-16 h-16 rounded-2xl flex items-center justify-center font-black text-2xl flex-shrink-0 ${
-                isAdmin ? "bg-gradient-to-br from-yellow-400 to-amber-600 text-[#0c0e14]" : "bg-gradient-to-br from-amber-500 to-orange-600 text-[#0c0e14]"
+                isAdmin ? "bg-emerald-500 text-[#0c0e14]" : "bg-emerald-500 text-[#0c0e14]"
               }`}>
                 {isAdmin ? "👑" : name[0]?.toUpperCase() || "U"}
               </div>
@@ -201,7 +201,7 @@ export default function AccountPage() {
                     <span className="text-xs text-yellow-500/60">Unlimited · Akses penuh selamanya</span>
                   )}
                   {!isAdmin && expiresAt && isPro && (
-                    <span className={`text-xs ${isExpired ? "text-red-400" : isWarning ? "text-amber-700" : "text-slate-500"}`}>
+                    <span className={`text-xs ${isExpired ? "text-red-400" : isWarning ? "text-emerald-700" : "text-slate-500"}`}>
                       {isExpired
                         ? `Expired ${expiresAt.toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" })}`
                         : `Berlaku s/d ${expiresAt.toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" })}`
@@ -212,13 +212,13 @@ export default function AccountPage() {
               </div>
               {!isPro && !isAdmin && (
                 <Link href="/pricing"
-                  className="flex-shrink-0 bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold text-sm px-5 py-2.5 rounded-xl transition-all hover:shadow-lg hover:shadow-amber-500/25">
+                  className="flex-shrink-0 bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold text-sm px-5 py-2.5 rounded-xl transition-all ">
                   Upgrade
                 </Link>
               )}
               {isPro && !isAdmin && (
                 <button onClick={handleRenew} disabled={renewLoading}
-                  className="flex-shrink-0 border border-amber-500/30 hover:border-amber-500/60 text-amber-700 hover:bg-amber-500/5 font-semibold text-sm px-5 py-2.5 rounded-xl transition-all disabled:opacity-50">
+                  className="flex-shrink-0 border border-emerald-500/30 hover:border-emerald-500/60 text-emerald-700 hover:bg-emerald-500/5 font-semibold text-sm px-5 py-2.5 rounded-xl transition-all disabled:opacity-50">
                   {renewLoading ? "Memproses..." : "🔄 Perpanjang"}
                 </button>
               )}
@@ -230,13 +230,13 @@ export default function AccountPage() {
                 isExpired
                   ? "bg-red-500/5 border-red-500/20"
                   : isWarning
-                    ? "bg-amber-500/5 border-amber-500/20"
+                    ? "bg-emerald-500/5 border-emerald-500/20"
                     : "bg-white border-stone-200"
               }`}>
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-sm font-bold text-slate-400">Detail paket</h3>
                   {isExpired && <span className="text-xs font-bold text-red-400 bg-red-500/10 px-2 py-0.5 rounded-full border border-red-500/20">EXPIRED</span>}
-                  {isWarning && !isExpired && <span className="text-xs font-bold text-amber-700 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">H-{daysLeft}</span>}
+                  {isWarning && !isExpired && <span className="text-xs font-bold text-emerald-700 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">H-{daysLeft}</span>}
                   {!isExpired && !isWarning && <span className="text-xs font-bold text-emerald-700 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">AKTIF</span>}
                 </div>
                 <div className="grid grid-cols-2 gap-4 text-sm">
@@ -246,7 +246,7 @@ export default function AccountPage() {
                   </div>
                   <div>
                     <p className="text-slate-500 text-xs mb-1">Masa berlaku</p>
-                    <p className={`font-semibold ${isExpired ? "text-red-400" : isWarning ? "text-amber-700" : "text-slate-900"}`}>
+                    <p className={`font-semibold ${isExpired ? "text-red-400" : isWarning ? "text-emerald-700" : "text-slate-900"}`}>
                       {expiresAt
                         ? expiresAt.toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" })
                         : "—"}
@@ -255,7 +255,7 @@ export default function AccountPage() {
                   {daysLeft !== null && !isExpired && (
                     <div>
                       <p className="text-slate-500 text-xs mb-1">Sisa hari</p>
-                      <p className={`font-semibold ${isWarning ? "text-amber-700" : "text-slate-900"}`}>{daysLeft} hari</p>
+                      <p className={`font-semibold ${isWarning ? "text-emerald-700" : "text-slate-900"}`}>{daysLeft} hari</p>
                     </div>
                   )}
                 </div>
@@ -264,7 +264,7 @@ export default function AccountPage() {
                     className={`flex-1 font-bold text-sm py-2.5 rounded-xl transition-all disabled:opacity-50 ${
                       isExpired
                         ? "bg-red-500 hover:bg-red-400 text-slate-900"
-                        : "bg-amber-500 hover:bg-amber-400 text-slate-900"
+                        : "bg-emerald-500 hover:bg-emerald-400 text-slate-900"
                     }`}>
                     {renewLoading ? "Memproses..." : isExpired ? "Aktifkan Kembali" : "🔄 Perpanjang 30 Hari"}
                   </button>
@@ -284,7 +284,7 @@ export default function AccountPage() {
                 { label: "Kata terpakai", value: isAdmin ? "0" : wordQuota !== null ? wordsUsed.toLocaleString("id-ID") : "—", sub: wordQuota !== null ? "periode ini" : "belum ada kuota aktif" },
               ].map(s => (
                 <div key={s.label} className="bg-white border border-stone-200 rounded-2xl p-4 text-center">
-                  <p className="text-2xl font-black text-amber-700">{s.value}</p>
+                  <p className="text-2xl font-black text-emerald-700">{s.value}</p>
                   <p className="text-xs text-slate-500 mt-1">{s.label}</p>
                   <p className="text-xs text-slate-400">{s.sub}</p>
                 </div>
@@ -296,10 +296,10 @@ export default function AccountPage() {
               <div className="bg-white border border-stone-200 rounded-2xl p-5">
                 <div className="flex justify-between text-sm mb-2">
                   <span className="text-slate-600 font-semibold">Pemakaian kata</span>
-                  <span className="text-amber-700 font-bold">{wordQuota !== null ? `${wordsUsed.toLocaleString("id-ID")} / ${wordQuota.toLocaleString("id-ID")} kata` : "Belum tersedia"}</span>
+                  <span className="text-emerald-700 font-bold">{wordQuota !== null ? `${wordsUsed.toLocaleString("id-ID")} / ${wordQuota.toLocaleString("id-ID")} kata` : "Belum tersedia"}</span>
                 </div>
                 <div className="w-full bg-stone-100 rounded-full h-2 mb-2">
-                  <div className={`h-2 rounded-full transition-all ${progressPct > 80 ? "bg-red-500" : progressPct > 60 ? "bg-amber-500" : "bg-emerald-500"}`}
+                  <div className={`h-2 rounded-full transition-all ${progressPct > 80 ? "bg-red-500" : progressPct > 60 ? "bg-emerald-500" : "bg-emerald-500"}`}
                     style={{ width: `${progressPct}%` }} />
                 </div>
                 <p className="text-xs text-slate-500">{wordQuota !== null ? `${wordsRemaining!.toLocaleString("id-ID")} kata tersisa pada periode ini` : "Aktifkan paket untuk mendapatkan kuota kata."}</p>
@@ -316,14 +316,14 @@ export default function AccountPage() {
             <div>
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-xl font-bold text-slate-900">Riwayat artikel</h3>
-                <Link href="/documents" className="text-xs text-amber-700 hover:text-amber-800 transition-colors">Lihat semua →</Link>
+                <Link href="/documents" className="text-xs text-emerald-700 hover:text-emerald-800 transition-colors">Lihat semua →</Link>
               </div>
               <div className="bg-white border border-stone-200 rounded-2xl overflow-hidden">
                 {articles.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-10 gap-2">
-                    <p className="text-2xl">📝</p>
+                    <p className="text-2xl">▤</p>
                     <p className="text-slate-500 text-sm">Belum ada artikel</p>
-                    <Link href="/dashboard/generate" className="text-amber-700 text-xs hover:text-amber-800">Buat artikel pertamamu →</Link>
+                    <Link href="/dashboard/generate" className="text-emerald-700 text-xs hover:text-emerald-800">Buat artikel pertamamu →</Link>
                   </div>
                 ) : (
                   <div className="divide-y divide-slate-800">
@@ -356,7 +356,7 @@ export default function AccountPage() {
                 ⚙️ Pengaturan
               </Link>
               <Link href="/pricing"
-                className="flex items-center justify-center gap-2 border border-amber-500/30 hover:border-amber-500/60 text-amber-700 hover:bg-amber-500/5 text-sm font-semibold px-4 py-3 rounded-xl transition-all">
+                className="flex items-center justify-center gap-2 border border-emerald-500/30 hover:border-emerald-500/60 text-emerald-700 hover:bg-emerald-500/5 text-sm font-semibold px-4 py-3 rounded-xl transition-all">
                 {isPro && !isAdmin ? "Ganti paket" : "Lihat paket"}
               </Link>
             </div>

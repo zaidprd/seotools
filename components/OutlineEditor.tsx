@@ -12,12 +12,12 @@ export default function OutlineEditor({ rows, setRows }: { rows: Row[]; setRows:
   const add = (type: string) => setRows([...rows, { type, text: "" }]);
   const upd = (i: number, v: string) => setRows(rows.map((x, idx) => idx === i ? { ...x, text: v } : x));
   const rm = (i: number) => setRows(rows.filter((_, idx) => idx !== i));
-  const tc: Record<string, string> = { H1: "text-amber-700", H2: "text-blue-400", H3: "text-emerald-700" };
+  const tc: Record<string, string> = { H1: "text-emerald-700", H2: "text-blue-400", H3: "text-emerald-700" };
 
   return (
     <div className="flex flex-col gap-2">
       <div className="flex gap-1.5 flex-wrap">
-        {["H2", "H3", "Paragraf"].map(t => <button key={t} onClick={() => add(t)} className="text-xs px-2.5 py-1 rounded-lg border border-stone-300 hover:border-amber-500/40 text-slate-500 hover:text-amber-700 transition-all">{t}</button>)}
+        {["H2", "H3", "Paragraf"].map(t => <button key={t} onClick={() => add(t)} className="text-xs px-2.5 py-1 rounded-lg border border-stone-300 hover:border-emerald-500/40 text-slate-500 hover:text-emerald-700 transition-all">{t}</button>)}
       </div>
       {rows.length === 0 && <p className="text-xs text-slate-500 text-center py-3">Opsional. Biarkan kosong agar struktur SEO dibuat otomatis.</p>}
       {rows.map((row, i) => (

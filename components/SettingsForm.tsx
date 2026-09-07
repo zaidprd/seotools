@@ -29,9 +29,9 @@ function FetchSitemap({ baseUrl, onFetch }: { baseUrl: string; onFetch: (pages: 
       <div className="flex gap-1.5">
         <input value={sitemapUrl} onChange={e => setSitemapUrl(e.target.value)}
           placeholder={baseUrl ? `${baseUrl.replace(/\/+$/,"")}/sitemap.xml` : "https://example.com/sitemap.xml"}
-          className="flex-1 bg-white border border-stone-300 text-slate-800 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-amber-500/60 placeholder-stone-400" />
+          className="flex-1 bg-white border border-stone-300 text-slate-800 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-emerald-500/60 placeholder-stone-400" />
         <button onClick={fetch_} disabled={loading || !baseUrl}
-          className="flex-shrink-0 text-xs px-2.5 py-1.5 rounded-lg border border-amber-500/30 text-amber-700 hover:bg-amber-500/5 disabled:opacity-40 transition-colors">
+          className="flex-shrink-0 text-xs px-2.5 py-1.5 rounded-lg border border-emerald-500/30 text-emerald-700 hover:bg-emerald-500/5 disabled:opacity-40 transition-colors">
           {loading ? "⟳" : "Fetch"}
         </button>
       </div>
@@ -100,7 +100,7 @@ export default function SettingsForm({ cfg, set, model, setModel, wpSites, addWp
         <label className="text-sm font-semibold text-slate-700 mb-1">Pengantar / Hook</label>
         <div className="flex gap-1 flex-wrap mb-2">
           {["Hook","Pertanyaan","Cerita","Statistik","Kutipan","Pernyataan Berani"].map(t => (
-            <button key={t} onClick={() => f("introType", t)} className={`text-xs px-2 py-1 rounded-lg border transition-all ${cfg.introType===t?"bg-amber-500/15 border-amber-500/40 text-amber-800":"border-stone-300 text-slate-500 hover:border-slate-600"}`}>{t}</button>
+            <button key={t} onClick={() => f("introType", t)} className={`text-xs px-2 py-1 rounded-lg border transition-all ${cfg.introType===t?"bg-emerald-500/15 border-emerald-500/40 text-emerald-800":"border-stone-300 text-slate-500 hover:border-slate-600"}`}>{t}</button>
           ))}
         </div>
         <div className="border-t border-stone-200 pt-2.5 mt-1">
@@ -118,7 +118,7 @@ export default function SettingsForm({ cfg, set, model, setModel, wpSites, addWp
           <div className="flex gap-1">
             {["Tidak Ada", "Manual"].map(m => (
               <button key={m} onClick={() => { f("internalLinkSite", m); if (m === "Tidak Ada") f("internalLinkBaseUrl", ""); }}
-                className={`text-xs px-2.5 py-1 rounded-lg border transition-all flex-1 ${cfg.internalLinkSite === m || (m === "Manual" && cfg.internalLinkSite !== "Tidak Ada") ? "bg-amber-500/15 border-amber-500/40 text-amber-800" : "border-stone-300 text-slate-500 hover:border-slate-600"}`}>
+                className={`text-xs px-2.5 py-1 rounded-lg border transition-all flex-1 ${cfg.internalLinkSite === m || (m === "Manual" && cfg.internalLinkSite !== "Tidak Ada") ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-800" : "border-stone-300 text-slate-500 hover:border-slate-600"}`}>
                 {m}
               </button>
             ))}
@@ -133,7 +133,7 @@ export default function SettingsForm({ cfg, set, model, setModel, wpSites, addWp
                   value={cfg.internalLinkBaseUrl}
                   onChange={e => f("internalLinkBaseUrl", e.target.value)}
                   placeholder="https://example.com"
-                  className="w-full bg-white border border-stone-300 text-slate-800 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-amber-500/60 placeholder-stone-400"
+                  className="w-full bg-white border border-stone-300 text-slate-800 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-500/60 placeholder-stone-400"
                 />
                 {cfg.internalLinkBaseUrl && cfg.internalLinkBaseUrl.includes("//") && (
                   <p className="text-xs text-emerald-500/70 mt-0.5">✓ {cfg.internalLinkBaseUrl.replace(/\/+$/, "")}/path-artikel</p>
@@ -148,7 +148,7 @@ export default function SettingsForm({ cfg, set, model, setModel, wpSites, addWp
                   onChange={e => f("internalLinkPages", e.target.value)}
                   placeholder={`/cara-membuat-blog — Cara Membuat Blog\n/tips-seo — Tips SEO Terbaik\natau tempel URL lengkap satu per baris`}
                   rows={4}
-                  className="w-full bg-white border border-stone-300 text-slate-800 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-amber-500/60 placeholder-stone-400 resize-none"
+                  className="w-full bg-white border border-stone-300 text-slate-800 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-500/60 placeholder-stone-400 resize-none"
                 />
                 <p className="text-xs text-slate-500 mt-1">Satu halaman per baris. Hanya URL/path dalam daftar ini yang boleh digunakan.</p>
               </div>
@@ -165,7 +165,7 @@ export default function SettingsForm({ cfg, set, model, setModel, wpSites, addWp
           <div className="flex gap-1">
             {LINK_TYPES.map(t => (
               <button key={t} onClick={() => f("extLinkType", t)}
-                className={`text-xs px-2 py-1 rounded-lg border transition-all flex-1 ${cfg.extLinkType === t ? "bg-amber-500/15 border-amber-500/40 text-amber-800" : "border-stone-300 text-slate-500 hover:border-slate-600"}`}>
+                className={`text-xs px-2 py-1 rounded-lg border transition-all flex-1 ${cfg.extLinkType === t ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-800" : "border-stone-300 text-slate-500 hover:border-slate-600"}`}>
                 {t}
               </button>
             ))}
@@ -183,7 +183,7 @@ export default function SettingsForm({ cfg, set, model, setModel, wpSites, addWp
                 onChange={e => f("extLinkUrls", e.target.value)}
                 placeholder={"https://wikipedia.org/wiki/topik\nhttps://sumber-terpercaya.com/artikel"}
                 rows={3}
-                className="w-full bg-white border border-stone-300 text-slate-800 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-amber-500/60 placeholder-stone-400 resize-none"
+                className="w-full bg-white border border-stone-300 text-slate-800 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-500/60 placeholder-stone-400 resize-none"
               />
               <p className="text-xs text-slate-500 mt-1">Satu URL lengkap per baris. AI hanya boleh memakai URL yang Anda berikan.</p>
             </div>
@@ -196,7 +196,7 @@ export default function SettingsForm({ cfg, set, model, setModel, wpSites, addWp
         <div className="flex items-center gap-2">
           <p className="text-xs text-slate-500">Simpan ke:</p>
           {["Home","Blog","Produk"].map(d => (
-            <button key={d} onClick={() => f("saveFolder",d)} className={`text-xs px-2.5 py-1 rounded-lg border transition-all ${cfg.saveFolder===d?"bg-amber-500/15 border-amber-500/40 text-amber-800":"border-stone-300 text-slate-500 hover:border-slate-600"}`}>{d}</button>
+            <button key={d} onClick={() => f("saveFolder",d)} className={`text-xs px-2.5 py-1 rounded-lg border transition-all ${cfg.saveFolder===d?"bg-emerald-500/15 border-emerald-500/40 text-emerald-800":"border-stone-300 text-slate-500 hover:border-slate-600"}`}>{d}</button>
           ))}
         </div>
       </Sec>
@@ -214,13 +214,13 @@ export default function SettingsForm({ cfg, set, model, setModel, wpSites, addWp
                   <label className="text-sm font-semibold text-slate-700">Jadwal Publish</label>
                   <input type="datetime-local" value={cfg.scheduleDate || ""}
                     onChange={e => f("scheduleDate", e.target.value)}
-                    className="bg-white border border-stone-300 text-slate-800 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-amber-500/60" />
+                    className="bg-white border border-stone-300 text-slate-800 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-500/60" />
                   <p className="text-xs text-slate-500">Artikel akan dipublikasikan otomatis pada waktu ini.</p>
                 </div>
               ) : (
-                <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg px-3 py-2">
-                  <p className="text-xs text-amber-700 font-bold">🔒 Schedule hanya untuk paket berbayar</p>
-                  <a href="/pricing" className="text-xs text-amber-800 underline">Upgrade ke Starter →</a>
+                <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-lg px-3 py-2">
+                  <p className="text-xs text-emerald-700 font-bold">🔒 Schedule hanya untuk paket berbayar</p>
+                  <a href="/pricing" className="text-xs text-emerald-800 underline">Upgrade ke Starter →</a>
                 </div>
               )
             )}

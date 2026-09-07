@@ -22,16 +22,16 @@ export default function WritingLoader() {
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center gap-7 rounded-2xl border border-stone-200 bg-white p-8 text-center shadow-sm" role="status" aria-live="polite">
-      <div className="relative grid h-16 w-16 place-items-center rounded-2xl bg-amber-50 text-2xl text-amber-700">
-        <span className="animate-pulse">✦</span>
-        <div className="absolute inset-0 rounded-2xl border-2 border-amber-500 border-t-transparent animate-spin" />
+      <div className="relative grid h-16 w-16 place-items-center rounded-2xl bg-emerald-50 text-2xl text-emerald-700">
+        <span className="animate-pulse">＋</span>
+        <div className="absolute inset-0 rounded-2xl border-2 border-emerald-500 border-t-transparent animate-spin" />
       </div>
       <div>
-        <p className="text-lg font-bold text-slate-900" style={{ fontFamily: "Sora, sans-serif" }}>Sedang menyiapkan draf Anda</p>
+        <p className="text-lg font-bold text-slate-900">Sedang menyiapkan draf Anda</p>
         <p className="mt-2 text-sm text-slate-600">{STAGES[stage]}</p>
       </div>
       <ol className="w-full max-w-sm space-y-2 text-left">
-        {STAGES.map((label, index) => <li key={label} className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm ${index === stage ? "bg-amber-50 font-semibold text-amber-900" : index < stage ? "text-emerald-700" : "text-slate-400"}`}><span aria-hidden="true">{index < stage ? "✓" : index === stage ? "●" : "○"}</span>{label}</li>)}
+        {STAGES.map((label, index) => <li key={label} className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm ${index === stage ? "bg-emerald-50 font-semibold text-emerald-900" : index < stage ? "text-emerald-700" : "text-slate-400"}`}><span aria-hidden="true">{index < stage ? "✓" : index === stage ? "●" : "○"}</span>{label}</li>)}
       </ol>
       <p className="text-xs leading-relaxed text-slate-500">Anda boleh tetap di halaman ini. Proses dapat memerlukan waktu berbeda untuk setiap artikel.</p>
     </div>

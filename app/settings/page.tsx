@@ -166,9 +166,9 @@ export default function PengaturanPage() {
 
   return (
     <AppShell>
-      <div className="p-6 max-w-3xl mx-auto" style={{ fontFamily: "'DM Sans',sans-serif" }}>
+      <div className="p-6 max-w-3xl mx-auto">
         <div className="mb-6">
-          <h1 className="text-3xl font-black text-slate-900" style={{ fontFamily: "Sora,sans-serif" }}>Pengaturan</h1>
+          <h1 className="text-3xl font-black text-slate-900">Pengaturan</h1>
           <p className="text-slate-500 text-sm">Kelola profil, integrasi, paket, dan preferensi Anda</p>
         </div>
 
@@ -176,7 +176,7 @@ export default function PengaturanPage() {
         <div className="flex gap-1 bg-white border border-stone-200 rounded-xl p-1 mb-6 overflow-x-auto">
           {TABS.map(tab => (
             <button key={tab} onClick={() => setActiveTab(tab)}
-              className={`flex-shrink-0 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${activeTab === tab ? "bg-amber-500 text-slate-900" : "text-slate-500 hover:text-slate-900"}`}>
+              className={`flex-shrink-0 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${activeTab === tab ? "bg-emerald-500 text-slate-900" : "text-slate-500 hover:text-slate-900"}`}>
               {tab}
             </button>
           ))}
@@ -184,7 +184,7 @@ export default function PengaturanPage() {
 
         {loading ? (
           <div className="flex items-center justify-center py-16">
-            <div className="w-6 h-6 rounded-full border-2 border-stone-300 border-t-amber-500 animate-spin" />
+            <div className="w-6 h-6 rounded-full border-2 border-stone-300 border-t-emerald-500 animate-spin" />
           </div>
         ) : (
           <div className="bg-white border border-stone-200 rounded-2xl p-6">
@@ -196,7 +196,7 @@ export default function PengaturanPage() {
                   <label className="text-sm font-semibold text-slate-700 block mb-1.5">Nama Lengkap</label>
                   <input value={fullName} onChange={e => setFullName(e.target.value)}
                     placeholder="Masukkan nama lengkap..."
-                    className="h-11 w-full bg-white border border-stone-300 text-slate-800 text-sm rounded-xl px-4 focus:outline-none focus:border-amber-500/60 placeholder-stone-400" />
+                    className="h-11 w-full bg-white border border-stone-300 text-slate-800 text-sm rounded-xl px-4 focus:outline-none focus:border-emerald-500/60 placeholder-stone-400" />
                 </div>
                 <div>
                   <label className="text-sm font-semibold text-slate-700 block mb-1.5">Email</label>
@@ -204,7 +204,7 @@ export default function PengaturanPage() {
                     className="h-11 w-full bg-white border border-stone-200 text-slate-500 text-sm rounded-xl px-4 cursor-not-allowed" />
                 </div>
                 <button onClick={saveProfil} disabled={savingProfil}
-                  className="w-fit bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold text-sm px-5 py-2.5 rounded-xl transition-all disabled:opacity-60">
+                  className="w-fit bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold text-sm px-5 py-2.5 rounded-xl transition-all disabled:opacity-60">
                   {savingProfil ? "Menyimpan..." : "Simpan Profil"}
                 </button>
                 {profileMsg && <p className={`text-sm ${profileMsg.type === "ok" ? "text-emerald-700" : "text-red-400"}`}>{profileMsg.text}</p>}
@@ -214,7 +214,7 @@ export default function PengaturanPage() {
                   <div className="flex gap-2">
                     <input type="password" value={newPwd} onChange={e => setNewPwd(e.target.value)}
                       placeholder="Password baru (min 6 karakter)"
-                      className="flex-1 bg-white border border-stone-300 text-slate-800 text-sm rounded-xl px-4 py-2.5 focus:outline-none focus:border-amber-500/60 placeholder-stone-400" />
+                      className="flex-1 bg-white border border-stone-300 text-slate-800 text-sm rounded-xl px-4 py-2.5 focus:outline-none focus:border-emerald-500/60 placeholder-stone-400" />
                     <button onClick={updatePassword} disabled={savingPwd || !newPwd}
                       className="bg-stone-100 hover:bg-slate-700 border border-stone-300 text-slate-800 font-semibold text-sm px-4 py-2.5 rounded-xl transition-all disabled:opacity-40">
                       {savingPwd ? "..." : "Update"}
@@ -261,7 +261,7 @@ export default function PengaturanPage() {
                       <label className="text-sm font-semibold text-slate-700 block mb-1">{f.label}</label>
                       <input value={(wpForm as any)[f.key]} onChange={e => setWpForm(p => ({ ...p, [f.key]: e.target.value }))}
                         placeholder={f.placeholder} type={f.key === "pass" ? "password" : "text"}
-                        className="h-11 w-full bg-white border border-stone-300 text-slate-800 text-sm rounded-lg px-3 focus:outline-none focus:border-amber-500/60 placeholder-stone-400" />
+                        className="h-11 w-full bg-white border border-stone-300 text-slate-800 text-sm rounded-lg px-3 focus:outline-none focus:border-emerald-500/60 placeholder-stone-400" />
                     </div>
                   ))}
                   <button onClick={testWPConnection} disabled={testingWp}
@@ -280,7 +280,7 @@ export default function PengaturanPage() {
                   <div>
                     <p className="text-xs text-slate-500 uppercase tracking-widest mb-1">Paket Aktif</p>
                     <div className="flex items-center gap-2">
-                      <span className={`text-xl font-black ${isPro ? "text-amber-700" : "text-slate-500"}`}>
+                      <span className={`text-xl font-black ${isPro ? "text-emerald-700" : "text-slate-500"}`}>
                         {isPro ? profile?.plan?.toUpperCase() : "GRATIS"}
                       </span>
                       <span className={`text-xs px-2 py-0.5 rounded-full border font-bold ${isPro ? "text-emerald-700 border-emerald-800 bg-emerald-950/30" : "text-slate-500 border-stone-300 bg-white"}`}>
@@ -294,7 +294,7 @@ export default function PengaturanPage() {
                     )}
                   </div>
                   <button onClick={() => router.push("/pricing")}
-                    className="bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold text-sm px-4 py-2.5 rounded-xl transition-all hover:shadow-lg hover:shadow-amber-500/25">
+                    className="bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold text-sm px-4 py-2.5 rounded-xl transition-all ">
                     Upgrade
                   </button>
                 </div>
@@ -302,10 +302,10 @@ export default function PengaturanPage() {
                 <div className="bg-white border border-stone-200 rounded-xl p-4">
                   <div className="flex justify-between text-sm mb-2">
                     <span className="text-slate-600">Pemakaian kata</span>
-                    <span className="text-amber-700 font-bold">{wordQuota !== null ? `${wordsUsed.toLocaleString("id-ID")} / ${wordQuota.toLocaleString("id-ID")} kata` : "Belum tersedia"}</span>
+                    <span className="text-emerald-700 font-bold">{wordQuota !== null ? `${wordsUsed.toLocaleString("id-ID")} / ${wordQuota.toLocaleString("id-ID")} kata` : "Belum tersedia"}</span>
                   </div>
                   <div className="w-full bg-stone-100 rounded-full h-2 mb-2">
-                    <div className={`h-2 rounded-full transition-all ${progressPct > 80 ? "bg-red-500" : progressPct > 60 ? "bg-amber-500" : "bg-emerald-500"}`}
+                    <div className={`h-2 rounded-full transition-all ${progressPct > 80 ? "bg-red-500" : progressPct > 60 ? "bg-emerald-500" : "bg-emerald-500"}`}
                       style={{ width: `${progressPct}%` }} />
                   </div>
                   <p className="text-xs text-slate-500">{wordsRemaining !== null ? `${wordsRemaining.toLocaleString("id-ID")} kata tersisa` : "Aktifkan paket untuk melihat kuota kata."}</p>
@@ -313,7 +313,7 @@ export default function PengaturanPage() {
 
                 <div className="bg-white border border-stone-200 rounded-xl p-4">
                   <p className="text-sm font-bold text-slate-900 mb-1">Total Artikel</p>
-                  <p className="text-2xl font-black text-amber-700">{profile?.articles_used ?? 0}</p>
+                  <p className="text-2xl font-black text-emerald-700">{profile?.articles_used ?? 0}</p>
                   <p className="text-xs text-slate-500">artikel telah dibuat</p>
                 </div>
 
@@ -334,11 +334,11 @@ export default function PengaturanPage() {
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="rounded-xl border border-stone-200 bg-white p-4">
                     <p className="mb-1 text-sm text-slate-600">Artikel bulan ini</p>
-                    <p className="text-2xl font-black text-amber-700">{usageData.reduce((s, d) => s + d.articles, 0)}</p>
+                    <p className="text-2xl font-black text-emerald-700">{usageData.reduce((s, d) => s + d.articles, 0)}</p>
                   </div>
                   <div className="rounded-xl border border-stone-200 bg-white p-4">
                     <p className="mb-1 text-sm text-slate-600">Kata tersisa</p>
-                    <p className="text-2xl font-black text-amber-700">{wordsRemaining !== null ? wordsRemaining.toLocaleString("id-ID") : "—"}</p>
+                    <p className="text-2xl font-black text-emerald-700">{wordsRemaining !== null ? wordsRemaining.toLocaleString("id-ID") : "—"}</p>
                   </div>
                 </div>
 
@@ -355,14 +355,14 @@ export default function PengaturanPage() {
                         <Tooltip
                           contentStyle={{ background: "#ffffff", border: "1px solid #d6d3d1", borderRadius: "8px", fontSize: "12px" }}
                           labelStyle={{ color: "#475569" }}
-                          itemStyle={{ color: "#f59e0b" }} />
-                        <Line type="monotone" dataKey="articles" stroke="#f59e0b" strokeWidth={2} dot={false} name="Artikel" />
+                          itemStyle={{ color: "#10b981" }} />
+                        <Line type="monotone" dataKey="articles" stroke="#10b981" strokeWidth={2} dot={false} name="Artikel" />
 
                       </LineChart>
                     </ResponsiveContainer>
                   </div>
                   <div className="flex gap-4 mt-2 justify-center">
-                    <div className="flex items-center gap-1.5 text-xs text-slate-500"><span className="w-3 h-0.5 bg-amber-500 inline-block" />Artikel</div>
+                    <div className="flex items-center gap-1.5 text-xs text-slate-500"><span className="w-3 h-0.5 bg-emerald-500 inline-block" />Artikel</div>
 
                   </div>
                 </div>
@@ -383,13 +383,13 @@ export default function PengaturanPage() {
                       <p className="text-xs text-slate-500 mt-0.5">{n.desc}</p>
                     </div>
                     <button onClick={() => n.set(!n.val)}
-                      className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 ${n.val ? "bg-amber-500" : "bg-slate-700"}`}>
+                      className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 ${n.val ? "bg-emerald-500" : "bg-slate-700"}`}>
                       <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform shadow-sm ${n.val ? "translate-x-5" : ""}`} />
                     </button>
                   </div>
                 ))}
                 <button onClick={saveNotifications} disabled={savingNotif}
-                  className="w-fit bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold text-sm px-5 py-2.5 rounded-xl transition-all disabled:opacity-60">
+                  className="w-fit bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold text-sm px-5 py-2.5 rounded-xl transition-all disabled:opacity-60">
                   {savingNotif ? "Menyimpan..." : "Simpan Preferensi"}
                 </button>
                 <p className="text-xs text-slate-500">Email notifikasi akan dikirim ke {profile?.email}. Fitur email aktif saat Resend API dikonfigurasi.</p>

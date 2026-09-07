@@ -86,8 +86,8 @@ function SEOPanel({ content, keyword, title, metaDescription }: { content: strin
   if (!keyword) return <div className="p-4 text-xs text-slate-500 text-center">Masukkan keyword untuk cek SEO</div>;
   if (!result) return null;
   const { checks, score, wordCount } = result;
-  const scoreColor = score >= 80 ? "text-emerald-700" : score >= 55 ? "text-amber-700" : "text-red-400";
-  const scoreBg = score >= 80 ? "bg-emerald-500" : score >= 55 ? "bg-amber-500" : "bg-red-500";
+  const scoreColor = score >= 80 ? "text-emerald-700" : score >= 55 ? "text-emerald-700" : "text-red-400";
+  const scoreBg = score >= 80 ? "bg-emerald-500" : score >= 55 ? "bg-emerald-500" : "bg-red-500";
   const icon = (l: CheckLevel) => l === "ok" ? "●" : l === "warn" ? "◆" : "×";
   return (
     <div className="flex flex-col gap-2.5 p-3 overflow-y-auto h-full">
@@ -109,9 +109,9 @@ function SEOPanel({ content, keyword, title, metaDescription }: { content: strin
       <div className="flex flex-col gap-1">
         {checks.map((c, i) => (
           <div key={i} className="flex items-start gap-1.5 py-0.5">
-            <span className={`text-xs flex-shrink-0 mt-0.5 ${c.level === "ok" ? "text-emerald-700" : c.level === "warn" ? "text-amber-700" : "text-red-400"}`}>{icon(c.level)}</span>
+            <span className={`text-xs flex-shrink-0 mt-0.5 ${c.level === "ok" ? "text-emerald-700" : c.level === "warn" ? "text-emerald-700" : "text-red-400"}`}>{icon(c.level)}</span>
             <div className="flex-1 min-w-0">
-              <span className={`text-xs ${c.level === "ok" ? "text-slate-400" : c.level === "warn" ? "text-amber-700/80" : "text-slate-500"}`}>{c.label}</span>
+              <span className={`text-xs ${c.level === "ok" ? "text-slate-400" : c.level === "warn" ? "text-emerald-700/80" : "text-slate-500"}`}>{c.label}</span>
               {c.detail && <span className="text-xs text-slate-500 ml-1">({c.detail})</span>}
             </div>
           </div>
@@ -134,7 +134,7 @@ function TipTapToolbar({ editor, wpSite, onUpload, isUploading, uploadError }: {
 
   const btn = (active: boolean, action: () => void, label: string, title: string, extra = "") =>
     <button onClick={action} title={title}
-      className={`text-xs px-2 py-1.5 rounded-lg border transition-all ${active ? "border-amber-500/40 bg-amber-500/10 text-amber-700" : `border-stone-300 hover:border-slate-600 text-slate-500 hover:text-slate-900 ${extra}`}`}>
+      className={`text-xs px-2 py-1.5 rounded-lg border transition-all ${active ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-700" : `border-stone-300 hover:border-slate-600 text-slate-500 hover:text-slate-900 ${extra}`}`}>
       {label}
     </button>;
 
@@ -211,7 +211,7 @@ export default function ResultPanel({ content: initialContent, articleTitle, met
     extensions: [
       StarterKit,
       Image.configure({ inline: false, allowBase64: true }),
-      Link.configure({ openOnClick: false, HTMLAttributes: { class: "text-amber-700 underline" } }),
+      Link.configure({ openOnClick: false, HTMLAttributes: { class: "text-emerald-700 underline" } }),
     ],
     content: htmlContent,
     onUpdate: ({ editor }) => { const h = editor.getHTML(); setHtmlContent(h); onContentChange?.(h); },
@@ -385,11 +385,11 @@ export default function ResultPanel({ content: initialContent, articleTitle, met
         <div className="flex items-center gap-1.5">
           {(["preview", "edit"] as const).map(m => (
             <button key={m} onClick={() => setMode(m)}
-              className={`text-xs px-2.5 py-1.5 rounded-lg border transition-all ${mode === m ? "border-amber-500/40 bg-amber-500/10 text-amber-700" : "border-stone-300 hover:border-slate-600 text-slate-500"}`}>
+              className={`text-xs px-2.5 py-1.5 rounded-lg border transition-all ${mode === m ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-700" : "border-stone-300 hover:border-slate-600 text-slate-500"}`}>
               {m === "preview" ? "Preview" : "Edit"}
             </button>
           ))}
-          <button onClick={() => setShowTemplateGallery(v => !v)} className="text-xs px-2.5 py-1.5 rounded-lg border border-amber-500/30 text-amber-700 hover:bg-amber-500/10 transition-all">
+          <button onClick={() => setShowTemplateGallery(v => !v)} className="text-xs px-2.5 py-1.5 rounded-lg border border-emerald-500/30 text-emerald-700 hover:bg-emerald-500/10 transition-all">
             {featuredImage ? "Ganti featured" : "Pilih featured"}
           </button>
           <button onClick={copy} className="text-xs px-2.5 py-1.5 rounded-lg border border-stone-300 hover:border-slate-600 text-slate-500 hover:text-slate-900 transition-all">
@@ -464,7 +464,7 @@ export default function ResultPanel({ content: initialContent, articleTitle, met
         {mode === "preview" && (
           <>
             <div className="px-4 py-2 border-b border-stone-200 flex items-center gap-2 bg-stone-50">
-              <div className="flex gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-red-500/60" /><span className="w-2.5 h-2.5 rounded-full bg-amber-500/60" /><span className="w-2.5 h-2.5 rounded-full bg-emerald-500/60" /></div>
+              <div className="flex gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-red-500/60" /><span className="w-2.5 h-2.5 rounded-full bg-emerald-500/60" /><span className="w-2.5 h-2.5 rounded-full bg-emerald-500/60" /></div>
               <span className="text-xs text-slate-500 ml-1">Preview</span>
             </div>
             <div className="flex-1 overflow-y-auto mx-auto my-4 w-[calc(100%-2rem)] max-w-[760px] bg-[#eee9df] p-6 sm:p-10 shadow-xl
@@ -474,9 +474,9 @@ export default function ResultPanel({ content: initialContent, articleTitle, met
               [&_p]:text-[#3a4656] [&_p]:leading-7 [&_p]:mb-4
               [&_strong]:text-[#172033] [&_strong]:font-bold [&_em]:text-[#3a4656] [&_em]:italic
               [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-4 [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-4 [&_li]:text-[#3a4656] [&_li]:mb-1
-              [&_blockquote]:border-l-2 [&_blockquote]:border-amber-700/50 [&_blockquote]:pl-4 [&_blockquote]:text-slate-500 [&_blockquote]:italic [&_blockquote]:mb-4
-              [&_a]:text-amber-700 [&_a]:underline [&_a]:underline-offset-2
-              [&_code]:text-amber-800 [&_code]:bg-stone-50 [&_code]:px-1 [&_code]:rounded [&_code]:text-sm
+              [&_blockquote]:border-l-2 [&_blockquote]:border-emerald-700/50 [&_blockquote]:pl-4 [&_blockquote]:text-slate-500 [&_blockquote]:italic [&_blockquote]:mb-4
+              [&_a]:text-emerald-700 [&_a]:underline [&_a]:underline-offset-2
+              [&_code]:text-emerald-800 [&_code]:bg-stone-50 [&_code]:px-1 [&_code]:rounded [&_code]:text-sm
               [&_table]:w-full [&_table]:border-collapse [&_table]:mb-4 [&_table]:text-sm
               [&_th]:border [&_th]:border-slate-400 [&_th]:px-3 [&_th]:py-2 [&_th]:bg-slate-300/50 [&_th]:text-[#172033] [&_th]:text-left
               [&_td]:border [&_td]:border-slate-400/60 [&_td]:px-3 [&_td]:py-2 [&_td]:text-[#3a4656]
@@ -502,7 +502,7 @@ export default function ResultPanel({ content: initialContent, articleTitle, met
             <div className="lg:hidden flex items-center justify-end px-3 py-1.5 border-b border-stone-200 bg-white">
               <button
                 onClick={() => setShowSeoPanel(p => !p)}
-                className="text-xs px-3 py-1.5 rounded-lg border border-amber-500/30 bg-amber-500/5 text-amber-700 font-bold flex items-center gap-1.5">
+                className="text-xs px-3 py-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/5 text-emerald-700 font-bold flex items-center gap-1.5">
                 <span aria-hidden="true">◎</span> Cek SEO
               </button>
             </div>
@@ -527,10 +527,10 @@ export default function ResultPanel({ content: initialContent, articleTitle, met
                 [&_.ProseMirror_ul]:list-disc [&_.ProseMirror_ul]:pl-5 [&_.ProseMirror_ul]:mb-2
                 [&_.ProseMirror_ol]:list-decimal [&_.ProseMirror_ol]:pl-5 [&_.ProseMirror_ol]:mb-2
                 [&_.ProseMirror_li]:text-[#3a4656] [&_.ProseMirror_li]:mb-1
-                [&_.ProseMirror_a]:text-amber-700 [&_.ProseMirror_a]:underline
-                [&_.ProseMirror_blockquote]:border-l-2 [&_.ProseMirror_blockquote]:border-amber-500/40 [&_.ProseMirror_blockquote]:pl-4 [&_.ProseMirror_blockquote]:text-slate-500 [&_.ProseMirror_blockquote]:italic
+                [&_.ProseMirror_a]:text-emerald-700 [&_.ProseMirror_a]:underline
+                [&_.ProseMirror_blockquote]:border-l-2 [&_.ProseMirror_blockquote]:border-emerald-500/40 [&_.ProseMirror_blockquote]:pl-4 [&_.ProseMirror_blockquote]:text-slate-500 [&_.ProseMirror_blockquote]:italic
                 [&_.ProseMirror_img]:max-w-full [&_.ProseMirror_img]:h-auto [&_.ProseMirror_img]:rounded-xl [&_.ProseMirror_img]:my-3 [&_.ProseMirror_img]:block [&_.ProseMirror_img]:mx-auto
-                [&_.ProseMirror_code]:text-amber-800 [&_.ProseMirror_code]:bg-stone-50 [&_.ProseMirror_code]:px-1 [&_.ProseMirror_code]:rounded [&_.ProseMirror_code]:text-sm
+                [&_.ProseMirror_code]:text-emerald-800 [&_.ProseMirror_code]:bg-stone-50 [&_.ProseMirror_code]:px-1 [&_.ProseMirror_code]:rounded [&_.ProseMirror_code]:text-sm
                 [&_.ProseMirror_table]:w-full [&_.ProseMirror_table]:border-collapse [&_.ProseMirror_table]:text-sm
                 [&_.ProseMirror_th]:border [&_.ProseMirror_th]:border-stone-300 [&_.ProseMirror_th]:px-2 [&_.ProseMirror_th]:py-1.5 [&_.ProseMirror_th]:text-slate-900 [&_.ProseMirror_th]:bg-white
                 [&_.ProseMirror_td]:border [&_.ProseMirror_td]:border-stone-300 [&_.ProseMirror_td]:px-2 [&_.ProseMirror_td]:py-1.5 [&_.ProseMirror_td]:text-slate-400

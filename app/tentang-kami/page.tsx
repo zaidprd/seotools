@@ -7,13 +7,13 @@ export const metadata = {
 
 export default function TentangKami() {
   return (
-    <div className="min-h-screen bg-[#f7f4ed] text-slate-700" style={{ fontFamily: "'DM Sans',sans-serif" }}>
+    <div className="min-h-screen bg-[#f8fafc] text-slate-700">
       <header className="border-b border-stone-200 px-6 py-4">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-amber-500 flex items-center justify-center font-black text-[#0c0e14] text-sm">A</div>
-            <span className="font-black tracking-tight" style={{ fontFamily: "Sora,sans-serif" }}>
-              <span className="text-slate-900">Artikel</span><span className="text-amber-700"> SEO</span>
+            <div className="w-7 h-7 rounded-lg bg-emerald-500 flex items-center justify-center font-black text-[#0c0e14] text-sm">A</div>
+            <span className="font-black tracking-tight">
+              <span className="text-slate-900">Artikel</span><span className="text-emerald-700"> SEO</span>
             </span>
           </Link>
           <Link href="/" className="text-sm text-slate-500 hover:text-slate-900 transition-colors">← Kembali</Link>
@@ -25,10 +25,10 @@ export default function TentangKami() {
         {/* Hero */}
         <div className="text-center mb-14">
           <div className="inline-flex items-center gap-2 mb-6">
-            <div className="w-14 h-14 rounded-2xl bg-amber-500 flex items-center justify-center font-black text-[#0c0e14] text-2xl">A</div>
+            <div className="w-14 h-14 rounded-2xl bg-emerald-500 flex items-center justify-center font-black text-[#0c0e14] text-2xl">A</div>
           </div>
-          <h1 className="text-4xl font-black text-slate-900 mb-4" style={{ fontFamily: "Sora,sans-serif" }}>
-            Tentang <span className="text-amber-700">Artikel SEO</span>
+          <h1 className="text-4xl font-black text-slate-900 mb-4">
+            Tentang <span className="text-emerald-700">Artikel SEO</span>
           </h1>
           <p className="text-slate-600 text-lg max-w-2xl mx-auto leading-relaxed">
             Ruang kerja untuk menyusun, meninjau, dan menerbitkan artikel berbahasa Indonesia dengan proses yang lebih rapi.
@@ -37,7 +37,7 @@ export default function TentangKami() {
 
         {/* Misi */}
         <div className="bg-white border border-stone-200 rounded-2xl p-8 mb-8">
-          <h2 className="text-2xl font-black text-slate-900 mb-4" style={{ fontFamily: "Sora,sans-serif" }}>Misi Kami</h2>
+          <h2 className="text-2xl font-black text-slate-900 mb-4">Misi Kami</h2>
           <p className="text-slate-600 leading-relaxed mb-4">
             Artikel SEO lahir dari satu permasalahan nyata: <strong className="text-slate-900">membuat konten SEO Bahasa Indonesia yang berkualitas itu sulit dan memakan waktu</strong>. Blogger, digital marketer, dan pemilik website sering terjebak antara kualitas tulisan dan kecepatan produksi.
           </p>
@@ -51,7 +51,7 @@ export default function TentangKami() {
 
         {/* Produk */}
         <div className="mb-8">
-          <h2 className="text-2xl font-black text-slate-900 mb-6" style={{ fontFamily: "Sora,sans-serif" }}>Apa yang Kami Tawarkan</h2>
+          <h2 className="text-2xl font-black text-slate-900 mb-6">Apa yang Kami Tawarkan</h2>
           <div className="grid md:grid-cols-2 gap-4">
             {[
               { icon: "✍️", title: "Ruang tulis terpandu", desc: "Susun artikel panjang dari kata kunci, arahan, dan struktur yang Anda tentukan." },
@@ -71,13 +71,13 @@ export default function TentangKami() {
         </div>
 
         {/* Nilai */}
-        <div className="bg-gradient-to-br from-amber-500/5 to-orange-500/5 border border-amber-500/20 rounded-2xl p-8 mb-8">
-          <h2 className="text-2xl font-black text-slate-900 mb-6" style={{ fontFamily: "Sora,sans-serif" }}>Nilai Kami</h2>
+        <div className="bg-emerald-50 border border-emerald-500/20 rounded-2xl p-8 mb-8">
+          <h2 className="text-2xl font-black text-slate-900 mb-6">Nilai Kami</h2>
           <div className="grid md:grid-cols-3 gap-6">
             {[
               { icon: "🇮🇩", title: "Lokal & Relevan", desc: "Dibangun khusus untuk kebutuhan konten berbahasa Indonesia dengan konteks lokal yang tepat." },
               { icon: "🔒", title: "Privasi & Keamanan", desc: "Data Anda aman. Kami tidak menjual data, tidak menyimpan kredensial sensitif, dan menggunakan enkripsi end-to-end." },
-              { icon: "✦", title: "Proses yang jelas", desc: "Setiap draf tetap dapat ditinjau dan disunting sebelum diterbitkan." },
+              { icon: "＋", title: "Proses yang jelas", desc: "Setiap draf tetap dapat ditinjau dan disunting sebelum diterbitkan." },
             ].map(v => (
               <div key={v.title} className="text-center">
                 <div className="text-3xl mb-3">{v.icon}</div>
@@ -90,18 +90,18 @@ export default function TentangKami() {
 
         {/* Kontak */}
         <div className="bg-white border border-stone-200 rounded-2xl p-8 mb-8">
-          <h2 className="text-2xl font-black text-slate-900 mb-4" style={{ fontFamily: "Sora,sans-serif" }}>Hubungi Kami</h2>
+          <h2 className="text-2xl font-black text-slate-900 mb-4">Hubungi Kami</h2>
           <p className="text-slate-600 mb-6">Punya pertanyaan, saran, atau masalah teknis? Tim kami siap membantu.</p>
           <div className="space-y-3 mb-6">
             <div className="flex items-center gap-3">
-              <span className="text-amber-700 text-lg">📧</span>
+              <span className="text-emerald-700 text-lg">@</span>
               <div>
                 <p className="text-xs text-slate-500 mb-0.5">Email Support</p>
-                <a href="mailto:support@zaidly.com" className="text-amber-700 hover:text-amber-900 font-semibold transition-colors">support@zaidly.com</a>
+                <a href="mailto:support@zaidly.com" className="text-emerald-700 hover:text-emerald-900 font-semibold transition-colors">support@zaidly.com</a>
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <span className="text-amber-700 text-lg">⏱️</span>
+              <span className="text-emerald-700 text-lg">⏱️</span>
               <div>
                 <p className="text-xs text-slate-500 mb-0.5">Waktu Respons</p>
                 <p className="text-slate-700 font-semibold">1–2 hari kerja</p>
@@ -133,7 +133,7 @@ export default function TentangKami() {
           <h2 className="text-xl font-black text-slate-900 mb-4">Siap mulai membuat konten berkualitas?</h2>
           <div className="flex items-center justify-center gap-3 flex-wrap">
             <Link href="/login"
-              className="bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold px-6 py-3 rounded-xl transition-all hover:shadow-lg hover:shadow-amber-500/25">
+              className="bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold px-6 py-3 rounded-xl transition-all ">
               Mulai menulis →
             </Link>
             <Link href="/pricing"

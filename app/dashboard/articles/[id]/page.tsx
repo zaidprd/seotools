@@ -90,16 +90,16 @@ export default function ArticleEditorPage() {
   if (!draft) return <div className="p-6 text-sm text-red-700">{message || "Artikel tidak ditemukan."}</div>;
 
   return (
-    <main className="max-w-6xl mx-auto px-4 py-6 pb-12 sm:px-6 lg:px-8" style={{ fontFamily: "'DM Sans',sans-serif" }}>
+    <main className="max-w-6xl mx-auto px-4 py-6 pb-12 sm:px-6 lg:px-8">
       <div className="flex flex-wrap items-center gap-3 justify-between mb-6">
         <div>
-          <Link href="/documents" className="text-sm font-semibold text-amber-700 hover:text-amber-900">← Kembali ke dokumen</Link>
-          <h1 className="mt-2 text-3xl font-black text-slate-900" style={{ fontFamily: "Sora,sans-serif" }}>Editor artikel</h1>
+          <Link href="/documents" className="text-sm font-semibold text-emerald-700 hover:text-emerald-900">← Kembali ke dokumen</Link>
+          <h1 className="mt-2 text-3xl font-black text-slate-900">Editor artikel</h1>
         </div>
         <div className="flex items-center gap-3 text-xs">
           {message && <span className={message === "Tersimpan" ? "text-emerald-700" : "text-red-700"}>{message}</span>}
           <button onClick={() => save()} disabled={saving}
-            className="min-h-11 bg-amber-500 hover:bg-amber-400 disabled:opacity-60 text-slate-950 font-bold px-5 py-2 rounded-xl transition-colors">
+            className="min-h-11 bg-emerald-500 hover:bg-emerald-400 disabled:opacity-60 text-slate-950 font-bold px-5 py-2 rounded-xl transition-colors">
             {saving ? "Menyimpan..." : "Simpan draft"}
           </button>
         </div>
@@ -108,7 +108,7 @@ export default function ArticleEditorPage() {
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_280px]">
         <section className="space-y-4">
           <input value={draft.title || ""} onChange={(event) => update("title", event.target.value)} placeholder="Judul artikel"
-            className="w-full rounded-xl border border-stone-300 bg-white px-5 py-4 text-xl font-bold text-slate-900 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-100" />
+            className="w-full rounded-xl border border-stone-300 bg-white px-5 py-4 text-xl font-bold text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100" />
           <div className="rounded-2xl border border-stone-200 bg-white shadow-sm">
             <div className="border-b border-stone-100 px-5 py-3 text-sm font-semibold text-slate-600">Isi artikel</div>
             <div contentEditable suppressContentEditableWarning role="textbox" aria-multiline="true" data-placeholder="Mulai tulis artikel..." onInput={(event) => update("content_html", event.currentTarget.innerHTML)} className="article-editor min-h-[620px] px-5 py-6 outline-none sm:px-8" dangerouslySetInnerHTML={{ __html: draft.content_html ?? draft.content ?? "" }} />
@@ -124,16 +124,16 @@ export default function ArticleEditorPage() {
           <div>
             <label className="block mb-1.5 text-sm font-bold text-slate-700">Alamat artikel</label>
             <input value={draft.slug || ""} onChange={(event) => update("slug", event.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))} placeholder="slug-artikel"
-              className="min-h-11 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-100" />
+              className="min-h-11 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100" />
           </div>
           <div>
             <label className="block mb-1.5 text-sm font-bold text-slate-700">Deskripsi pencarian</label>
             <textarea value={draft.meta_description || ""} onChange={(event) => update("meta_description", event.target.value)} maxLength={500} rows={4}
-              className="w-full resize-y rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-100" />
+              className="w-full resize-y rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100" />
           </div>
-          <div className="rounded-xl bg-amber-50 p-3">
-            <p className="text-sm font-semibold text-amber-900">Gambar utama</p>
-            <p className="mt-1 text-xs leading-relaxed text-amber-800">Pilihan gambar utama yang dibuat sebelumnya tetap tersimpan bersama draf.</p>
+          <div className="rounded-xl bg-emerald-50 p-3">
+            <p className="text-sm font-semibold text-emerald-900">Gambar utama</p>
+            <p className="mt-1 text-xs leading-relaxed text-emerald-800">Pilihan gambar utama yang dibuat sebelumnya tetap tersimpan bersama draf.</p>
           </div>
           <div>
             <p className="text-xs text-slate-500">Terakhir disimpan: {new Date(draft.updated_at || draft.created_at).toLocaleString("id-ID")}</p>

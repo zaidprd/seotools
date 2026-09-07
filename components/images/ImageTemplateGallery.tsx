@@ -105,7 +105,7 @@ export default function ImageTemplateGallery({
                 <button
                   type="button"
                   onClick={() => onUse(activeImage)}
-                  className="rounded-lg bg-amber-500 px-4 py-2.5 text-xs font-black text-slate-950 shadow-lg shadow-amber-500/10 transition-all hover:bg-amber-400 active:scale-[0.98]"
+                  className="rounded-lg bg-emerald-500 px-4 py-2.5 text-xs font-black text-slate-950 shadow-lg shadow-emerald-500/10 transition-all hover:bg-emerald-400 active:scale-[0.98]"
                 >
                   Jadikan Featured
                 </button>
@@ -131,7 +131,7 @@ export default function ImageTemplateGallery({
               rows={3}
               maxLength={180}
               placeholder="Masukkan judul featured image"
-              className="w-full resize-none rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-xs leading-relaxed text-slate-800 outline-none transition-colors placeholder:text-slate-500 focus:border-amber-500/60"
+              className="w-full resize-none rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-xs leading-relaxed text-slate-800 outline-none transition-colors placeholder:text-slate-500 focus:border-emerald-500/60"
             />
           </div>
 
@@ -163,7 +163,7 @@ export default function ImageTemplateGallery({
                     onClick={() => selectPreset(preset.id)}
                     className={`group overflow-hidden rounded-lg border text-left transition-all ${
                       selected
-                        ? "border-amber-500 bg-amber-500/10 ring-1 ring-amber-500/30"
+                        ? "border-emerald-500 bg-emerald-500/10 ring-1 ring-emerald-500/30"
                         : "border-stone-200 bg-white/70 hover:border-stone-300 hover:bg-white"
                     }`}
                   >
@@ -175,7 +175,7 @@ export default function ImageTemplateGallery({
                       height={image.height}
                       className="aspect-[1200/630] w-full object-cover"
                     />
-                    <span className={`block truncate px-2 py-1.5 text-xs font-bold ${selected ? "text-amber-700" : "text-slate-500 group-hover:text-slate-800"}`}>
+                    <span className={`block truncate px-2 py-1.5 text-xs font-bold ${selected ? "text-emerald-700" : "text-slate-500 group-hover:text-slate-800"}`}>
                       {preset.name}
                     </span>
                   </button>

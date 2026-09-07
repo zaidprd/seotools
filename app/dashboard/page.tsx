@@ -86,12 +86,12 @@ export default function DashboardHome() {
   const name = authUser?.user_metadata?.full_name || authUser?.email?.split("@")[0] || "Pengguna";
 
   return (
-    <div className="p-6 max-w-4xl mx-auto" style={{ fontFamily: "'DM Sans',sans-serif" }}>
+    <div className="p-6 max-w-4xl mx-auto">
 
       {/* Payment success toast */}
       {paymentToast && (
-        <div className="fixed top-4 right-4 z-50 bg-emerald-500 text-slate-900 rounded-2xl px-5 py-4 shadow-2xl shadow-emerald-500/30 flex items-start gap-3 max-w-sm animate-pulse-once">
-          <span className="text-2xl flex-shrink-0">🎉</span>
+        <div className="fixed top-4 right-4 z-50 bg-emerald-500 text-slate-900 rounded-2xl px-5 py-4 shadow-lg flex items-start gap-3 max-w-sm animate-pulse-once">
+          <span className="text-2xl flex-shrink-0">✓</span>
           <div>
             <p className="font-black text-sm">Pembayaran Berhasil!</p>
             <p className="text-[12px] text-emerald-100 mt-0.5">Paket dan kuota kata sudah diaktifkan. Selamat menulis!</p>
@@ -102,17 +102,17 @@ export default function DashboardHome() {
 
       {/* Welcome Banner */}
       {showBanner && (
-        <div className="relative bg-gradient-to-r from-amber-500/20 via-orange-500/10 to-amber-500/5 border border-amber-500/30 rounded-2xl p-5 mb-6 overflow-hidden">
-          <div className="absolute top-0 right-0 w-40 h-40 bg-amber-500/10 rounded-full -translate-y-10 translate-x-10 blur-2xl pointer-events-none" />
+        <div className="relative bg-emerald-50 border border-emerald-500/30 rounded-2xl p-5 mb-6 overflow-hidden">
+          <div className="absolute top-0 right-0 w-40 h-40 bg-emerald-500/10 rounded-full -translate-y-10 translate-x-10 blur-2xl pointer-events-none" />
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-amber-700 text-xs font-bold tracking-widest uppercase mb-1">Selamat datang</p>
-              <h1 className="text-xl font-black text-slate-900 mb-1" style={{ fontFamily: "Sora,sans-serif" }}>
-                Hai, {name}! 👋
+              <p className="text-emerald-700 text-xs font-bold tracking-widest uppercase mb-1">Selamat datang</p>
+              <h1 className="text-xl font-black text-slate-900 mb-1">
+                Hai, {name}!
               </h1>
               <p className="text-sm text-slate-500">
                 {wordsRemaining !== null
-                  ? <>Kuota kamu: <span className="text-amber-700 font-bold">{wordsRemaining.toLocaleString("id-ID")} kata</span> tersisa.</>
+                  ? <>Kuota kamu: <span className="text-emerald-700 font-bold">{wordsRemaining.toLocaleString("id-ID")} kata</span> tersisa.</>
                   : <>Siap membuat artikel setelah paket atau trial aktif.</>}
                 {!isPro && " Lihat pilihan paket untuk mulai."}
               </p>
@@ -124,24 +124,24 @@ export default function DashboardHome() {
 
       {/* Mulai bekerja Grid */}
       <div className="mb-8">
-        <h1 className="mb-4 text-3xl font-black text-slate-900" style={{ fontFamily: "Sora,sans-serif" }}>Mulai menulis</h1>
+        <h1 className="mb-4 text-3xl font-black text-slate-900">Mulai menulis</h1>
         <div className="grid gap-4 md:grid-cols-2">
           <Link href="/dashboard/generate"
-            className="group bg-white border border-stone-200 hover:border-amber-500/40 rounded-2xl p-6 transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-amber-500/5">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-3xl mb-4 shadow-lg shadow-amber-500/20 group-hover:shadow-amber-500/30 transition-shadow">⚡</div>
+            className="group bg-white border border-stone-200 hover:border-emerald-500/40 rounded-2xl p-6 transition-all hover:-translate-y-0.5 ">
+            <div className="w-14 h-14 rounded-2xl bg-emerald-500 flex items-center justify-center text-3xl mb-4  transition-shadow">＋</div>
             <h3 className="font-bold text-lg text-slate-900 mb-1">Tulis satu artikel</h3>
             <p className="text-sm text-slate-500">Masukkan kata kunci, susun draf, lalu tinjau sebelum diterbitkan.</p>
-            <span className="inline-flex items-center gap-1 text-amber-700 text-xs font-semibold mt-3">Mulai menulis →</span>
+            <span className="inline-flex items-center gap-1 text-emerald-700 text-xs font-semibold mt-3">Mulai menulis →</span>
           </Link>
 
           <Link href="/dashboard/bulk"
             className={`group bg-white border rounded-2xl p-6 transition-all hover:-translate-y-0.5 ${
-              isPro ? "border-stone-200 hover:border-blue-500/40 hover:shadow-xl hover:shadow-blue-500/5" : "border-stone-200 opacity-80"
+              isPro ? "border-stone-200 hover:border-blue-500/40 " : "border-stone-200 opacity-80"
             }`}>
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-3xl mb-4 shadow-lg shadow-blue-500/20 group-hover:shadow-blue-500/30 transition-shadow">⊞</div>
+            <div className="w-14 h-14 rounded-2xl bg-blue-600 flex items-center justify-center text-3xl mb-4  transition-shadow">⊞</div>
             <div className="flex items-center gap-2 mb-1">
               <h3 className="font-bold text-lg text-slate-900">Penulisan beberapa artikel</h3>
-              {!isPro && <span className="text-xs text-amber-700 border border-amber-500/20 bg-amber-500/10 px-1.5 py-0.5 rounded-full">PRO</span>}
+              {!isPro && <span className="text-xs text-emerald-700 border border-emerald-500/20 bg-emerald-500/10 px-1.5 py-0.5 rounded-full">PRO</span>}
             </div>
             <p className="text-sm text-slate-500">Siapkan beberapa draf dari daftar kata kunci</p>
             <span className={`inline-flex items-center gap-1 text-xs font-semibold mt-3 ${isPro ? "text-blue-400" : "text-slate-500"}`}>
@@ -155,18 +155,18 @@ export default function DashboardHome() {
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold text-slate-900">Draf terbaru</h2>
-          <Link href="/documents" className="text-xs text-amber-700 hover:text-amber-800 transition-colors">Lihat semua →</Link>
+          <Link href="/documents" className="text-xs text-emerald-700 hover:text-emerald-800 transition-colors">Lihat semua →</Link>
         </div>
         <div className="bg-white border border-stone-200 rounded-2xl overflow-hidden">
           {loadingArticles ? (
             <div className="flex items-center justify-center py-10">
-              <div className="w-5 h-5 rounded-full border-2 border-stone-300 border-t-amber-500 animate-spin" />
+              <div className="w-5 h-5 rounded-full border-2 border-stone-300 border-t-emerald-500 animate-spin" />
             </div>
           ) : articles.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 gap-2">
-              <p className="text-3xl">📝</p>
+              <p className="text-3xl">▤</p>
               <p className="text-slate-500 text-sm">Belum ada artikel</p>
-              <Link href="/dashboard/generate" className="text-amber-700 text-xs hover:text-amber-800">Buat artikel pertamamu →</Link>
+              <Link href="/dashboard/generate" className="text-emerald-700 text-xs hover:text-emerald-800">Buat artikel pertamamu →</Link>
             </div>
           ) : (
             <div className="divide-y divide-slate-800">
@@ -183,7 +183,7 @@ export default function DashboardHome() {
                     </div>
                   </div>
                   <Link href={`/dashboard/articles/${a.id}`}
-                    className="text-xs text-slate-500 group-hover:text-amber-700 border border-transparent group-hover:border-amber-500/20 px-2.5 py-1 rounded-lg transition-all">
+                    className="text-xs text-slate-500 group-hover:text-emerald-700 border border-transparent group-hover:border-emerald-500/20 px-2.5 py-1 rounded-lg transition-all">
                     Editor →
                   </Link>
                 </div>
@@ -199,7 +199,7 @@ export default function DashboardHome() {
           <div>
             <h2 className="mb-1 text-xl font-bold text-slate-900">Paket Anda</h2>
             <div className="flex items-center gap-2">
-              <span className={`text-sm font-black ${isPro ? "text-amber-700" : "text-slate-500"}`}>
+              <span className={`text-sm font-black ${isPro ? "text-emerald-700" : "text-slate-500"}`}>
                 {isPro ? (user?.plan || "").toUpperCase() : "GRATIS"}
               </span>
               <span className={`rounded-full border px-2 py-1 text-xs font-bold ${isPro ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-stone-300 bg-white text-slate-600"}`}>
@@ -208,17 +208,17 @@ export default function DashboardHome() {
             </div>
           </div>
           {!isPro
-            ? <Link href="/pricing" className="bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold text-sm px-4 py-2 rounded-xl transition-all hover:shadow-lg hover:shadow-amber-500/25">Upgrade</Link>
-            : <Link href="/account" className="text-xs text-slate-500 hover:text-amber-700 border border-stone-300 hover:border-amber-500/30 px-3 py-1.5 rounded-lg transition-all">Kelola akun</Link>
+            ? <Link href="/pricing" className="bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold text-sm px-4 py-2 rounded-xl transition-all ">Upgrade</Link>
+            : <Link href="/account" className="text-xs text-slate-500 hover:text-emerald-700 border border-stone-300 hover:border-emerald-500/30 px-3 py-1.5 rounded-lg transition-all">Kelola akun</Link>
           }
         </div>
         <div>
           <div className="flex justify-between text-xs text-slate-500 mb-1.5">
             <span>{wordsTotal ? "Pemakaian kata bulan ini" : "Status penggunaan"}</span>
-            <span className="text-amber-700 font-semibold">{wordsTotal ? `${wordsUsed.toLocaleString("id-ID")} / ${wordsTotal.toLocaleString("id-ID")} kata` : "Aktifkan paket untuk memulai"}</span>
+            <span className="text-emerald-700 font-semibold">{wordsTotal ? `${wordsUsed.toLocaleString("id-ID")} / ${wordsTotal.toLocaleString("id-ID")} kata` : "Aktifkan paket untuk memulai"}</span>
           </div>
           <div className="w-full bg-stone-100 rounded-full h-1.5">
-            <div className={`h-1.5 rounded-full transition-all ${progressPct > 80 ? "bg-red-500" : "bg-amber-500"}`}
+            <div className={`h-1.5 rounded-full transition-all ${progressPct > 80 ? "bg-red-500" : "bg-emerald-500"}`}
               style={{ width: `${progressPct}%` }} />
           </div>
           <p className="text-xs text-slate-500 mt-1.5">{wordsRemaining !== null ? `${wordsRemaining.toLocaleString("id-ID")} kata tersisa` : "Trial memberi 1 artikel hingga 2.000 kata"}</p>

@@ -29,7 +29,7 @@ function UpgradePopup({ onClose, reason }: { onClose: () => void; reason?: strin
   const router = useRouter();
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-slate-900 border border-amber-500/30 rounded-2xl p-7 max-w-sm w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+      <div className="bg-slate-900 border border-emerald-500/30 rounded-2xl p-7 max-w-sm w-full shadow-2xl" onClick={e => e.stopPropagation()}>
         <div className="text-4xl mb-3 text-center">💎</div>
         <h3 className="font-black text-xl text-white mb-2 text-center">
           {reason || "Kredit Habis"}
@@ -39,7 +39,7 @@ function UpgradePopup({ onClose, reason }: { onClose: () => void; reason?: strin
         </p>
         <div className="flex flex-col gap-2">
           <button onClick={() => router.push("/pricing")}
-            className="w-full bg-amber-500 hover:bg-amber-400 text-slate-900 font-black py-3 rounded-xl transition-colors">
+            className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-black py-3 rounded-xl transition-colors">
             Lihat Paket & Harga
           </button>
           <button onClick={onClose} className="w-full text-slate-500 hover:text-slate-300 text-xs py-2 transition-colors">
@@ -140,10 +140,10 @@ function SingleTab({ wpSites, addWp, removeWp, user, refreshUser }: {
               <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Judul</label>
               <div className="flex gap-1.5">
                 <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Kosongkan untuk auto-generate..."
-                  className="flex-1 bg-slate-900 border border-slate-700/60 text-slate-200 text-xs rounded-lg px-3 py-2.5 focus:outline-none focus:border-amber-500/60 placeholder-slate-700" />
+                  className="flex-1 bg-slate-900 border border-slate-700/60 text-slate-200 text-xs rounded-lg px-3 py-2.5 focus:outline-none focus:border-emerald-500/60 placeholder-slate-700" />
                 <button onClick={handleGenerateTitle} disabled={!keyword.trim() || genTitleLoading} title="Generate judul"
-                  className="flex-shrink-0 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-amber-400 text-xs px-2.5 rounded-lg transition-colors disabled:opacity-40 flex items-center">
-                  {genTitleLoading ? <span className="w-3 h-3 border border-amber-400 border-t-transparent rounded-full animate-spin" /> : "✨"}
+                  className="flex-shrink-0 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-emerald-400 text-xs px-2.5 rounded-lg transition-colors disabled:opacity-40 flex items-center">
+                  {genTitleLoading ? <span className="w-3 h-3 border border-emerald-400 border-t-transparent rounded-full animate-spin" /> : "✨"}
                 </button>
               </div>
               {titleSuggestions.length > 0 && (
@@ -151,7 +151,7 @@ function SingleTab({ wpSites, addWp, removeWp, user, refreshUser }: {
                   <p className="text-xs text-slate-500 mb-1">Pilih judul:</p>
                   {titleSuggestions.map((t, i) => (
                     <button key={i} onClick={() => { setTitle(t); setTitleSuggestions([]); }}
-                      className="text-left text-xs text-slate-300 hover:text-amber-400 hover:bg-slate-800 px-2 py-1 rounded transition-colors">{t}</button>
+                      className="text-left text-xs text-slate-300 hover:text-emerald-400 hover:bg-slate-800 px-2 py-1 rounded transition-colors">{t}</button>
                   ))}
                 </div>
               )}
@@ -163,13 +163,13 @@ function SingleTab({ wpSites, addWp, removeWp, user, refreshUser }: {
                 {slugEdited.current && keyword.trim() && (
                   <button onClick={() => { slugEdited.current = false; setSlug(slugify(keyword)); }}
                     title="Reset slug dari keyword"
-                    className="text-xs text-amber-400 hover:text-amber-300 transition-colors">↺ Auto</button>
+                    className="text-xs text-emerald-400 hover:text-emerald-300 transition-colors">↺ Auto</button>
                 )}
               </div>
               <input value={slug}
                 onChange={e => { slugEdited.current = true; setSlug(slugify(e.target.value)); }}
                 placeholder="otomatis-dari-keyword"
-                className="bg-slate-900 border border-slate-700/60 text-slate-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-amber-500/60 placeholder-slate-700" />
+                className="bg-slate-900 border border-slate-700/60 text-slate-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-500/60 placeholder-slate-700" />
               <p className="text-xs text-slate-600 truncate">🔗 /{slug || "..."}</p>
             </div>
           </div>
@@ -190,7 +190,7 @@ function SingleTab({ wpSites, addWp, removeWp, user, refreshUser }: {
 
         {credits === 0 && (
           <button onClick={() => setShowUpgrade(true)}
-            className="w-full py-2 text-xs text-amber-400 border border-amber-500/20 rounded-xl hover:bg-amber-500/5 transition-colors">
+            className="w-full py-2 text-xs text-emerald-400 border border-emerald-500/20 rounded-xl hover:bg-emerald-500/5 transition-colors">
             💎 Kredit habis — Upgrade sekarang
           </button>
         )}
@@ -199,7 +199,7 @@ function SingleTab({ wpSites, addWp, removeWp, user, refreshUser }: {
       <div className="flex-1 flex flex-col overflow-hidden" ref={resultRef}>
         {!result && !loading && !error && (
           <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-3xl">⚡</div>
+            <div className="w-16 h-16 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-3xl">＋</div>
             <div>
               <p className="text-slate-400 text-sm font-semibold">Siap membuat artikel SEO</p>
               <p className="text-slate-700 text-xs mt-1">Masukkan keyword → konfigurasi → klik Buat Artikel</p>
@@ -234,7 +234,7 @@ function BulkRowCard({ row, index, onSelectTitle, onRegenTitles, onKeywordsChang
           <p className="text-xs font-semibold text-slate-200 truncate">{row.topic}</p>
           {row.selectedTitle && <p className="text-xs text-slate-500 truncate">{row.selectedTitle}</p>}
         </div>
-        {row.status === "genTitles" && <><span className="w-3 h-3 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" /><Badge text="Gen judul..." v="loading" /></>}
+        {row.status === "genTitles" && <><span className="w-3 h-3 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" /><Badge text="Gen judul..." v="loading" /></>}
         {row.status === "idle" && row.titles.length > 0 && <Badge text="Siap" v="success" />}
         {row.status === "loading" && <><span className="w-3 h-3 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" /><Badge text="Menulis" v="loading" /></>}
         {row.status === "selesai" && <Badge text="Selesai" v="success" />}
@@ -248,13 +248,13 @@ function BulkRowCard({ row, index, onSelectTitle, onRegenTitles, onKeywordsChang
               <div className="flex items-center justify-between">
                 <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Pilih Judul</p>
                 <button onClick={onRegenTitles} disabled={row.status === "genTitles"}
-                  className="text-xs text-amber-400 hover:text-amber-300 border border-amber-500/20 px-2 py-0.5 rounded transition-colors disabled:opacity-40">
+                  className="text-xs text-emerald-400 hover:text-emerald-300 border border-emerald-500/20 px-2 py-0.5 rounded transition-colors disabled:opacity-40">
                   🔄 Generate Lagi
                 </button>
               </div>
               {row.titles.map((t, ti) => (
                 <button key={ti} onClick={() => onSelectTitle(t)}
-                  className={`text-left text-xs px-3 py-2 rounded-lg border transition-all ${row.selectedTitle === t ? "bg-amber-500/10 border-amber-500/30 text-amber-300" : "border-slate-700 text-slate-400 hover:border-slate-600 hover:text-slate-200"}`}>
+                  className={`text-left text-xs px-3 py-2 rounded-lg border transition-all ${row.selectedTitle === t ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-300" : "border-slate-700 text-slate-400 hover:border-slate-600 hover:text-slate-200"}`}>
                   {t}
                 </button>
               ))}
@@ -264,7 +264,7 @@ function BulkRowCard({ row, index, onSelectTitle, onRegenTitles, onKeywordsChang
             <div>
               <label className="text-xs font-bold text-slate-500 uppercase tracking-widest block mb-1">Keywords Tambahan</label>
               <input value={row.keywords} onChange={e => onKeywordsChange(e.target.value)} placeholder="keyword1, keyword2..."
-                className="w-full bg-slate-900 border border-slate-700 text-slate-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-amber-500/60 placeholder-slate-700" />
+                className="w-full bg-slate-900 border border-slate-700 text-slate-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-500/60 placeholder-slate-700" />
             </div>
           )}
           {row.status === "selesai" && row.content && (
@@ -354,11 +354,11 @@ function BulkTab({ wpSites, addWp, removeWp, user, refreshUser }: {
               <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Topik / Keyword (1 per baris)</label>
               <textarea value={topicInput} onChange={e => setTopicInput(e.target.value)} rows={5}
                 placeholder={"panel maker listrik\ncara diet sehat\nbisnis online 2026"}
-                className="bg-slate-900 border border-slate-700/60 text-slate-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-amber-500/60 placeholder-slate-700 resize-none" />
+                className="bg-slate-900 border border-slate-700/60 text-slate-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-500/60 placeholder-slate-700 resize-none" />
             </div>
             <button onClick={generateTitlesForAll} disabled={!topicInput.trim() || genLoading}
-              className="w-full py-2.5 rounded-lg font-bold text-xs bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-amber-500/40 text-amber-400 transition-all disabled:opacity-40 flex items-center justify-center gap-2">
-              {genLoading ? <><span className="w-3 h-3 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />Generate Judul...</> : <>✨ Generate 5 Judul per Topik</>}
+              className="w-full py-2.5 rounded-lg font-bold text-xs bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-emerald-500/40 text-emerald-400 transition-all disabled:opacity-40 flex items-center justify-center gap-2">
+              {genLoading ? <><span className="w-3 h-3 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />Generate Judul...</> : <>✨ Generate 5 Judul per Topik</>}
             </button>
           </div>
         </div>
@@ -375,7 +375,7 @@ function BulkTab({ wpSites, addWp, removeWp, user, refreshUser }: {
         {rows.length === 0
           ? <div className="flex-1 flex flex-col items-center justify-center gap-3 text-center py-12">
               <div className="w-14 h-14 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-2xl">⊞</div>
-              <p className="text-slate-500 text-sm">Masukkan topik lalu klik <span className="text-amber-400 font-semibold">Generate Judul</span></p>
+              <p className="text-slate-500 text-sm">Masukkan topik lalu klik <span className="text-emerald-400 font-semibold">Generate Judul</span></p>
             </div>
           : <div className="flex-1 overflow-y-auto flex flex-col gap-2.5 pb-2">
               {rows.map((row, i) => (
@@ -430,12 +430,12 @@ export default function Dashboard() {
         <div className="max-w-screen-2xl mx-auto px-5 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <a href="/" className="flex items-center gap-1.5">
-              <div className="w-7 h-7 rounded-lg bg-amber-500 flex items-center justify-center font-black text-[#0c0e14] text-sm">A</div>
-              <span className="font-black tracking-tight"><span className="text-white">Artikel</span><span className="text-amber-400"> SEO</span></span>
+              <div className="w-7 h-7 rounded-lg bg-emerald-500 flex items-center justify-center font-black text-[#0c0e14] text-sm">A</div>
+              <span className="font-black tracking-tight"><span className="text-white">Artikel</span><span className="text-emerald-400"> SEO</span></span>
             </a>
             {wpSites.length > 0 && <span className="text-xs text-blue-400 border border-blue-800/50 bg-blue-950/30 px-2.5 py-0.5 rounded-full">🌐 {wpSites.length} situs</span>}
             {user && (
-              <span className={`text-xs px-2.5 py-0.5 rounded-full border font-bold ${credits > 0 ? "text-amber-400 border-amber-800/50 bg-amber-950/30" : "text-red-400 border-red-800/50 bg-red-950/30"}`}>
+              <span className={`text-xs px-2.5 py-0.5 rounded-full border font-bold ${credits > 0 ? "text-emerald-400 border-emerald-800/50 bg-emerald-950/30" : "text-red-400 border-red-800/50 bg-red-950/30"}`}>
                 💎 {credits} kredit
               </span>
             )}
@@ -443,7 +443,7 @@ export default function Dashboard() {
           <div className="flex items-center gap-2">
             {isPro
               ? <span className="text-xs text-emerald-400 border border-emerald-800/50 bg-emerald-950/30 px-2.5 py-0.5 rounded-full font-bold">✓ {user?.plan?.toUpperCase()}</span>
-              : <a href="/pricing" className="text-xs bg-amber-500 hover:bg-amber-400 text-[#0c0e14] font-black px-3.5 py-1.5 rounded-lg transition-colors">Upgrade Pro</a>
+              : <a href="/pricing" className="text-xs bg-emerald-500 hover:bg-emerald-400 text-[#0c0e14] font-black px-3.5 py-1.5 rounded-lg transition-colors">Upgrade Pro</a>
             }
             <button onClick={logout} className="text-xs text-slate-500 hover:text-slate-300 px-2 py-1 transition-colors">Keluar</button>
           </div>
@@ -452,9 +452,9 @@ export default function Dashboard() {
 
       <div className="border-b border-slate-800/60 bg-[#0c0e14]">
         <div className="max-w-screen-2xl mx-auto px-5 flex gap-0 pt-1">
-          {([{id:"single",label:"1-Click Blog Post",icon:"⚡"},{id:"bulk",label:"Bulk Article Generation",icon:"⊞"}] as const).map(t => (
+          {([{id:"single",label:"1-Click Blog Post",icon:"＋"},{id:"bulk",label:"Bulk Article Generation",icon:"⊞"}] as const).map(t => (
             <button key={t.id} onClick={() => setTab(t.id)}
-              className={`flex items-center gap-2 px-5 py-3 text-xs font-bold border-b-2 transition-all ${tab===t.id?"text-amber-400 border-amber-500 bg-amber-500/5":"text-slate-600 border-transparent hover:text-slate-400"}`}>
+              className={`flex items-center gap-2 px-5 py-3 text-xs font-bold border-b-2 transition-all ${tab===t.id?"text-emerald-400 border-emerald-500 bg-emerald-500/5":"text-slate-600 border-transparent hover:text-slate-400"}`}>
               <span className="text-base">{t.icon}</span>{t.label}
             </button>
           ))}

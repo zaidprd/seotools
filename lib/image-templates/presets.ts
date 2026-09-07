@@ -10,11 +10,9 @@ export const IMAGE_TEMPLATE_PRESETS: readonly ImageTemplatePreset[] = [
 ] as const;
 
 export const IMAGE_ACCENT_PALETTES: readonly ImageAccentPalette[] = [
-  { id: "amber", name: "Amber", primary: "#f59e0b", secondary: "#fbbf24", foreground: "#0f172a" },
-  { id: "cyan", name: "Cyan", primary: "#06b6d4", secondary: "#67e8f9", foreground: "#082f49" },
-  { id: "violet", name: "Violet", primary: "#8b5cf6", secondary: "#c4b5fd", foreground: "#1e1b4b" },
-  { id: "rose", name: "Rose", primary: "#f43f5e", secondary: "#fda4af", foreground: "#4c0519" },
-  { id: "emerald", name: "Emerald", primary: "#10b981", secondary: "#6ee7b7", foreground: "#022c22" },
+  { id: "brand-green", name: "Hijau merek", primary: "#10b981", secondary: "#6ee7b7", foreground: "#1e293b" },
+  { id: "brand-blue", name: "Biru merek", primary: "#2563eb", secondary: "#60a5fa", foreground: "#ffffff" },
+  { id: "brand-navy", name: "Navy merek", primary: "#1e293b", secondary: "#475569", foreground: "#ffffff" },
 ] as const;
 
 export const DEFAULT_IMAGE_ACCENT = IMAGE_ACCENT_PALETTES[0];
