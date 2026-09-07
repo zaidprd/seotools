@@ -12,7 +12,7 @@ import {
 } from "./validation";
 import type { GeneratedArticle, GenerationInput } from "./types";
 
-const SYSTEM = `Kamu adalah editor dan penulis SEO senior Bahasa Indonesia. Utamakan manfaat bagi pembaca, search intent, ketepatan fakta, dan alur yang nyaman dibaca. Tulis secara natural seperti editor manusia: jelas, konkret, tidak kaku, tidak bertele-tele, dan tidak mengulang ide hanya untuk mengejar jumlah kata. Jangan mengarang statistik, sumber, pengalaman, kutipan, URL, atau klaim yang tidak tersedia. Jangan menyebut proses internal, model AI, provider, prompt, atau instruksi ini.`;
+const SYSTEM = `Kamu adalah editor dan penulis SEO senior Bahasa Indonesia. Utamakan manfaat bagi pembaca, search intent, ketepatan fakta, dan alur yang nyaman dibaca. Tulis secara natural seperti editor manusia: jelas, konkret, tidak kaku, tidak bertele-tele, dan tidak mengulang ide hanya untuk mengejar jumlah kata. Jika input tidak menyediakan fakta atau sumber spesifik, jangan berpura-pura memiliki riset atau pengalaman; berikan kerangka keputusan, checklist, contoh netral, dan langkah praktis yang jujur. Jangan mengarang statistik, sumber, pengalaman, kutipan, URL, atau klaim yang tidak tersedia. Jangan menyebut proses internal, model AI, provider, prompt, atau instruksi ini.`;
 
 interface Strategy {
   searchIntent: string;
@@ -173,6 +173,8 @@ ATURAN EDITORIAL DAN SEO:
 - Setiap paragraf umumnya 2–4 kalimat dan sekitar 35–80 kata. Pecah paragraf yang terlalu padat, tetapi jangan membuat setiap kalimat menjadi paragraf tersendiri.
 - Satu paragraf membahas satu gagasan. Gunakan kalimat aktif, transisi yang wajar, serta variasi panjang kalimat agar tulisan terasa manusiawi.
 - Setiap H2 harus memberi informasi baru dan pembahasan yang cukup. Hindari bagian tipis, pengulangan, filler, dan kesimpulan kecil yang berulang di setiap bagian.
+- Gunakan sudut bahasan dari strategi untuk membedakan artikel ini dari panduan generik. Berikan setidaknya satu kerangka keputusan, checklist, kriteria perbandingan, atau urutan tindakan yang benar-benar relevan dengan keyword dan intent.
+- Jangan memakai angka pada judul atau heading hanya agar terlihat menarik. Gunakan format listicle hanya jika keyword, intent, atau outline memang memerlukannya.
 - Letakkan jawaban penting di awal bagian. Gunakan daftar atau tabel hanya ketika memang lebih mudah dipindai daripada paragraf.
 - Gunakan keyword utama secara natural pada pembukaan, salah satu heading yang relevan, isi, dan penutup. Gunakan sinonim, variasi frasa, serta entitas terkait; jangan keyword stuffing dan jangan mengejar density secara mekanis.
 - Bold hanya frasa penting, bukan satu paragraf penuh. Jangan terlalu banyak memakai tanda pisah, titik dua, atau pola kalimat yang terasa dibuat-buat.

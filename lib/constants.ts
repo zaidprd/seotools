@@ -100,7 +100,7 @@ export interface Config {
 }
 
 export const defaultCfg = (): Config => ({
-  language: "Indonesia", articleType: "Blog Post", articleSize: "Sedang (1.000–1.500 kata)",
+  language: "Indonesia", articleType: "Blog Post", articleSize: "Panjang (1.500–2.000 kata)",
   tone: "Ramah", pov: "Umum (Anda/Kita)", readability: "Menengah (SMA)", country: "Indonesia",
   aiCleaning: true, brandVoice: "", details: "", seoKeywords: "",
   imgCount: "0", imgSize: "Sedang 800px", imgStyle: "Foto", imgInstructions: "", imgBrand: "",
