@@ -64,7 +64,8 @@ export default function SyaratKetentuan() {
               <li>Pemakaian dihitung berdasarkan jumlah kata pada artikel yang dibuat</li>
               <li>Kuota yang sudah digunakan tidak dapat dikembalikan kecuali terjadi kegagalan teknis dari pihak kami</li>
               <li>Kuota paket berbayar berlaku selama 30 hari sejak aktivasi</li>
-              <li>Sisa kuota tidak dibawa ke periode paket berikutnya</li>
+              <li>Sisa kuota paket dapat dibawa saat perpanjangan dilakukan sebelum atau maksimal 7 hari setelah masa aktif berakhir</li>
+                            <li>Kuota yang dibawa maksimal sebesar kuota dasar paket baru, sehingga total kuota setelah perpanjangan maksimal dua kali kuota dasar paket tersebut</li>
             </ul>
           </section>
 
@@ -85,7 +86,7 @@ export default function SyaratKetentuan() {
               <li>Paket berbayar berlaku selama <strong className="text-slate-900">30 hari</strong> sejak tanggal aktivasi</li>
               <li>Perpanjangan tidak dilakukan otomatis — Anda perlu memperpanjang secara manual melalui halaman Akun atau Pricing</li>
               <li>Setelah paket berakhir, akun otomatis turun ke paket Free</li>
-              <li>Kredit sisa dari paket yang kadaluwarsa tidak dipindahkan ke periode berikutnya</li>
+              <li>Sisa kuota dapat dibawa ke periode baru sesuai batas dan masa tenggang perpanjangan yang berlaku</li>
               <li>Kami mengirim notifikasi email 7 hari sebelum paket berakhir</li>
             </ul>
           </section>
