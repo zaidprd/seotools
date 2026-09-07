@@ -388,7 +388,7 @@ export default function ResultPanel({ content: initialContent, articleTitle, met
             </button>
           ))}
           <button onClick={() => setShowTemplateGallery(v => !v)} className="text-[11px] px-2.5 py-1.5 rounded-lg border border-amber-500/30 text-amber-400 hover:bg-amber-500/10 transition-all">
-            Featured image
+            {featuredImage ? "Ganti featured" : "Pilih featured"}
           </button>
           <button onClick={copy} className="text-[11px] px-2.5 py-1.5 rounded-lg border border-slate-700 hover:border-slate-600 text-slate-400 hover:text-white transition-all">
             {copied ? "✓ Tersalin" : "Salin"}
@@ -478,8 +478,10 @@ export default function ResultPanel({ content: initialContent, articleTitle, met
               [&_table]:w-full [&_table]:border-collapse [&_table]:mb-4 [&_table]:text-sm
               [&_th]:border [&_th]:border-slate-400 [&_th]:px-3 [&_th]:py-2 [&_th]:bg-slate-300/50 [&_th]:text-[#172033] [&_th]:text-left
               [&_td]:border [&_td]:border-slate-400/60 [&_td]:px-3 [&_td]:py-2 [&_td]:text-[#3a4656]
-              [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-xl [&_img]:mx-auto [&_img]:block [&_img]:my-4"
-              dangerouslySetInnerHTML={{ __html: htmlContent }} />
+              [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-xl [&_img]:mx-auto [&_img]:block [&_img]:my-4">
+              <h1>{title}</h1>
+              <div dangerouslySetInnerHTML={{ __html: htmlContent }} />
+            </div>
           </>
         )}
 
