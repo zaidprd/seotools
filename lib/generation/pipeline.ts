@@ -9,6 +9,7 @@ import {
   normalizeAllowedInternalLinks,
   normalizeInternalBaseUrl,
   validateDraft,
+  type ValidatedDraft,
 } from "./validation";
 import type { GeneratedArticle, GenerationInput } from "./types";
 
@@ -161,7 +162,7 @@ export async function runGenerationPipeline(input: GenerationInput, creditsUsed:
     temperature: 0.2,
   }, parseStrategy);
 
-  const draft = await generateText({
+  let draft = await generateText({
     system: SYSTEM,
     messages: [{
       role: "user",
@@ -194,13 +195,42 @@ ${JSON.stringify(strategy)}`,
     temperature: 0.55,
   });
 
-  const validatedDraft = validateDraft(
-    draft,
-    input,
-    requestedRange.min,
-    allowedInternalLinks,
-    verifiedExternalLinks,
-  );
+  let validatedDraft: ValidatedDraft;
+  try {
+    validatedDraft = validateDraft(
+      draft,
+      input,
+      requestedRange.min,
+      allowedInternalLinks,
+      verifiedExternalLinks,
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "";
+    const isTruncated = message === "Artikel terpotong di tengah kalimat" || message === "Artikel terpotong pada elemen Markdown";
+    if (!isTruncated) throw error;
+
+    const continuation = await generateText({
+      system: SYSTEM,
+      messages: [
+        { role: "assistant", content: draft },
+        {
+          role: "user",
+          content: `Draft di atas berhenti karena batas keluaran. Lanjutkan tepat dari bagian yang terpotong sampai artikel benar-benar selesai. Jangan mengulang judul, pembukaan, atau bagian yang sudah ada. Awali dengan kelanjutan langsung dari kalimat terakhir; jangan menambahkan komentar tentang proses ini. Pastikan kesimpulan dan FAQ tetap lengkap bila diminta. Jaga total artikel tidak melebihi ${maxWords} kata.`,
+        },
+      ],
+      maxTokens: 2_500,
+      temperature: 0.35,
+    });
+
+    draft = `${draft.trimEnd()}${/^\s/.test(continuation) ? "" : " "}${continuation.trimStart()}`;
+    validatedDraft = validateDraft(
+      draft,
+      input,
+      requestedRange.min,
+      allowedInternalLinks,
+      verifiedExternalLinks,
+    );
+  }
 
   // Tahap akhir hanya mengemas metadata dan audit ringkas. Jangan meminta model
   // menyalin ulang artikel panjang ke JSON karena respons mudah terpotong dan
