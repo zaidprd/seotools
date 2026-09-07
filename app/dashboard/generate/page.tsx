@@ -25,7 +25,14 @@ export default function GeneratePage() {
   const hasTrialArticle = (user?.trial_articles_remaining ?? 0) > 0;
   const isPro = isAdmin || hasTrialArticle || (user?.plan ?? "free") !== "free";
   const credits = user?.credits ?? 0;
-  const availableSizes = isPro ? ARTICLE_SIZES : ARTICLE_SIZES.slice(0, 3);
+  const wordQuota = user?.monthly_word_quota ?? null;
+  const wordsUsed = user?.monthly_words_used ?? 0;
+  const wordsRemaining = wordQuota === null ? null : Math.max(0, wordQuota - wordsUsed);
+  const maxWordsPerArticle = user?.max_words_per_article ?? 0;
+  const maxWordsInSize = (size: string) => Math.max(...[...size.matchAll(/\d[\d.]*/g)].map(match => Number(match[0].replace(/\./g, ""))), 0);
+  const availableSizes = wordQuota !== null
+    ? ARTICLE_SIZES.filter(size => maxWordsInSize(size) <= maxWordsPerArticle)
+    : isPro ? ARTICLE_SIZES : ARTICLE_SIZES.slice(0, 3);
   const defaultModel = MODELS[0];
 
   const [cfg, setCfg] = useState<Config>(defaultCfg());
@@ -68,7 +75,10 @@ export default function GeneratePage() {
   }, []);
 
   const cost = 7;
-  const hasGenerationAccess = isAdmin || hasTrialArticle || credits >= cost;
+  const selectedWords = maxWordsInSize(!isPro ? FREE_MAX_WORDS : cfg.articleSize);
+  const hasGenerationAccess = isAdmin || hasTrialArticle || (wordsRemaining !== null
+    ? selectedWords <= maxWordsPerArticle && wordsRemaining >= selectedWords
+    : credits >= cost);
 
   const handleGenerateTitle = async () => {
     if (!keyword.trim()) return;
@@ -113,7 +123,7 @@ export default function GeneratePage() {
         </div>
         {user && (
           <span className={`ml-auto text-xs px-2.5 py-1 rounded border font-bold ${hasGenerationAccess ? "text-emerald-400 border-emerald-800/50 bg-emerald-950/30" : "text-amber-300 border-amber-800/50 bg-amber-950/30"}`}>
-            {hasGenerationAccess ? "Siap membuat artikel" : "Paket diperlukan"}
+            {hasGenerationAccess ? "Siap membuat artikel" : wordsRemaining !== null ? "Kuota tidak cukup" : "Paket diperlukan"}
           </span>
         )}
       </div>
@@ -198,7 +208,7 @@ export default function GeneratePage() {
             {!isAdmin && !hasGenerationAccess && (
               <button onClick={() => setShowUpgrade(true)}
                 className="w-full mt-2 py-2 text-xs text-amber-400 border border-amber-500/20 rounded-xl hover:bg-amber-500/5 transition-colors">
-                Paket belum aktif — Lihat pilihan
+                {wordsRemaining !== null ? "Kuota tidak cukup — Lihat pilihan" : "Paket belum aktif — Lihat pilihan"}
               </button>
             )}
           </div>
