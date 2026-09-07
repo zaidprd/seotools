@@ -1,212 +1,65 @@
 "use client";
-import { useState, useEffect } from "react";
+
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { PLANS, MODELS, FREE_MODEL_ID } from "@/lib/constants";
+import BrandMark from "@/components/marketing/BrandMark";
+import PlanCards from "@/components/marketing/PlanCards";
 import { createClient } from "@/lib/supabase/client";
 
 export default function PricingPage() {
-  const [billing, setBilling] = useState<"monthly"|"yearly">("monthly");
-  const [loading, setLoading] = useState<string|null>(null);
+  const [loading, setLoading] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
   const [verifying, setVerifying] = useState(false);
-  const [verifyMsg, setVerifyMsg] = useState<{ type: "ok"|"err"; text: string } | null>(null);
+  const [verifyMsg, setVerifyMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
   const router = useRouter();
 
-  useEffect(() => {
-    createClient().auth.getUser().then(({ data: { user } }) => setUser(user));
-  }, []);
+  useEffect(() => { createClient().auth.getUser().then(({ data: { user } }) => setUser(user)); }, []);
 
-  const handleBuy = async (planId: string) => {
-    if (planId === "free") { router.push("/login"); return; }
+  const handleBuy = async (productId: string) => {
     if (!user) { router.push("/login"); return; }
-    setLoading(planId);
+    setLoading(productId);
     try {
-      const res = await fetch("/api/payment/create", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ planId }),
-      });
+      const res = await fetch("/api/payment/create", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ productId }) });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      // Redirect ke halaman pembayaran Mayar
       window.location.href = data.paymentUrl;
-    } catch (e: any) {
-      alert(e.message); setLoading(null);
-    }
+    } catch (e: any) { alert(e.message); setLoading(null); }
   };
 
-  // Verifikasi manual pembayaran terakhir yang belum masuk
   const handleManualVerify = async () => {
     if (!user) { alert("Login dulu"); return; }
     setVerifying(true); setVerifyMsg(null);
     try {
-      const res = await fetch("/api/payment/verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}),
-      });
+      const res = await fetch("/api/payment/verify", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({}) });
       const data = await res.json();
       if (data.success) {
-        setVerifyMsg({ type: "ok", text: data.alreadyApplied ? "Paket sudah aktif sebelumnya." : `✅ Berhasil! ${data.creditsAdded} kredit ditambahkan. Redirecting...` });
+        setVerifyMsg({ type: "ok", text: data.alreadyApplied ? "Pembayaran sudah diterapkan sebelumnya." : data.articleGrantsAdded ? "Hak 1 artikel sudah aktif." : "Paket berhasil diaktifkan." });
         setTimeout(() => router.push("/dashboard?payment=success"), 2000);
-      } else {
-        setVerifyMsg({ type: "err", text: data.error || "Pembayaran belum lunas. Selesaikan pembayaran lalu coba lagi." });
-      }
-    } catch (e: any) {
-      setVerifyMsg({ type: "err", text: e.message });
-    }
+      } else setVerifyMsg({ type: "err", text: data.error || "Pembayaran belum lunas. Selesaikan pembayaran lalu coba lagi." });
+    } catch (e: any) { setVerifyMsg({ type: "err", text: e.message }); }
     setVerifying(false);
   };
 
-  const yearlyDiscount = 0.20;
-
   return (
-    <div className="min-h-screen bg-[#0c0e14] text-slate-100" style={{ fontFamily: "'DM Sans',sans-serif" }}>
-      {/* Nav */}
-      <nav className="border-b border-slate-800/60 sticky top-0 z-50 bg-[#0c0e14]/90 backdrop-blur">
-        <div className="max-w-6xl mx-auto px-5 py-4 flex items-center justify-between">
-          <a href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center font-black text-[#0c0e14]">S</div>
-            <span className="font-black text-lg tracking-tight"><span className="text-white">SEO</span><span className="text-amber-400 font-light">Tulis</span><span className="text-amber-500">.AI</span></span>
-          </a>
-          <div className="flex items-center gap-3">
-            {user
-              ? <a href="/dashboard" className="text-sm text-slate-300 hover:text-white px-3 py-2 transition-colors">Dashboard</a>
-              : <a href="/login" className="text-sm text-slate-300 hover:text-white px-3 py-2 transition-colors">Masuk</a>
-            }
-          </div>
-        </div>
-      </nav>
+    <div className="min-h-screen bg-[#0a101b] text-slate-100" style={{ fontFamily: "'DM Sans',sans-serif" }}>
+      <header className="border-b border-slate-800"><div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4"><BrandMark />{user ? <a href="/dashboard" className="text-sm font-bold text-slate-300 hover:text-white">Kembali ke dashboard</a> : <a href="/login" className="text-sm font-bold text-slate-300 hover:text-white">Masuk</a>}</div></header>
+      <main>
+        <section className="relative overflow-hidden border-b border-slate-800"><div className="absolute inset-0 opacity-30 [background-image:linear-gradient(rgba(148,163,184,.06)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,.06)_1px,transparent_1px)] [background-size:48px_48px]" /><div className="relative mx-auto max-w-5xl px-5 py-20 text-center"><p className="text-xs font-bold uppercase tracking-[0.24em] text-amber-300">Harga sederhana, tanpa pilihan model</p><h1 className="mt-5 text-4xl font-black tracking-[-0.04em] sm:text-6xl" style={{ fontFamily: "Sora,sans-serif" }}>Bayar untuk kata yang Anda terbitkan.</h1><p className="mx-auto mt-6 max-w-2xl leading-7 text-slate-400">Mulai dengan satu artikel. Jika cocok, pilih kuota 30 hari sesuai ritme penerbitan Anda.</p></div></section>
 
-      <div className="max-w-6xl mx-auto px-5 py-16">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-black mb-3" style={{ fontFamily: "Sora, sans-serif" }}>Harga Transparan</h1>
-          <p className="text-slate-400 mb-6">Bayar sesuai pemakaian. Tidak ada biaya tersembunyi.</p>
-          <div className="inline-flex items-center bg-slate-900 border border-slate-800 rounded-xl p-1 gap-1">
-            <button onClick={() => setBilling("monthly")}
-              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${billing==="monthly"?"bg-amber-500 text-slate-900":"text-slate-400 hover:text-white"}`}>
-              Bulanan
-            </button>
-            <button onClick={() => setBilling("yearly")}
-              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${billing==="yearly"?"bg-amber-500 text-slate-900":"text-slate-400 hover:text-white"}`}>
-              Tahunan
-              <span className="text-[10px] bg-emerald-500 text-white px-1.5 py-0.5 rounded-full font-bold">Hemat 20%</span>
-            </button>
-          </div>
-        </div>
+        <section className="mx-auto max-w-7xl px-5 py-16">
+          <div className="mb-12 grid overflow-hidden border border-emerald-500/25 bg-[#0d181d] lg:grid-cols-[1.15fr_.85fr]"><div className="p-7 sm:p-10"><p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-400">Langkah paling ringan</p><h2 className="mt-4 text-3xl font-black text-white" style={{ fontFamily: "Sora,sans-serif" }}>Coba 1 artikel lengkap</h2><p className="mt-4 max-w-xl text-sm leading-6 text-slate-400">Satu kali per akun. Termasuk target 1.500–2.000 kata, editor, pemeriksaan SEO, preset featured image, dan publikasi WordPress.</p><div className="mt-7 flex items-end gap-2"><strong className="text-4xl text-white">Rp5.000</strong><span className="pb-1 text-xs text-slate-500">sekali bayar</span></div></div><div className="flex flex-col justify-center border-t border-emerald-500/20 bg-emerald-500/5 p-7 sm:p-10 lg:border-l lg:border-t-0"><button onClick={() => handleBuy("trial_article")} disabled={loading === "trial_article"} className="rounded-lg bg-emerald-400 px-5 py-4 font-black text-[#07150f] hover:bg-emerald-300 disabled:opacity-60">{loading === "trial_article" ? "Memproses..." : "Coba 1 Artikel — Rp5.000"}</button><p className="mt-3 text-center text-xs text-slate-500">Pembayaran aman melalui Mayar</p></div></div>
 
-        {/* Sudah bayar tapi kredit belum masuk? */}
-        {user && (
-          <div className="bg-slate-900/40 border border-slate-700/50 rounded-2xl p-4 mb-8 max-w-xl mx-auto flex flex-col sm:flex-row items-center gap-3">
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-white">Sudah bayar tapi kredit belum masuk?</p>
-              <p className="text-xs text-slate-500 mt-0.5">Klik tombol di samping untuk memverifikasi pembayaran terakhirmu</p>
-            </div>
-            <div className="flex flex-col items-end gap-1">
-              <button onClick={handleManualVerify} disabled={verifying}
-                className="flex-shrink-0 text-xs bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-amber-500/30 text-amber-400 px-4 py-2 rounded-lg transition-all flex items-center gap-1.5 disabled:opacity-60">
-                {verifying ? <><span className="w-3 h-3 border border-amber-400 border-t-transparent rounded-full animate-spin" />Memverifikasi...</> : "🔍 Verifikasi Pembayaran"}
-              </button>
-              {verifyMsg && (
-                <p className={`text-[11px] ${verifyMsg.type === "ok" ? "text-emerald-400" : "text-red-400"}`}>{verifyMsg.text}</p>
-              )}
-            </div>
-          </div>
-        )}
+          <div className="mb-9"><p className="text-xs font-bold uppercase tracking-[0.22em] text-amber-300">Paket lanjutan</p><h2 className="mt-3 text-3xl font-black" style={{ fontFamily: "Sora,sans-serif" }}>Kuota bulanan yang transparan.</h2><p className="mt-3 text-sm text-slate-400">Estimasi artikel menggunakan panjang 1.500–2.000 kata dan dapat berbeda sesuai kebutuhan draft.</p></div>
+          <PlanCards onBuy={handleBuy} loading={loading} />
 
-        {/* Kredit explanation */}
-        <div className="bg-slate-900/40 border border-slate-800 rounded-2xl p-5 mb-10 max-w-3xl mx-auto">
-          <p className="text-sm font-bold text-white mb-1 text-center">💎 35 Kredit Bisa Buat Berapa Artikel?</p>
-          <p className="text-xs text-slate-500 text-center mb-4">Pilih model sesuai kebutuhan — semakin canggih, semakin sedikit artikel per bulan</p>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {MODELS.map(m => {
-              const articles = Math.floor(35 / m.credits);
-              return (
-                <div key={m.id} className={`text-center p-3 rounded-xl border ${m.id===FREE_MODEL_ID?"border-emerald-500/30 bg-emerald-500/5":"border-amber-500/20 bg-slate-900/60"}`}>
-                  <p className="text-xs font-semibold text-slate-200 mb-2">{m.label}</p>
-                  <p className="font-black text-3xl text-amber-400 leading-none">{articles}</p>
-                  <p className="text-[11px] text-slate-400 mt-0.5">artikel/bulan</p>
-                  <p className="text-[10px] text-slate-600 mt-2 border-t border-slate-800 pt-2">{m.credits} 💎 per artikel</p>
-                </div>
-              );
-            })}
-          </div>
-          <p className="text-[11px] text-slate-600 text-center mt-3">Kredit tidak kadaluarsa · Bebas pilih model kapan saja</p>
-        </div>
+          <div className="mt-8 grid gap-px border border-slate-800 bg-slate-800 sm:grid-cols-2 lg:grid-cols-4">{[["30 hari","Akses paket berlaku selama 30 hari sejak pembayaran."],["Tanpa rollover","Sisa kuota kata tidak dibawa ke periode selanjutnya."],["Gambar terpisah","Preset featured image tidak mengurangi kuota kata."],["Otomatis","Konfigurasi penulisan dipilih sistem; Anda tidak perlu memilih model."]].map(([t,d]) => <div key={t} className="bg-[#0d1522] p-5"><p className="font-bold text-white">{t}</p><p className="mt-2 text-xs leading-5 text-slate-500">{d}</p></div>)}</div>
 
-        {/* Plans — single paid plan */}
-        <div className="max-w-md mx-auto">
-          {PLANS.filter(p => p.id === "starter").map(plan => {
-            const price = billing === "yearly" ? Math.round(plan.price * (1 - yearlyDiscount)) : plan.price;
-            const priceLabel = `Rp ${price.toLocaleString("id-ID")}`;
-            const yearlySave = Math.round(plan.price * 12 * yearlyDiscount);
-            return (
-              <div key={plan.id} className="rounded-2xl border border-amber-500/50 overflow-hidden shadow-2xl shadow-amber-500/10">
-                <div className="bg-amber-500 text-slate-900 text-center text-[11px] font-black py-1.5 tracking-widest uppercase">Satu Paket, Semua Fitur</div>
-                <div className="p-7 bg-gradient-to-b from-amber-500/10 to-slate-900/60">
-                  <h3 className="font-black text-2xl mb-4 text-center" style={{ fontFamily: "Sora,sans-serif" }}>Paket Aktif</h3>
-                  <div className="text-center mb-1">
-                    <span className="text-5xl font-black">{priceLabel}</span>
-                    <span className="text-slate-500 text-base">/bulan</span>
-                  </div>
-                  {billing === "yearly" && (
-                    <p className="text-[12px] text-emerald-400 text-center mb-2">Hemat Rp {yearlySave.toLocaleString("id-ID")}/tahun</p>
-                  )}
-                  <div className="flex items-center justify-center gap-2 mb-6 mt-3">
-                    <span className="text-3xl font-black text-amber-400">35</span>
-                    <span className="text-slate-400 text-sm">💎 kredit/bulan</span>
-                  </div>
-                  <ul className="flex flex-col gap-2.5 mb-7">
-                    {plan.features.map(f => (
-                      <li key={f} className="flex items-start gap-2.5 text-sm text-slate-300">
-                        <span className="text-emerald-400 mt-0.5 flex-shrink-0">✓</span>{f}
-                      </li>
-                    ))}
-                  </ul>
-                  <button onClick={() => handleBuy(plan.id)} disabled={loading === plan.id}
-                    className="w-full font-black py-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-900 transition-all flex items-center justify-center gap-2 text-base">
-                    {loading === plan.id
-                      ? <><span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"/>Memproses...</>
-                      : plan.cta}
-                  </button>
-                  <p className="text-center text-xs text-slate-500 mt-3">Bayar via QRIS · Transfer Bank · GoPay · OVO · ShopeePay</p>
-                </div>
-              </div>
-            );
-          })}
-          <div className="text-center mt-5">
-            <p className="text-sm text-slate-500">
-              Belum yakin?{" "}
-              <a href="/login" className="text-amber-400 hover:text-amber-300 underline underline-offset-2 transition-colors">
-                Coba 1 artikel gratis →
-              </a>
-            </p>
-          </div>
-        </div>
+          {user && <div className="mx-auto mt-12 max-w-2xl border border-slate-800 bg-slate-900/40 p-5"><div className="flex flex-col gap-4 sm:flex-row sm:items-center"><div className="flex-1"><p className="text-sm font-bold text-white">Sudah bayar tetapi paket belum aktif?</p><p className="mt-1 text-xs text-slate-500">Minta sistem memeriksa transaksi Mayar terakhir Anda.</p></div><button onClick={handleManualVerify} disabled={verifying} className="rounded-lg border border-slate-700 px-4 py-2.5 text-xs font-bold text-amber-300 hover:border-amber-400/50 disabled:opacity-60">{verifying ? "Memverifikasi..." : "Verifikasi pembayaran"}</button></div>{verifyMsg && <p className={`mt-3 text-xs ${verifyMsg.type === "ok" ? "text-emerald-400" : "text-red-400"}`}>{verifyMsg.text}</p>}</div>}
+        </section>
 
-        {/* FAQ */}
-        <div className="mt-16 max-w-2xl mx-auto">
-          <h2 className="text-2xl font-black text-center mb-8" style={{ fontFamily: "Sora,sans-serif" }}>Pertanyaan Umum</h2>
-          {[
-            { q: "Apa itu kredit dan 35 kredit itu cukup buat apa?", a: "Kredit adalah satuan pemakaian AI. Setiap artikel yang di-generate memotong kredit sesuai model yang dipilih: Gemini 2.5 Flash = 1 kredit (35 artikel/bln), GPT-4.1 Mini = 2 kredit, GPT-4.1 = 3 kredit, GPT-5.4 = 5 kredit, Claude Haiku 4.5 = 5 kredit, Claude Sonnet 4.6 = 7 kredit, Claude Opus 4.7 = 10 kredit. Bebas campur model setiap saat." },
-            { q: "Apakah kredit kadaluarsa?", a: "Kredit akan di-reset setiap awal bulan sesuai siklus langganan. Sisa kredit bulan lalu tidak diakumulasi — jadi usahakan dipakai habis tiap bulan." },
-            { q: "Sudah bayar tapi kredit belum masuk?", a: "Klik tombol 'Verifikasi Pembayaran' di atas. Sistem akan mengecek pembayaran terakhirmu ke Mayar dan langsung menambahkan kredit jika sudah lunas." },
-            { q: "Bisa berhenti berlangganan kapan saja?", a: "Ya. Karena pembayaran per bulan, kamu cukup tidak memperpanjang bulan berikutnya. Tidak ada kontrak jangka panjang." },
-            { q: "Metode pembayaran apa saja?", a: "Lewat Mayar: QRIS, Transfer Bank/Virtual Account (BCA/Mandiri/BNI/BRI), GoPay, OVO, ShopeePay, Dana, dan kartu kredit/debit." },
-            { q: "Apakah perlu install plugin WordPress?", a: "Tidak perlu! Kami menggunakan WordPress REST API yang sudah built-in. Cukup buat Application Password di WP Admin." },
-          ].map((faq, i) => (
-            <div key={i} className="border-b border-slate-800 py-4">
-              <p className="font-semibold text-white mb-1">{faq.q}</p>
-              <p className="text-sm text-slate-400 leading-relaxed">{faq.a}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <footer className="border-t border-slate-800/60 py-8 mt-10">
-        <div className="max-w-6xl mx-auto px-5 text-center text-xs text-slate-600">
-          © 2026 Artikel SEO · Dibuat untuk blogger Indonesia 🇮🇩
-        </div>
-      </footer>
+        <section className="border-t border-slate-800 bg-[#0d1522]"><div className="mx-auto grid max-w-5xl gap-10 px-5 py-20 lg:grid-cols-[.7fr_1fr]"><h2 className="text-3xl font-black" style={{ fontFamily: "Sora,sans-serif" }}>Pertanyaan sebelum membeli.</h2><div className="divide-y divide-slate-800 border-y border-slate-800">{[["Metode pembayaran apa yang tersedia?","Pembayaran diproses oleh Mayar. Pilihan yang tampil dapat mencakup QRIS, transfer bank, dompet digital, serta kartu sesuai ketersediaan Mayar."],["Apakah paket berlangganan otomatis?","Paket berlaku 30 hari. Anda dapat memperpanjang kembali saat membutuhkan kuota baru."],["Apakah jumlah artikel dijamin?","Tidak. Kuota dihitung dalam kata, sehingga jumlah artikel bergantung pada panjang setiap draft."],["Apakah perlu plugin WordPress?","Tidak. Koneksi menggunakan WordPress REST API dan Application Password dari akun WordPress Anda."]].map(([q,a]) => <div key={q} className="py-5"><p className="font-bold text-white">{q}</p><p className="mt-2 text-sm leading-6 text-slate-400">{a}</p></div>)}</div></div></section>
+      </main>
+      <footer className="border-t border-slate-800 px-5 py-8 text-center text-xs text-slate-500">© 2026 Artikel SEO · Pembayaran diproses melalui Mayar</footer>
     </div>
   );
 }

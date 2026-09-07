@@ -24,9 +24,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Payload tidak valid" }, { status: 400 });
   }
 
-  // Verifikasi token webhook (defense-in-depth). Tolak hanya jika token diberikan
-  // tapi salah; kalau tak ada tetap diproses karena settlePayment verifikasi ulang.
-  const webhookToken = process.env.MAYAR_WEBHOOK_TOKEN;
+  // Mayar-compatible token locations. If configured, the secret is mandatory.
+  const webhookToken = process.env.MAYAR_WEBHOOK_SECRET;
   if (webhookToken) {
     const provided =
       req.headers.get("authorization")?.replace(/^Bearer\s+/i, "").trim() ||
@@ -34,7 +33,7 @@ export async function POST(req: NextRequest) {
       req.headers.get("x-mayar-token")?.trim() ||
       body.token?.trim() ||
       "";
-    if (provided && provided !== webhookToken) {
+    if (!provided || provided !== webhookToken) {
       return NextResponse.json({ error: "Token webhook tidak valid" }, { status: 401 });
     }
   }

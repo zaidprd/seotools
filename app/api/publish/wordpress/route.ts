@@ -2,19 +2,40 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/supabase/require-auth";
 import { validateOutboundUrl } from "@/lib/validate-url";
 import { checkPlanStatus } from "@/lib/plan-status";
+import { createClient } from "@supabase/supabase-js";
 
 export const runtime = "nodejs";
 
+async function uploadDataImage(dataUrl: string, origin: string, auth: string, filenamePrefix: string): Promise<number | undefined> {
+  const match = dataUrl.match(/^data:(image\/(?:jpeg|jpg|png|webp));base64,(.+)$/i);
+  if (!match) return undefined;
+  const mime = match[1].toLowerCase().replace("image/jpg", "image/jpeg");
+  const ext = mime === "image/jpeg" ? "jpg" : mime.split("/")[1];
+  const buffer = Buffer.from(match[2], "base64");
+  if (buffer.length < 100) return undefined;
+  const response = await fetch(`${origin}/wp-json/wp/v2/media`, {
+    method: "POST",
+    headers: {
+      Authorization: `Basic ${auth}`,
+      "Content-Type": mime,
+      "Content-Disposition": `attachment; filename="${filenamePrefix}-${Date.now()}.${ext}"`,
+    },
+    body: buffer,
+  });
+  if (!response.ok) throw new Error("WordPress gagal mengunggah featured image");
+  const data = await response.json();
+  return typeof data?.id === "number" ? data.id : undefined;
+}
+
 // Upload semua gambar base64 (raster) di konten ke WP Media Library — dijalankan di SERVER
-// agar tidak terkena pembatasan CORS browser. Ganti src jadi URL WP, dan kembalikan ID
-// gambar pertama untuk dijadikan featured image. SVG base64 dilewati (perlu konversi di client).
+// agar tidak terkena pembatasan CORS browser. Ganti src menjadi URL WordPress tanpa
+// menjadikannya featured image. SVG base64 dikonversi lebih dahulu di client.
 async function uploadBase64Images(
   content: string, origin: string, auth: string
-): Promise<{ content: string; firstMediaId?: number }> {
+): Promise<string> {
   const regex = /<img([^>]*?)src="data:([^;]+);base64,([^"]+)"([^>]*?)>/gi;
   const matches = [...content.matchAll(regex)];
   let result = content;
-  let firstMediaId: number | undefined;
   const extByMime: Record<string, string> = {
     "image/jpeg": "jpg", "image/jpg": "jpg", "image/png": "png",
     "image/gif": "gif", "image/webp": "webp",
@@ -37,11 +58,10 @@ async function uploadBase64Images(
       });
       if (!r.ok) continue;
       const data = await r.json();
-      if (!firstMediaId && data?.id) firstMediaId = data.id as number;
       if (data?.source_url) result = result.replace(m[0], `<img${m[1]}src="${data.source_url}"${m[4]}>`);
     } catch { /* pertahankan base64 jika upload gagal */ }
   }
-  return { content: result, firstMediaId };
+  return result;
 }
 
 // Publish artikel ke WordPress via REST API menggunakan Application Password.
@@ -51,18 +71,24 @@ export async function POST(req: NextRequest) {
     const { user, errorResponse } = await requireAuth();
     if (errorResponse) return errorResponse;
 
-    // Cek plan — publish WP memerlukan plan berbayar
+    // Paket trial yang sudah dibayar juga berhak mempublikasikan artikelnya.
     const planStatus = await checkPlanStatus(user.id);
+    let hasPaidTrial = false;
     if (!planStatus.isAdmin && planStatus.plan === "free") {
-      return NextResponse.json({ error: "Publish ke WordPress memerlukan paket berbayar." }, { status: 403 });
+      const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+      const { data } = await sb.from("payments").select("id").eq("user_id", user.id).eq("product_id", "trial_article").eq("status", "paid").limit(1).maybeSingle();
+      hasPaidTrial = Boolean(data);
     }
-    if (!planStatus.isAdmin && planStatus.isExpired) {
+    if (!planStatus.isAdmin && planStatus.plan === "free" && !hasPaidTrial) {
+      return NextResponse.json({ error: "Publish ke WordPress memerlukan paket atau artikel trial aktif." }, { status: 403 });
+    }
+    if (!planStatus.isAdmin && !hasPaidTrial && planStatus.isExpired) {
       return NextResponse.json({ error: "Paket kamu sudah expired. Silakan perpanjang untuk melanjutkan." }, { status: 403 });
     }
 
     const { site, post }: {
       site: { url: string; user: string; pass: string };
-      post: { title: string; content: string; status?: string; slug?: string; scheduledAt?: string; focusKeyword?: string; featuredMediaId?: number };
+      post: { title: string; content: string; status?: string; slug?: string; scheduledAt?: string; focusKeyword?: string; featuredMediaId?: number; featuredImageDataUrl?: string };
     } = await req.json();
     if (!site?.url || !site?.user || !site?.pass) {
       return NextResponse.json({ error: "Data koneksi WordPress tidak lengkap" }, { status: 400 });
@@ -77,13 +103,15 @@ export async function POST(req: NextRequest) {
     const auth = Buffer.from(`${site.user}:${site.pass}`).toString("base64");
     const endpoint = `${urlCheck.url.origin}/wp-json/wp/v2/posts`;
 
-    // Upload gambar base64 ke WP (server-side) → src jadi URL WP, gambar pertama jadi featured image.
+    // Upload featured image dan gambar body secara terpisah.
     let content = post.content;
     let featuredMediaId = post.featuredMediaId;
+    if (!featuredMediaId && post.featuredImageDataUrl) {
+      featuredMediaId = await uploadDataImage(post.featuredImageDataUrl, urlCheck.url.origin, auth, "featured-artikel");
+      if (!featuredMediaId) return NextResponse.json({ error: "Format featured image tidak valid" }, { status: 400 });
+    }
     if (/<img[^>]+src="data:[^"]+;base64,/.test(content)) {
-      const up = await uploadBase64Images(content, urlCheck.url.origin, auth);
-      content = up.content;
-      if (!featuredMediaId && up.firstMediaId) featuredMediaId = up.firstMediaId;
+      content = await uploadBase64Images(content, urlCheck.url.origin, auth);
     }
 
     const wpBody: Record<string, unknown> = {
@@ -92,7 +120,14 @@ export async function POST(req: NextRequest) {
       status: post.status || "draft",
     };
     if (post.slug) wpBody.slug = post.slug;
-    if (post.scheduledAt) wpBody.date = post.scheduledAt;
+    if (post.status === "future") {
+      if (!post.scheduledAt) return NextResponse.json({ error: "Waktu jadwal wajib diisi" }, { status: 400 });
+      const scheduled = new Date(post.scheduledAt);
+      if (Number.isNaN(scheduled.getTime()) || scheduled.getTime() <= Date.now()) {
+        return NextResponse.json({ error: "Jadwal harus berupa waktu yang valid di masa depan" }, { status: 400 });
+      }
+      wpBody.date = post.scheduledAt;
+    }
     if (featuredMediaId) wpBody.featured_media = featuredMediaId;
 
     const r = await fetch(endpoint, {

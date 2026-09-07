@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
 
     const { data, error } = await supabaseAdmin()
       .from("users")
-      .select("id, email, plan, credits, credits_used, articles_used, plan_expires_at, role, subscription_id, auto_renew")
+      .select("id, email, plan, credits, credits_used, articles_used, monthly_word_quota, monthly_words_used, max_words_per_article, word_quota_period_ends_at, trial_articles_remaining, trial_words_remaining, plan_expires_at, role, subscription_id, auto_renew")
       .eq("id", user.id)
       .single();
 

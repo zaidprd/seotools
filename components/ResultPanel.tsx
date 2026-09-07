@@ -4,11 +4,13 @@ import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
-import { WPSite, ModelInfo, Synds, PROVIDER_COLORS } from "@/lib/constants";
+import { WPSite, ModelInfo, Synds } from "@/lib/constants";
 import { publishToWordPress } from "@/lib/api";
 import { buildJsonLd } from "@/lib/wp-publish";
 import { marked } from "marked";
 import DOMPurify from "dompurify";
+import ImageTemplateGallery from "@/components/images/ImageTemplateGallery";
+import type { RenderedImageTemplate } from "@/lib/image-templates";
 
 marked.setOptions({ breaks: true, gfm: true } as any);
 
@@ -36,7 +38,7 @@ function keywordMatches(text: string, kw: string): boolean {
   return false;
 }
 
-function analyzeSEO(content: string, keyword: string) {
+function analyzeSEO(content: string, keyword: string, title = "", metaDescription = "") {
   if (!keyword.trim()) return null;
   const kw = keyword.toLowerCase().trim();
   const plain = content.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").toLowerCase();
@@ -52,13 +54,13 @@ function analyzeSEO(content: string, keyword: string) {
   // Ekstrak teks H1 & H2/H3 dengan strip tag dalam (mis. <strong>) agar deteksi keyword akurat
   const stripTags = (s: string) => s.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
   const h1Match = content.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i) || content.match(/^#\s+(.+)/m);
-  const h1Text = h1Match ? stripTags(h1Match[1]) : "";
+  const h1Text = h1Match ? stripTags(h1Match[1]) : title;
   const h2h3Texts = [
     ...[...content.matchAll(/<h[23][^>]*>([\s\S]*?)<\/h[23]>/gi)].map(m => stripTags(m[1])),
     ...[...content.matchAll(/^#{2,3}\s+(.+)/gm)].map(m => m[1]),
   ];
   const metaMatch = content.match(/META:\s*(.+)/i);
-  const meta = metaMatch ? metaMatch[1].trim() : "";
+  const meta = metaDescription.trim() || (metaMatch ? metaMatch[1].trim() : "");
   const sentences = plain.split(/[.!?]+/).filter(s => s.trim().split(/\s+/).length > 3);
   const avgSent = sentences.length > 0 ? sentences.reduce((s, x) => s + x.trim().split(/\s+/).length, 0) / sentences.length : 0;
 
@@ -79,14 +81,14 @@ function analyzeSEO(content: string, keyword: string) {
   return { checks, score, wordCount: total };
 }
 
-function SEOPanel({ content, keyword }: { content: string; keyword: string }) {
-  const result = useMemo(() => analyzeSEO(content, keyword), [content, keyword]);
+function SEOPanel({ content, keyword, title, metaDescription }: { content: string; keyword: string; title: string; metaDescription: string }) {
+  const result = useMemo(() => analyzeSEO(content, keyword, title, metaDescription), [content, keyword, title, metaDescription]);
   if (!keyword) return <div className="p-4 text-xs text-slate-500 text-center">Masukkan keyword untuk cek SEO</div>;
   if (!result) return null;
   const { checks, score, wordCount } = result;
   const scoreColor = score >= 80 ? "text-emerald-400" : score >= 55 ? "text-amber-400" : "text-red-400";
   const scoreBg = score >= 80 ? "bg-emerald-500" : score >= 55 ? "bg-amber-500" : "bg-red-500";
-  const icon = (l: CheckLevel) => l === "ok" ? "✅" : l === "warn" ? "⚠️" : "❌";
+  const icon = (l: CheckLevel) => l === "ok" ? "●" : l === "warn" ? "◆" : "×";
   return (
     <div className="flex flex-col gap-2.5 p-3 overflow-y-auto h-full">
       <div className="flex items-center gap-2.5">
@@ -107,7 +109,7 @@ function SEOPanel({ content, keyword }: { content: string; keyword: string }) {
       <div className="flex flex-col gap-1">
         {checks.map((c, i) => (
           <div key={i} className="flex items-start gap-1.5 py-0.5">
-            <span className="text-xs flex-shrink-0 mt-0.5">{icon(c.level)}</span>
+            <span className={`text-xs flex-shrink-0 mt-0.5 ${c.level === "ok" ? "text-emerald-400" : c.level === "warn" ? "text-amber-400" : "text-red-400"}`}>{icon(c.level)}</span>
             <div className="flex-1 min-w-0">
               <span className={`text-[11px] ${c.level === "ok" ? "text-slate-300" : c.level === "warn" ? "text-amber-400/80" : "text-slate-400"}`}>{c.label}</span>
               {c.detail && <span className="text-[10px] text-slate-600 ml-1">({c.detail})</span>}
@@ -120,13 +122,11 @@ function SEOPanel({ content, keyword }: { content: string; keyword: string }) {
 }
 
 // ─── TipTap Toolbar ────────────────────────────────────────────────────────────
-function TipTapToolbar({ editor, wpSite, onUpload, onAIPhoto, isUploading, isPhotoGenerating, uploadError }: {
+function TipTapToolbar({ editor, wpSite, onUpload, isUploading, uploadError }: {
   editor: ReturnType<typeof useEditor>;
   wpSite: WPSite | null;
   onUpload: (file: File) => void;
-  onAIPhoto: () => void;
   isUploading: boolean;
-  isPhotoGenerating: boolean;
   uploadError: string | null;
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -166,16 +166,11 @@ function TipTapToolbar({ editor, wpSite, onUpload, onAIPhoto, isUploading, isPho
         className={`text-[11px] px-2 py-1.5 rounded-lg border transition-all flex items-center gap-1.5 ${
           wpSite ? "border-blue-500/30 text-blue-400 hover:bg-blue-500/5 hover:border-blue-500/60" : "border-slate-700 text-slate-400 hover:border-slate-600 hover:text-white"
         } disabled:opacity-50`}>
-        {isUploading ? <><span className="w-2.5 h-2.5 border border-current border-t-transparent rounded-full animate-spin" />Uploading...</> : <>📁 {wpSite ? "Upload ke WP" : "Upload"}</>}
+        {isUploading ? <><span className="w-2.5 h-2.5 border border-current border-t-transparent rounded-full animate-spin" />Mengunggah...</> : <><span aria-hidden="true">↑</span>{wpSite ? "Upload ke WP" : "Upload"}</>}
       </button>
       <input ref={fileInputRef} type="file" accept="image/*" className="hidden"
         onChange={e => { const f = e.target.files?.[0]; if (f) onUpload(f); e.target.value = ""; }} />
 
-      {/* AI Foto — foto realistis via Cloudflare Flux */}
-      <button onClick={onAIPhoto} disabled={isPhotoGenerating} title="Generate foto realistis dengan AI (Cloudflare Flux)"
-        className="text-[11px] px-2 py-1.5 rounded-lg border border-sky-500/30 text-sky-400 hover:bg-sky-500/5 disabled:opacity-50 transition-all flex items-center gap-1">
-        {isPhotoGenerating ? <><span className="w-2.5 h-2.5 border border-sky-400 border-t-transparent rounded-full animate-spin" />Generating...</> : "📷 AI Foto"}
-      </button>
 
       {uploadError && <span className="text-[10px] text-red-400 ml-1">✗ {uploadError}</span>}
     </div>
@@ -183,8 +178,8 @@ function TipTapToolbar({ editor, wpSite, onUpload, onAIPhoto, isUploading, isPho
 }
 
 // ─── Main ResultPanel ──────────────────────────────────────────────────────────
-export default function ResultPanel({ content: initialContent, keyword = "", slug = "", model, wpSites, synds, userId, onContentChange }: {
-  content: string; keyword?: string; slug?: string; model: ModelInfo; wpSites: WPSite[]; synds: Synds; userId?: string;
+export default function ResultPanel({ content: initialContent, articleTitle, metaDescription = "", keyword = "", slug = "", model, wpSites, synds, userId, onContentChange }: {
+  content: string; articleTitle?: string; metaDescription?: string; keyword?: string; slug?: string; model: ModelInfo; wpSites: WPSite[]; synds: Synds; userId?: string;
   onContentChange?: (html: string) => void;
 }) {
   const [mode, setMode] = useState<"preview" | "edit">("preview");
@@ -206,10 +201,9 @@ export default function ResultPanel({ content: initialContent, keyword = "", slu
   const [copied, setCopied] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
-  const [isPhotoGenerating, setIsPhotoGenerating] = useState(false);
-  const [aiError, setAiError] = useState<string | null>(null);
-  const [showPhotoPreview, setShowPhotoPreview] = useState<string | null>(null);
+  const [featuredImage, setFeaturedImage] = useState<RenderedImageTemplate | null>(null);
   const [showSeoPanel, setShowSeoPanel] = useState(false);
+  const [showTemplateGallery, setShowTemplateGallery] = useState(false);
   const touchStartX = useRef(0);
 
   const editor = useEditor({
@@ -235,7 +229,7 @@ export default function ResultPanel({ content: initialContent, keyword = "", slu
   }, [mode, editor]);
 
   const titleMatch = htmlContent.match(/<h1[^>]*>([^<]+)<\/h1>/i) || initialContent.match(/^#\s+(.+)/m);
-  const title = titleMatch ? titleMatch[1] : initialContent.slice(0, 60);
+  const title = articleTitle || (titleMatch ? titleMatch[1] : initialContent.slice(0, 60));
 
   const copy = () => {
     navigator.clipboard.writeText(htmlContent);
@@ -289,27 +283,9 @@ export default function ResultPanel({ content: initialContent, keyword = "", slu
     setIsUploading(false);
   };
 
-  const handleAIPhoto = async () => {
-    if (!userId) { setAiError("Login diperlukan"); return; }
-    const desc = window.prompt("Deskripsi foto (contoh: panel listrik industri di ruang kontrol, close-up, pencahayaan profesional):");
-    if (!desc) return;
-    setIsPhotoGenerating(true); setAiError(null);
-    try {
-      const res = await fetch("/api/generate-photo", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: desc, keyword }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-      setShowPhotoPreview(`data:image/jpeg;base64,${data.image}`);
-    } catch (e: any) { setAiError(e.message); }
-    setIsPhotoGenerating(false);
-  };
-
-  const insertPhoto = (src: string) => {
-    editor?.chain().focus().setImage({ src, alt: keyword || "Foto AI" }).run();
-    setShowPhotoPreview(null);
+  const useTemplateImage = (image: RenderedImageTemplate) => {
+    setFeaturedImage(image);
+    setShowTemplateGallery(false);
   };
 
 
@@ -319,18 +295,32 @@ export default function ResultPanel({ content: initialContent, keyword = "", slu
       const img = new window.Image();
       img.onload = () => {
         const canvas = document.createElement("canvas");
-        canvas.width = 800; canvas.height = 450;
+        canvas.width = 1200; canvas.height = 630;
         const ctx = canvas.getContext("2d");
         if (!ctx) { reject(new Error("no canvas ctx")); return; }
         ctx.fillStyle = "#ffffff";
-        ctx.fillRect(0, 0, 800, 450);
-        ctx.drawImage(img, 0, 0, 800, 450);
+        ctx.fillRect(0, 0, 1200, 630);
+        ctx.drawImage(img, 0, 0, 1200, 630);
         canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error("toBlob failed")), "image/webp", 0.92);
       };
       img.onerror = reject;
       img.src = `data:image/svg+xml;base64,${svgB64}`;
     });
   }, []);
+
+  const featuredImageDataUrl = useCallback(async (): Promise<string | undefined> => {
+    if (!featuredImage) return undefined;
+    const bytes = new TextEncoder().encode(featuredImage.svg);
+    let binary = "";
+    bytes.forEach(byte => { binary += String.fromCharCode(byte); });
+    const blob = await svgToWebP(btoa(binary));
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  }, [featuredImage, svgToWebP]);
 
   // Konversi gambar SVG base64 → WebP base64 (server tidak punya Canvas untuk render SVG).
   // Gambar raster (JPEG/PNG/WebP) dibiarkan base64 — diupload ke WP di server (anti-CORS),
@@ -365,13 +355,15 @@ export default function ResultPanel({ content: initialContent, keyword = "", slu
       }
       // Tempel structured data (Article + FAQPage) untuk rich result / AI Overview
       content += buildJsonLd(initialContent, title, keyword || undefined);
+      const featuredDataUrl = await featuredImageDataUrl();
       const r = await publishToWordPress(wpSel, {
         title,
         slug: slug || undefined,
         content,
-        status: scheduledAt ? "future" : postStatus,
-        scheduledAt: scheduledAt || undefined,
+        status: postStatus,
+        scheduledAt: postStatus === "future" ? scheduledAt : undefined,
         focusKeyword: keyword || undefined,
+        featuredImageDataUrl: featuredDataUrl,
       });
       setPubResult({ link: r.link });
     } catch (e: any) { setPubError(e.message); }
@@ -379,46 +371,59 @@ export default function ResultPanel({ content: initialContent, keyword = "", slu
   };
 
   return (
-    <div className="flex flex-col gap-3 h-full">
+    <div className="flex flex-col gap-3 h-full min-h-0">
 
       {/* Top bar */}
-      <div className="flex items-center justify-between flex-wrap gap-2">
+      <div className="flex items-center justify-between flex-wrap gap-3 border-b border-slate-800/70 pb-3">
         <div className="flex items-center gap-2">
           <span className="flex items-center gap-1.5 text-emerald-400 text-xs font-semibold">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />Artikel Siap
+            <span className="w-2 h-2 rounded-full bg-emerald-500" />Draft siap direview
           </span>
-          <span className={`text-[10px] px-2 py-0.5 rounded border ${PROVIDER_COLORS[model.provider] || "text-slate-400 border-slate-700"}`}>{model.label}</span>
         </div>
         <div className="flex items-center gap-1.5">
           {(["preview", "edit"] as const).map(m => (
             <button key={m} onClick={() => setMode(m)}
               className={`text-[11px] px-2.5 py-1.5 rounded-lg border transition-all ${mode === m ? "border-amber-500/40 bg-amber-500/10 text-amber-400" : "border-slate-700 hover:border-slate-600 text-slate-400"}`}>
-              {m === "preview" ? "👁 Preview" : "✏️ Edit"}
+              {m === "preview" ? "Preview" : "Edit"}
             </button>
           ))}
+          <button onClick={() => setShowTemplateGallery(v => !v)} className="text-[11px] px-2.5 py-1.5 rounded-lg border border-amber-500/30 text-amber-400 hover:bg-amber-500/10 transition-all">
+            Featured image
+          </button>
           <button onClick={copy} className="text-[11px] px-2.5 py-1.5 rounded-lg border border-slate-700 hover:border-slate-600 text-slate-400 hover:text-white transition-all">
-            {copied ? "✓ Salin" : "📋 Salin"}
+            {copied ? "✓ Tersalin" : "Salin"}
           </button>
           <button onClick={download} className="text-[11px] px-2.5 py-1.5 rounded-lg border border-slate-700 hover:border-slate-600 text-slate-400 hover:text-white transition-all">
-            ⬇ HTML
+            Unduh HTML
           </button>
         </div>
       </div>
 
-      {/* Syndication */}
-      {Object.entries(synds).some(([, v]) => v) && (
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-[10px] text-slate-600">Sindikasi:</span>
-          {synds.twitter && <span className="text-[10px] bg-slate-800 text-slate-400 px-2 py-1 rounded-full border border-slate-700">𝕏 Twitter</span>}
-          {synds.linkedin && <span className="text-[10px] bg-slate-800 text-slate-400 px-2 py-1 rounded-full border border-slate-700">in LinkedIn</span>}
-          {synds.wa && <span className="text-[10px] bg-slate-800 text-slate-400 px-2 py-1 rounded-full border border-slate-700">📱 WhatsApp</span>}
+      {showTemplateGallery && (
+        <ImageTemplateGallery
+          title={title}
+          keyword={keyword}
+          brand=""
+          onUse={useTemplateImage}
+        />
+      )}
+
+      {featuredImage && (
+        <div className="flex items-center gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3">
+          <img src={featuredImage.dataUrl} alt="Featured image terpilih" className="h-16 w-32 rounded-lg object-cover" />
+          <div className="flex-1">
+            <p className="text-xs font-bold text-emerald-300">Featured image siap</p>
+            <p className="text-[10px] text-slate-500">Akan diunggah ke WordPress dan tidak dimasukkan ke body artikel.</p>
+          </div>
+          <button onClick={() => setFeaturedImage(null)} className="text-[10px] text-slate-500 hover:text-red-400">Hapus</button>
         </div>
       )}
+
 
       {/* WordPress publish */}
       {wpSites.length > 0 && (
         <div className="bg-blue-950/30 border border-blue-900/40 rounded-xl p-3 flex flex-col gap-2">
-          <p className="text-[11px] font-bold text-blue-300">🌐 Publish ke WordPress</p>
+          <p className="text-[11px] font-bold text-blue-300">Publikasikan ke WordPress</p>
           <div className="flex flex-wrap gap-1.5">
             {wpSites.map(s => (
               <button key={s.id} onClick={() => setWpSel(wpSel?.id === s.id ? null : s)}
@@ -429,18 +434,18 @@ export default function ResultPanel({ content: initialContent, keyword = "", slu
           </div>
           {wpSel && (
             <div className="flex items-center gap-2 flex-wrap">
-              <select value={scheduledAt ? "future" : postStatus}
-                onChange={e => { if (e.target.value !== "future") { setPostStatus(e.target.value); setScheduledAt(""); } }}
+              <select value={postStatus}
+                onChange={e => { setPostStatus(e.target.value); if (e.target.value !== "future") setScheduledAt(""); }}
                 className="bg-slate-900 border border-slate-700 text-slate-300 text-xs rounded-lg px-2 py-2 focus:outline-none flex-shrink-0">
                 <option value="draft">Draft</option>
                 <option value="publish">Langsung Publish</option>
                 <option value="future">Jadwalkan</option>
               </select>
-              <input type="datetime-local" value={scheduledAt} onChange={e => setScheduledAt(e.target.value)}
-                className="flex-1 bg-slate-900 border border-slate-700 text-slate-300 text-xs rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500/40" />
-              <button onClick={publish} disabled={publishing}
+              {postStatus === "future" && <input type="datetime-local" value={scheduledAt} min={new Date().toISOString().slice(0, 16)} onChange={e => setScheduledAt(e.target.value)}
+                className="flex-1 bg-slate-900 border border-slate-700 text-slate-300 text-xs rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500/40" />}
+              <button onClick={publish} disabled={publishing || (postStatus === "future" && !scheduledAt)}
                 className="flex-shrink-0 text-xs bg-blue-600 hover:bg-blue-500 disabled:opacity-60 text-white font-bold py-2 px-3 rounded-lg flex items-center gap-1.5 transition-colors">
-                {publishing ? <><span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />Mengirim...</> : `⬆ ${scheduledAt ? "Jadwalkan" : `Kirim ke ${wpSel.name}`}`}
+                {publishing ? <><span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />Mengirim...</> : `⬆ ${postStatus === "future" ? "Jadwalkan" : `Kirim ke ${wpSel.name}`}`}
               </button>
             </div>
           )}
@@ -449,33 +454,9 @@ export default function ResultPanel({ content: initialContent, keyword = "", slu
         </div>
       )}
 
-      {/* Photo Preview Modal (Cloudflare Flux) */}
-      {showPhotoPreview && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-2xl flex flex-col gap-4 p-5 shadow-2xl">
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-bold text-white">Preview Foto AI</p>
-              <button onClick={() => setShowPhotoPreview(null)} className="text-slate-500 hover:text-white text-lg leading-none">✕</button>
-            </div>
-            <div className="bg-white rounded-xl overflow-hidden flex items-center justify-center">
-              <img src={showPhotoPreview} alt="Preview foto AI" className="max-w-full max-h-[60vh] object-contain" />
-            </div>
-            <div className="flex gap-2 justify-end">
-              <button onClick={() => setShowPhotoPreview(null)}
-                className="text-xs px-4 py-2 rounded-lg border border-slate-700 text-slate-400 hover:text-white transition-colors">
-                Batal
-              </button>
-              <button onClick={() => insertPhoto(showPhotoPreview)}
-                className="text-xs px-4 py-2 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-bold transition-colors">
-                ✓ Sisipkan ke Artikel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Content area */}
-      <div className="flex-1 bg-slate-900/50 border border-slate-800 rounded-xl overflow-hidden flex flex-col min-h-0">
+      <div className="flex-1 bg-[#111a28] border border-slate-800 rounded-xl overflow-hidden flex flex-col min-h-0 shadow-[0_20px_60px_rgba(0,0,0,.2)]">
 
         {/* Preview */}
         {mode === "preview" && (
@@ -484,19 +465,19 @@ export default function ResultPanel({ content: initialContent, keyword = "", slu
               <div className="flex gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-red-500/60" /><span className="w-2.5 h-2.5 rounded-full bg-amber-500/60" /><span className="w-2.5 h-2.5 rounded-full bg-emerald-500/60" /></div>
               <span className="text-[11px] text-slate-600 ml-1">Preview</span>
             </div>
-            <div className="flex-1 overflow-y-auto p-5
-              [&_h1]:text-2xl [&_h1]:font-black [&_h1]:text-white [&_h1]:mb-4 [&_h1]:mt-5 [&_h1]:leading-tight
-              [&_h2]:text-xl [&_h2]:font-bold [&_h2]:text-white [&_h2]:mb-3 [&_h2]:mt-6
-              [&_h3]:text-lg [&_h3]:font-bold [&_h3]:text-slate-200 [&_h3]:mb-2 [&_h3]:mt-4
-              [&_p]:text-slate-300 [&_p]:leading-relaxed [&_p]:mb-3
-              [&_strong]:text-white [&_strong]:font-bold [&_em]:text-slate-200 [&_em]:italic
-              [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-3 [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-3 [&_li]:text-slate-300 [&_li]:mb-1
-              [&_blockquote]:border-l-2 [&_blockquote]:border-amber-500/40 [&_blockquote]:pl-4 [&_blockquote]:text-slate-400 [&_blockquote]:italic [&_blockquote]:mb-3
+            <div className="flex-1 overflow-y-auto mx-auto my-4 w-[calc(100%-2rem)] max-w-[760px] bg-[#eee9df] p-6 sm:p-10 shadow-xl
+              [&_h1]:text-2xl [&_h1]:font-black [&_h1]:text-[#172033] [&_h1]:mb-5 [&_h1]:mt-5 [&_h1]:leading-tight
+              [&_h2]:text-xl [&_h2]:font-bold [&_h2]:text-[#172033] [&_h2]:mb-3 [&_h2]:mt-7
+              [&_h3]:text-lg [&_h3]:font-bold [&_h3]:text-[#263347] [&_h3]:mb-2 [&_h3]:mt-5
+              [&_p]:text-[#3a4656] [&_p]:leading-7 [&_p]:mb-4
+              [&_strong]:text-[#172033] [&_strong]:font-bold [&_em]:text-[#3a4656] [&_em]:italic
+              [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-4 [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-4 [&_li]:text-[#3a4656] [&_li]:mb-1
+              [&_blockquote]:border-l-2 [&_blockquote]:border-amber-700/50 [&_blockquote]:pl-4 [&_blockquote]:text-slate-600 [&_blockquote]:italic [&_blockquote]:mb-4
               [&_a]:text-amber-400 [&_a]:underline [&_a]:underline-offset-2
               [&_code]:text-amber-300 [&_code]:bg-slate-900/80 [&_code]:px-1 [&_code]:rounded [&_code]:text-sm
               [&_table]:w-full [&_table]:border-collapse [&_table]:mb-4 [&_table]:text-sm
-              [&_th]:border [&_th]:border-slate-700 [&_th]:px-3 [&_th]:py-2 [&_th]:bg-slate-900/60 [&_th]:text-white [&_th]:text-left
-              [&_td]:border [&_td]:border-slate-700/60 [&_td]:px-3 [&_td]:py-2 [&_td]:text-slate-300
+              [&_th]:border [&_th]:border-slate-400 [&_th]:px-3 [&_th]:py-2 [&_th]:bg-slate-300/50 [&_th]:text-[#172033] [&_th]:text-left
+              [&_td]:border [&_td]:border-slate-400/60 [&_td]:px-3 [&_td]:py-2 [&_td]:text-[#3a4656]
               [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-xl [&_img]:mx-auto [&_img]:block [&_img]:my-4"
               dangerouslySetInnerHTML={{ __html: htmlContent }} />
           </>
@@ -509,42 +490,39 @@ export default function ResultPanel({ content: initialContent, keyword = "", slu
               editor={editor}
               wpSite={wpSel}
               onUpload={handleUpload}
-              onAIPhoto={handleAIPhoto}
               isUploading={isUploading}
-              isPhotoGenerating={isPhotoGenerating}
               uploadError={uploadError}
             />
-            {aiError && <div className="px-3 py-1.5 text-[11px] text-red-400 bg-red-500/5 border-b border-red-500/10">✗ AI: {aiError}</div>}
 
             {/* Mobile-only: tombol buka SEO Checker */}
-            <div className="md:hidden flex items-center justify-end px-3 py-1.5 border-b border-slate-800 bg-slate-900/60">
+            <div className="lg:hidden flex items-center justify-end px-3 py-1.5 border-b border-slate-800 bg-slate-900/60">
               <button
                 onClick={() => setShowSeoPanel(p => !p)}
                 className="text-[11px] px-3 py-1.5 rounded-lg border border-amber-500/30 bg-amber-500/5 text-amber-400 font-bold flex items-center gap-1.5">
-                📊 Cek SEO
+                <span aria-hidden="true">◎</span> Cek SEO
               </button>
             </div>
 
             {/* Backdrop SEO panel (mobile) */}
             {showSeoPanel && (
               <div
-                className="fixed inset-0 z-40 bg-black/60 md:hidden"
+                className="fixed inset-0 z-40 bg-black/60 lg:hidden"
                 onClick={() => setShowSeoPanel(false)}
               />
             )}
 
             {/* Split: TipTap + SEO panel */}
             <div className="flex flex-1 overflow-hidden min-h-0">
-              <div className="flex-1 overflow-y-auto
-                [&_.ProseMirror]:outline-none [&_.ProseMirror]:min-h-full
-                [&_.ProseMirror_h1]:text-2xl [&_.ProseMirror_h1]:font-black [&_.ProseMirror_h1]:text-white [&_.ProseMirror_h1]:mb-4 [&_.ProseMirror_h1]:mt-5
-                [&_.ProseMirror_h2]:text-xl [&_.ProseMirror_h2]:font-bold [&_.ProseMirror_h2]:text-white [&_.ProseMirror_h2]:mb-3 [&_.ProseMirror_h2]:mt-5
-                [&_.ProseMirror_h3]:text-lg [&_.ProseMirror_h3]:font-bold [&_.ProseMirror_h3]:text-slate-200 [&_.ProseMirror_h3]:mb-2 [&_.ProseMirror_h3]:mt-4
-                [&_.ProseMirror_p]:text-slate-300 [&_.ProseMirror_p]:leading-relaxed [&_.ProseMirror_p]:mb-2
-                [&_.ProseMirror_strong]:text-white [&_.ProseMirror_strong]:font-bold [&_.ProseMirror_em]:italic
+              <div className="flex-1 overflow-y-auto bg-[#111a28] py-4
+                [&_.ProseMirror]:outline-none [&_.ProseMirror]:min-h-full [&_.ProseMirror]:mx-auto [&_.ProseMirror]:max-w-[760px] [&_.ProseMirror]:bg-[#eee9df] [&_.ProseMirror]:text-[#263347] [&_.ProseMirror]:shadow-xl
+                [&_.ProseMirror_h1]:text-2xl [&_.ProseMirror_h1]:font-black [&_.ProseMirror_h1]:text-[#172033] [&_.ProseMirror_h1]:mb-4 [&_.ProseMirror_h1]:mt-5
+                [&_.ProseMirror_h2]:text-xl [&_.ProseMirror_h2]:font-bold [&_.ProseMirror_h2]:text-[#172033] [&_.ProseMirror_h2]:mb-3 [&_.ProseMirror_h2]:mt-5
+                [&_.ProseMirror_h3]:text-lg [&_.ProseMirror_h3]:font-bold [&_.ProseMirror_h3]:text-[#263347] [&_.ProseMirror_h3]:mb-2 [&_.ProseMirror_h3]:mt-4
+                [&_.ProseMirror_p]:text-[#3a4656] [&_.ProseMirror_p]:leading-relaxed [&_.ProseMirror_p]:mb-2
+                [&_.ProseMirror_strong]:text-[#172033] [&_.ProseMirror_strong]:font-bold [&_.ProseMirror_em]:italic
                 [&_.ProseMirror_ul]:list-disc [&_.ProseMirror_ul]:pl-5 [&_.ProseMirror_ul]:mb-2
                 [&_.ProseMirror_ol]:list-decimal [&_.ProseMirror_ol]:pl-5 [&_.ProseMirror_ol]:mb-2
-                [&_.ProseMirror_li]:text-slate-300 [&_.ProseMirror_li]:mb-1
+                [&_.ProseMirror_li]:text-[#3a4656] [&_.ProseMirror_li]:mb-1
                 [&_.ProseMirror_a]:text-amber-400 [&_.ProseMirror_a]:underline
                 [&_.ProseMirror_blockquote]:border-l-2 [&_.ProseMirror_blockquote]:border-amber-500/40 [&_.ProseMirror_blockquote]:pl-4 [&_.ProseMirror_blockquote]:text-slate-400 [&_.ProseMirror_blockquote]:italic
                 [&_.ProseMirror_img]:max-w-full [&_.ProseMirror_img]:h-auto [&_.ProseMirror_img]:rounded-xl [&_.ProseMirror_img]:my-3 [&_.ProseMirror_img]:block [&_.ProseMirror_img]:mx-auto
@@ -565,8 +543,8 @@ export default function ResultPanel({ content: initialContent, keyword = "", slu
                   "transition-transform duration-300 ease-out",
                   showSeoPanel ? "translate-x-0" : "translate-x-full",
                   // Desktop: sidebar inline biasa
-                  "md:relative md:inset-auto md:z-auto md:w-52",
-                  "md:translate-x-0",
+                  "lg:relative lg:inset-auto lg:z-auto lg:w-56",
+                  "lg:translate-x-0",
                   "flex-shrink-0 border-l border-slate-800",
                   "bg-[#0c0e14] md:bg-slate-950/30",
                   "overflow-hidden flex flex-col",
@@ -577,15 +555,15 @@ export default function ResultPanel({ content: initialContent, keyword = "", slu
                 }}
               >
                 <div className="px-3 py-2 border-b border-slate-800 bg-slate-900/40 flex items-center justify-between">
-                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">🎯 SEO Checker</p>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">SEO checker</p>
                   {/* Tombol tutup — hanya tampil di mobile */}
                   <button
                     onClick={() => setShowSeoPanel(false)}
-                    className="md:hidden text-slate-400 hover:text-white text-base leading-none p-1 -mr-1">
+                    className="lg:hidden text-slate-400 hover:text-white text-base leading-none p-1 -mr-1">
                     ✕
                   </button>
                 </div>
-                <SEOPanel content={seoContent} keyword={keyword} />
+                <SEOPanel content={seoContent} keyword={keyword} title={title} metaDescription={metaDescription} />
               </div>
             </div>
           </>

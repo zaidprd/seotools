@@ -119,6 +119,11 @@ export interface WPSite { id: number; name: string; url: string; user: string; p
 export interface UserData {
   id: string; email: string; plan: string;
   credits: number; credits_used: number; articles_used: number;
+  monthly_word_quota?: number | null;
+  monthly_words_used?: number | null;
+  max_words_per_article?: number | null;
+  word_quota_period_ends_at?: string | null;
+  trial_articles_remaining?: number;
   role?: string;
 }
 
@@ -127,28 +132,28 @@ export const PLANS = [
     id: "free", name: "Gratis", price: 0, priceLabel: "Rp 0", period: "sekali coba",
     credits: 1, maxWords: "1.000 kata", maxSites: 0, maxBulk: 0,
     canSchedule: false, canSyndicate: false, priority: false, imageSource: "upload",
-    features: ["1 artikel uji gratis", "Maks 1.000 kata", "Model Gemini 2.5 Flash", "Editor artikel built-in", "Export manual"],
+    features: ["Editor artikel built-in", "Export manual"],
     cta: "Coba Gratis", highlight: false,
   },
   {
     id: "starter", name: "Starter", price: 25000, priceLabel: "Rp 25rb", period: "/bulan",
-    credits: 35, maxWords: "2.000 kata", maxSites: 1, maxBulk: 10,
-    canSchedule: true, canSyndicate: false, priority: false, imageSource: "imagen",
-    features: ["35 kredit/bulan", "Semua model AI (Gemini & GPT)", "Maks 2.000 kata per artikel", "1 situs WordPress", "Bulk hingga 10 artikel sekaligus", "Schedule publish otomatis", "Generate gambar AI (foto & SVG)", "Editor artikel built-in", "Support via email"],
-    cta: "Mulai Sekarang — Rp 25rb/bln", highlight: false,
+    credits: 35, maxWords: "6.000 kata / 30 hari", maxSites: 1, maxBulk: 0,
+    canSchedule: true, canSyndicate: false, priority: false, imageSource: "preset",
+    features: ["Kuota 6.000 kata / 30 hari", "Artikel hingga 2.000 kata", "1 situs WordPress", "Jadwal publish", "Preset featured image", "Editor artikel built-in", "Support via email"],
+    cta: "Pilih Starter — Rp 25rb", highlight: false,
   },
   {
     id: "pro", name: "Pro", price: 75000, priceLabel: "Rp 75rb", period: "/bulan",
-    credits: 100, maxWords: "2.500 kata", maxSites: 3, maxBulk: 30,
-    canSchedule: true, canSyndicate: true, priority: true, imageSource: "imagen",
-    features: ["100 kredit/bulan", "Semua model AI (Gemini, GPT-4.1, GPT-5.4)", "Maks 2.500 kata per artikel", "3 situs WordPress", "Bulk hingga 30 artikel", "Schedule & auto-syndicate", "Generate gambar AI (foto & SVG)", "AI Content Cleaning otomatis", "Priority support"],
-    cta: "Upgrade ke Pro — Rp 75rb/bln", highlight: true,
+    credits: 100, maxWords: "25.000 kata / 30 hari", maxSites: 3, maxBulk: 0,
+    canSchedule: true, canSyndicate: false, priority: true, imageSource: "preset",
+    features: ["Kuota 25.000 kata / 30 hari", "Artikel hingga 2.000 kata", "3 situs WordPress", "Jadwal publish", "Preset featured image", "Editor artikel built-in", "Priority support"],
+    cta: "Pilih Pro — Rp 75rb", highlight: true,
   },
   {
     id: "max", name: "Max", price: 150000, priceLabel: "Rp 150rb", period: "/bulan",
-    credits: 250, maxWords: "2.500 kata", maxSites: 10, maxBulk: 100,
-    canSchedule: true, canSyndicate: true, priority: true, imageSource: "imagen",
-    features: ["250 kredit/bulan", "Semua model AI termasuk GPT-5.4", "Unlimited kata per artikel", "10 situs WordPress", "Bulk hingga 100 artikel", "Priority AI queue", "AI Content Cleaning otomatis", "White-glove support"],
-    cta: "Upgrade ke Max — Rp 150rb/bln", highlight: false,
+    credits: 250, maxWords: "60.000 kata / 30 hari", maxSites: 10, maxBulk: 0,
+    canSchedule: true, canSyndicate: false, priority: true, imageSource: "preset",
+    features: ["Kuota 60.000 kata / 30 hari", "Artikel hingga 2.500 kata", "10 situs WordPress", "Jadwal publish", "Preset featured image", "Editor artikel built-in", "Priority support"],
+    cta: "Pilih Max — Rp 150rb", highlight: false,
   },
 ];

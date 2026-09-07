@@ -1,8 +1,8 @@
 "use client";
 import { useState } from "react";
-import { Config, WPSite, ModelInfo, LANGUAGES, ARTICLE_TYPES, ARTICLE_SIZES, TONES, POVS, READABILITY, COUNTRIES, LINK_TYPES, IMG_STYLES, IMG_SIZES, IMG_COUNTS, FREE_MAX_WORDS, CREDIT_COST, SVG_CREDIT_COST } from "@/lib/constants";
+import { Config, WPSite, ModelInfo, LANGUAGES, ARTICLE_TYPES, ARTICLE_SIZES, TONES, POVS, READABILITY, COUNTRIES, LINK_TYPES, FREE_MAX_WORDS } from "@/lib/constants";
 import { Sec, Sel, Inp, Tog } from "./ui";
-import ModelSelector from "./ModelSelector";
+
 import WPPanel from "./WPPanel";
 
 // ─── Fetch halaman dari sitemap XML ───────────────────────────────────────────
@@ -48,113 +48,55 @@ export default function SettingsForm({ cfg, set, model, setModel, wpSites, addWp
 }) {
   const f = (k: keyof Config, v: any) => set(p => ({ ...p, [k]: v }));
 
-  // Artikel sizes — user gratis hanya boleh max Sedang
-  const availableSizes = !isPro
-    ? ARTICLE_SIZES.slice(0, 3) // Mini, Pendek, Sedang
-    : ARTICLE_SIZES;
 
   return (
     <div className="flex flex-col gap-1.5 pb-6 pr-0.5">
 
-      {/* Core Settings — SELALU TERBUKA */}
-      <Sec title="Core Settings" icon="⚙" collapsible={false}>
+      <Sec title="Gaya & audiens" icon="Aa" defaultOpen={false}>
         <div className="grid grid-cols-2 gap-2">
           <Sel label="Bahasa" opts={LANGUAGES} val={cfg.language} set={v => f("language", v)} />
           <Sel label="Tipe Artikel" opts={ARTICLE_TYPES} val={cfg.articleType} set={v => f("articleType", v)} />
-          <div className="col-span-2">
-            <Sel label="Ukuran Artikel" opts={availableSizes} val={!isPro ? FREE_MAX_WORDS : cfg.articleSize} set={v => f("articleSize", v)} />
-            {!isPro && <p className="text-[10px] text-amber-500/70 mt-1">⚡ Gratis maks 1.000 kata · Upgrade untuk lebih</p>}
-          </div>
+
         </div>
         <div className="border-t border-slate-800 pt-2.5 mt-0.5">
-          <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest mb-2">AI Settings</p>
+          <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Gaya penulisan</p>
           <div className="grid grid-cols-2 gap-2">
             <Sel label="Nada Tulisan" opts={TONES} val={cfg.tone} set={v => f("tone", v)} />
             <Sel label="Sudut Pandang" opts={POVS} val={cfg.pov} set={v => f("pov", v)} />
             <Sel label="Keterbacaan" opts={READABILITY} val={cfg.readability} set={v => f("readability", v)} />
             <Sel label="Target Negara" opts={COUNTRIES} val={cfg.country} set={v => f("country", v)} />
           </div>
-          <div className="mt-2"><Tog label="AI Content Cleaning" val={cfg.aiCleaning} set={v => f("aiCleaning", v)} /></div>
+          <div className="mt-2"><Tog label="Rapikan hasil penulisan" val={cfg.aiCleaning} set={v => f("aiCleaning", v)} /></div>
         </div>
-        <div className="border-t border-slate-800 pt-2.5 mt-0.5">
-          <ModelSelector sel={model} set={setModel} credits={credits} isPro={isPro} isAio={isAio} isAdmin={isAdmin} />
+        <div className="border-t border-slate-800 pt-2.5 mt-0.5 flex items-start gap-2">
+          <span className="text-emerald-400">✓</span>
+          <div>
+            <p className="text-xs font-bold text-slate-300">Konfigurasi penulisan dipilih otomatis</p>
+            <p className="text-xs text-slate-400">Dioptimalkan untuk artikel panjang, natural, dan konsisten.</p>
+          </div>
         </div>
       </Sec>
 
       {/* Semua section lain — TERTUTUP secara default */}
-      <Sec title="Brand Voice" icon="🎙" defaultOpen={true}>
-        <p className="text-[10px] text-slate-600 leading-relaxed">Buat gaya unik agar konten selalu konsisten.</p>
+      <Sec title="Suara merek" icon="✎" defaultOpen={false}>
+        <p className="text-xs text-slate-400 leading-relaxed">Buat gaya unik agar konten selalu konsisten.</p>
         <Inp val={cfg.brandVoice} set={v => f("brandVoice", v)} placeholder="cth: profesional namun hangat..." multiline rows={3} maxLen={500} />
       </Sec>
 
-      <Sec title="Details to Include" icon="📝" defaultOpen={true}>
-        <Inp val={cfg.details} set={v => f("details", v)} placeholder="cth: sertakan data BPS 2024, sebutkan Tokopedia..." multiline rows={3} maxLen={6000} />
-      </Sec>
 
-      <Sec title="Media Hub" icon="🖼" defaultOpen={true}>
-        {/* Gambar AI — hanya plan berbayar */}
-        <div className="relative">
-          <div className={`bg-slate-900/80 border border-slate-800 rounded-lg px-3 py-2 mb-1 ${!isPro ? "opacity-50 pointer-events-none select-none" : ""}`}>
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">🤖 Gambar AI Otomatis</p>
-              {isPro && (
-                <span className="text-[9px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded-full">Aktif</span>
-              )}
-            </div>
-            <div className="grid grid-cols-3 gap-2 mb-2">
-              <Sel label="Jumlah" opts={["0", ...IMG_COUNTS]} val={isPro ? cfg.imgCount : "0"} set={v => f("imgCount", v)} />
-              <Sel label="Ukuran" opts={IMG_SIZES} val={cfg.imgSize} set={v => f("imgSize", v)} />
-              <Sel label="Style" opts={IMG_STYLES} val={cfg.imgStyle} set={v => f("imgStyle", v)} />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <Tog label="Keyword utama di gambar pertama" val={cfg.imgFirstKeyword} set={v => f("imgFirstKeyword", v)} />
-              <Tog label="Alt-text SEO otomatis" val={cfg.imgAltText} set={v => f("imgAltText", v)} />
-            </div>
-            <div className="mt-2">
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1">Style Gambar (opsional)</label>
-              <input
-                value={cfg.imgPrompt}
-                onChange={e => f("imgPrompt", e.target.value)}
-                placeholder="cth: foto profesional, ilustrasi flat, infografis, cartoon..."
-                className="w-full bg-slate-900 border border-slate-700/60 text-slate-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-amber-500/60 placeholder-slate-700"
-              />
-              <p className="text-[10px] text-slate-600 mt-0.5">
-                {cfg.imgPrompt ? "Digabung: keyword + style kamu" : "Kosong = prompt otomatis dari keyword artikel"}
-              </p>
-            </div>
-            {isPro && parseInt(cfg.imgCount || "0") > 0 && (
-              <div className="mt-2 pt-2 border-t border-slate-800/60">
-                <p className="text-[10px] text-slate-500">
-                  💡 Gambar AI (foto realistis) disisipkan otomatis saat artikel dibuat. Setiap gambar = <span className="text-amber-400 font-bold">{SVG_CREDIT_COST} 💎</span>
-                </p>
-                <div className="mt-1.5 bg-slate-900/60 border border-slate-700/50 rounded-lg px-2.5 py-1.5">
-                  <p className="text-[10px] text-slate-400">
-                    Estimasi kredit: <span className="text-white font-bold">{(CREDIT_COST[model.id] ?? 1) + parseInt(cfg.imgCount || "0") * SVG_CREDIT_COST} 💎</span>
-                    <span className="text-slate-600 ml-1">(artikel {CREDIT_COST[model.id] ?? 1} + {cfg.imgCount} gambar × {SVG_CREDIT_COST})</span>
-                  </p>
-                  <p className="text-[10px] text-slate-600 mt-0.5">Kamu punya {credits} 💎 tersisa</p>
-                </div>
-              </div>
-            )}
-          </div>
-          {!isPro && (
-            <div className="absolute inset-0 flex items-center justify-center bg-slate-950/60 rounded-lg backdrop-blur-[2px]">
-              <div className="text-center px-4 py-2">
-                <p className="text-amber-400 text-xs font-bold">🔒 Hanya Paket Berbayar</p>
-                <p className="text-slate-500 text-[10px] mt-0.5">Upgrade untuk gambar AI otomatis</p>
-              </div>
-            </div>
-          )}
+      <Sec title="Featured image" icon="▧" defaultOpen={false}>
+        <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 text-xs leading-relaxed text-emerald-300">
+          Pilih dan review gambar preset setelah artikel selesai dibuat. Preset hanya digunakan sebagai featured image; gambar di isi artikel dapat diunggah manual dari editor.
         </div>
       </Sec>
 
       {mode === "single" && (
-        <Sec title="SEO" icon="🔍" defaultOpen={true}>
+        <Sec title="Keyword SEO" icon="⌕" defaultOpen={false}>
           <Inp label="Keywords untuk disertakan" val={cfg.seoKeywords} set={v => f("seoKeywords", v)} placeholder="keyword1, keyword2..." multiline rows={2} maxLen={2000} />
         </Sec>
       )}
 
-      <Sec title="Structure" icon="🏗" defaultOpen={true}>
+      <Sec title="Elemen struktur" icon="§" defaultOpen={false}>
         <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Pengantar / Hook</label>
         <div className="flex gap-1 flex-wrap mb-2">
           {["Hook","Pertanyaan","Cerita","Statistik","Kutipan","Pernyataan Berani"].map(t => (
@@ -170,7 +112,7 @@ export default function SettingsForm({ cfg, set, model, setModel, wpSites, addWp
         </div>
       </Sec>
 
-      <Sec title="Internal Linking" icon="🔗" defaultOpen={true}>
+      <Sec title="Tautan internal" icon="↳" defaultOpen={false}>
         <div className="flex flex-col gap-2">
           {/* Mode selector */}
           <div className="flex gap-1">
@@ -208,7 +150,7 @@ export default function SettingsForm({ cfg, set, model, setModel, wpSites, addWp
                   rows={4}
                   className="w-full bg-slate-900 border border-slate-700/60 text-slate-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-amber-500/60 placeholder-slate-700 resize-none"
                 />
-                <p className="text-[10px] text-slate-600 mt-0.5">Satu halaman per baris. AI akan memilih yang relevan.</p>
+                <p className="text-xs text-slate-400 mt-1">Satu halaman per baris. Hanya URL/path dalam daftar ini yang boleh digunakan.</p>
               </div>
 
               {/* Fetch dari sitemap */}
@@ -218,7 +160,7 @@ export default function SettingsForm({ cfg, set, model, setModel, wpSites, addWp
         </div>
       </Sec>
 
-      <Sec title="External Linking" icon="↗" defaultOpen={true}>
+      <Sec title="Tautan eksternal" icon="↗" defaultOpen={false}>
         <div className="flex flex-col gap-2">
           <div className="flex gap-1">
             {LINK_TYPES.map(t => (
@@ -228,6 +170,11 @@ export default function SettingsForm({ cfg, set, model, setModel, wpSites, addWp
               </button>
             ))}
           </div>
+          {cfg.extLinkType === "Otomatis" && (
+            <div className="rounded-lg border border-blue-500/20 bg-blue-500/5 px-3 py-2">
+              <p className="text-[10px] leading-relaxed text-blue-300">Mencari maksimal 3 halaman nyata melalui Wikipedia Indonesia. Jika tidak ada hasil yang relevan, artikel dibuat tanpa external link.</p>
+            </div>
+          )}
           {cfg.extLinkType === "Manual" && (
             <div>
               <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1">URL External</label>
@@ -238,31 +185,14 @@ export default function SettingsForm({ cfg, set, model, setModel, wpSites, addWp
                 rows={3}
                 className="w-full bg-slate-900 border border-slate-700/60 text-slate-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-amber-500/60 placeholder-slate-700 resize-none"
               />
-              <p className="text-[10px] text-slate-600 mt-0.5">Satu URL per baris. AI akan menyisipkan sebagai referensi.</p>
+              <p className="text-xs text-slate-400 mt-1">Satu URL lengkap per baris. AI hanya boleh memakai URL yang Anda berikan.</p>
             </div>
           )}
         </div>
       </Sec>
 
-      <Sec title="Sindikasi" icon="📡" defaultOpen={true}>
-        <div className="relative">
-          <div className={`grid grid-cols-2 gap-2 ${!isPro ? "opacity-40 pointer-events-none select-none" : ""}`}>
-            {([["𝕏 Twitter","twitter"],["in LinkedIn","linkedin"],["f Facebook","facebook"],["✉ Email","email"],["📱 WhatsApp","wa"],["📌 Pinterest","pinterest"]] as [string,keyof Config["synds"]][]).map(([l,k]) => (
-              <Tog key={k} label={l} val={cfg.synds[k]} set={v=>set(p=>({...p,synds:{...p.synds,[k]:v}}))} />
-            ))}
-          </div>
-          {!isPro && (
-            <div className="absolute inset-0 flex items-center justify-center bg-slate-950/50 rounded-lg backdrop-blur-[2px]">
-              <div className="text-center">
-                <p className="text-amber-400 text-xs font-bold">🔒 Hanya Pro</p>
-                <p className="text-slate-500 text-[10px] mt-0.5">Upgrade untuk sindikasi konten</p>
-              </div>
-            </div>
-          )}
-        </div>
-      </Sec>
 
-      <Sec title="Document" icon="📁" defaultOpen={true}>
+      <Sec title="Penyimpanan" icon="□" defaultOpen={false}>
         <div className="flex items-center gap-2">
           <p className="text-[10px] text-slate-500">Simpan ke:</p>
           {["Home","Blog","Produk"].map(d => (
@@ -272,7 +202,7 @@ export default function SettingsForm({ cfg, set, model, setModel, wpSites, addWp
       </Sec>
 
       {/* Publishing — terbuka HANYA jika sudah ada situs WP */}
-      <Sec title="Publishing to Website" icon="🚀" defaultOpen={true}>
+      <Sec title="WordPress" icon="W" defaultOpen={false}>
         <WPPanel sites={wpSites} addSite={addWp} removeSite={removeWp} selected={wpSel} setSelected={setWpSel} />
         {wpSel && (
           <div className="mt-2 pt-2 border-t border-slate-800 flex flex-col gap-2">
@@ -285,7 +215,7 @@ export default function SettingsForm({ cfg, set, model, setModel, wpSites, addWp
                   <input type="datetime-local" value={cfg.scheduleDate || ""}
                     onChange={e => f("scheduleDate", e.target.value)}
                     className="bg-slate-900 border border-slate-700/60 text-slate-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-amber-500/60" />
-                  <p className="text-[10px] text-slate-600">Artikel akan dipublish otomatis pada waktu ini.</p>
+                  <p className="text-xs text-slate-400">Artikel akan dipublikasikan otomatis pada waktu ini.</p>
                 </div>
               ) : (
                 <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg px-3 py-2">

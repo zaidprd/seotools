@@ -233,7 +233,7 @@ export default function BulkPage() {
           modelId: !isPro ? FREE_MODEL_ID : model.id,
           userId: user?.id,
         } as any);
-        setRows(prev => prev.map((r, idx) => idx === i ? { ...r, status: "selesai", content: text } : r));
+        setRows(prev => prev.map((r, idx) => idx === i ? { ...r, status: "selesai", content: text.contentMarkdown } : r));
         remainingCredits -= cost;
         if (!isPro) break;
       } catch {

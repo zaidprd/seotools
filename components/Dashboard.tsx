@@ -112,7 +112,7 @@ function SingleTab({ wpSites, addWp, removeWp, user, refreshUser }: {
         modelId: !isPro ? FREE_MODEL_ID : model.id,
         userId: user?.id,
       } as any);
-      setResult(text);
+      setResult(text.contentMarkdown);
       refreshUser(); // refresh kredit
     } catch (e: any) {
       if (e.message?.includes("Kredit")) { setUpgradeReason(e.message); setShowUpgrade(true); }
@@ -332,7 +332,7 @@ function BulkTab({ wpSites, addWp, removeWp, user, refreshUser }: {
           modelId: !isPro ? FREE_MODEL_ID : model.id,
           userId: user?.id,
         } as any);
-        setRows(prev => prev.map((r, idx) => idx === i ? { ...r, status: "selesai", content: text } : r));
+        setRows(prev => prev.map((r, idx) => idx === i ? { ...r, status: "selesai", content: text.contentMarkdown } : r));
         remainingCredits -= cost;
         if (!isPro) break; // gratis hanya 1x
       } catch {

@@ -53,10 +53,10 @@ export default function LoginPage() {
 
         <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-7 backdrop-blur">
           <h1 className="text-xl font-black text-white mb-1" style={{ fontFamily: "Sora,sans-serif" }}>
-            {mode === "login" ? "Selamat datang kembali" : "Buat akun gratis"}
+            {mode === "login" ? "Selamat datang kembali" : "Buat akun"}
           </h1>
           <p className="text-xs text-slate-500 mb-6">
-            {mode === "login" ? "Masuk untuk mulai membuat konten" : "Daftar dan dapatkan 1 artikel gratis"}
+            {mode === "login" ? "Masuk untuk mulai membuat konten" : "Daftar untuk mencoba satu artikel seharga Rp5.000"}
           </p>
 
           {error && <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2 text-xs text-red-300 mb-4">{error}</div>}
@@ -81,7 +81,7 @@ export default function LoginPage() {
             </div>
             <button type="submit" disabled={loading}
               className="mt-2 bg-amber-500 hover:bg-amber-400 text-[#0c0e14] font-black text-sm py-3 rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-60">
-              {loading ? <span className="w-4 h-4 border-2 border-[#0c0e14]/40 border-t-[#0c0e14] rounded-full animate-spin" /> : (mode === "login" ? "Masuk" : "Daftar Gratis")}
+              {loading ? <span className="w-4 h-4 border-2 border-[#0c0e14]/40 border-t-[#0c0e14] rounded-full animate-spin" /> : (mode === "login" ? "Masuk" : "Buat Akun")}
             </button>
           </form>
 
@@ -101,7 +101,7 @@ export default function LoginPage() {
             {mode === "login" ? "Belum punya akun? " : "Sudah punya akun? "}
             <button onClick={() => { setMode(mode==="login"?"register":"login"); setError(""); }}
               className="text-amber-400 hover:text-amber-300 font-semibold">
-              {mode === "login" ? "Daftar gratis" : "Masuk"}
+              {mode === "login" ? "Buat akun" : "Masuk"}
             </button>
           </p>
         </div>

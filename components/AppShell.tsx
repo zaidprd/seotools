@@ -5,10 +5,10 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
 const NAV = [
-  { href: "/dashboard", icon: "✏️", label: "Builder" },
-  { href: "/documents", icon: "📄", label: "Dokumen" },
-  { href: "/account", icon: "👤", label: "Akun" },
-  { href: "/settings", icon: "⚙️", label: "Settings" },
+  { href: "/dashboard", icon: "✦", label: "Tulis artikel" },
+  { href: "/documents", icon: "▤", label: "Dokumen" },
+  { href: "/account", icon: "○", label: "Akun" },
+  { href: "/settings", icon: "⌘", label: "Pengaturan" },
 ];
 
 interface UserInfo {
@@ -146,35 +146,35 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                     ? "bg-gradient-to-br from-yellow-400 to-amber-600 text-[#0c0e14]"
                     : "bg-gradient-to-br from-amber-500 to-orange-600 text-[#0c0e14]"
                 }`}>
-                  {isAdmin ? "👑" : (userInfo.full_name || userInfo.email || "U")[0].toUpperCase()}
+                  {isAdmin ? "A" : (userInfo.full_name || userInfo.email || "U")[0].toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-semibold text-white truncate">
                     {userInfo.full_name || userInfo.email.split("@")[0]}
                   </p>
                   <span className={`inline-flex text-[9px] font-bold px-1.5 py-0.5 rounded border ${planBadge}`}>
-                    {isAdmin && <span className="mr-0.5">👑</span>}{planLabel}
+                    {planLabel}
                   </span>
                 </div>
               </div>
 
               {!isAdmin && (
                 <div className="bg-slate-900/60 border border-slate-800 rounded-lg px-3 py-2">
-                  <p className="text-[10px] text-slate-500">Kredit tersisa</p>
-                  <p className="text-sm font-black text-amber-400">{userInfo.credits} 💎</p>
+                  <p className="text-xs text-slate-400">Status paket</p>
+                  <p className="text-xs font-bold text-amber-300">{userInfo.plan === "free" ? "Belum aktif" : "Aktif"}</p>
                 </div>
               )}
 
               {isAdmin && (
                 <div className="bg-yellow-500/5 border border-yellow-500/20 rounded-lg px-3 py-2">
-                  <p className="text-[10px] text-yellow-500/70">Akses penuh aktif</p>
+                  <p className="text-xs text-yellow-400/80">Akses penuh aktif</p>
                   <p className="text-xs font-bold text-yellow-400">∞ Unlimited</p>
                 </div>
               )}
 
               <button onClick={logout}
-                className="flex items-center gap-2 px-3 py-2 text-slate-600 hover:text-red-400 text-xs transition-colors rounded-lg hover:bg-red-500/5">
-                <span>⏏</span> Sign Out
+                className="flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-red-400 text-xs transition-colors rounded-lg hover:bg-red-500/5">
+                <span aria-hidden="true">↪</span> Keluar
               </button>
             </>
           ) : (

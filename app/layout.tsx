@@ -2,14 +2,14 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Artikel SEO — Generator Konten SEO Indonesia #1",
-  description: "Buat artikel SEO berkualitas tinggi dalam Bahasa Indonesia dengan 1 klik. Auto-publish ke WordPress. Dipakai ratusan blogger Indonesia.",
+  title: "Artikel SEO — Dari Keyword ke WordPress",
+  description: "Tulis, review, dan publikasikan artikel SEO berbahasa Indonesia ke WordPress dalam satu ruang kerja.",
   keywords: "AI konten SEO Indonesia, generator artikel SEO, WordPress auto publish, blog SEO, artikel SEO otomatis",
   metadataBase: new URL("https://seo.zaidly.com"),
   alternates: { canonical: "https://seo.zaidly.com" },
   openGraph: {
-    title: "Artikel SEO — Generator Konten SEO Indonesia #1",
-    description: "Buat artikel SEO berkualitas tinggi dalam Bahasa Indonesia dengan 1 klik. Auto-publish ke WordPress.",
+    title: "Artikel SEO — Dari Keyword ke WordPress",
+    description: "Tulis, review, dan publikasikan artikel SEO berbahasa Indonesia dalam satu ruang kerja.",
     url: "https://seo.zaidly.com",
     siteName: "Artikel SEO",
     locale: "id_ID",

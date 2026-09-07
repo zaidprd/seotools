@@ -77,7 +77,12 @@ export default function DashboardHome() {
   const planData = PLANS.find(p => p.id === (user?.plan || "free"));
   const creditsTotal = planData?.credits ?? 1;
   const creditsUsed = user?.credits_used ?? 0;
-  const progressPct = Math.min(100, creditsTotal > 0 ? Math.round((creditsUsed / creditsTotal) * 100) : 0);
+  const wordsTotal = user?.monthly_word_quota ?? null;
+  const wordsUsed = user?.monthly_words_used ?? 0;
+  const wordsRemaining = wordsTotal === null ? null : Math.max(0, wordsTotal - wordsUsed);
+  const progressPct = wordsTotal
+    ? Math.min(100, Math.round((wordsUsed / wordsTotal) * 100))
+    : Math.min(100, creditsTotal > 0 ? Math.round((creditsUsed / creditsTotal) * 100) : 0);
   const name = authUser?.user_metadata?.full_name || authUser?.email?.split("@")[0] || "Pengguna";
 
   return (
@@ -89,7 +94,7 @@ export default function DashboardHome() {
           <span className="text-2xl flex-shrink-0">🎉</span>
           <div>
             <p className="font-black text-sm">Pembayaran Berhasil!</p>
-            <p className="text-[12px] text-emerald-100 mt-0.5">Kredit sudah ditambahkan ke akunmu. Selamat berkreasi!</p>
+            <p className="text-[12px] text-emerald-100 mt-0.5">Paket dan kuota kata sudah diaktifkan. Selamat menulis!</p>
           </div>
           <button onClick={() => setPaymentToast(false)} className="text-emerald-200 hover:text-white text-xs ml-2 flex-shrink-0">✕</button>
         </div>
@@ -106,8 +111,10 @@ export default function DashboardHome() {
                 Hai, {name}! 👋
               </h1>
               <p className="text-sm text-slate-400">
-                Kamu punya <span className="text-amber-400 font-bold">{credits} 💎 kredit</span> tersisa.
-                {!isPro && " Upgrade untuk lebih banyak konten."}
+                {wordsRemaining !== null
+                  ? <>Kuota kamu: <span className="text-amber-400 font-bold">{wordsRemaining.toLocaleString("id-ID")} kata</span> tersisa.</>
+                  : <>Siap membuat artikel setelah paket atau trial aktif.</>}
+                {!isPro && " Lihat pilihan paket untuk mulai."}
               </p>
             </div>
             <button onClick={dismissBanner} className="text-slate-600 hover:text-slate-400 text-xs flex-shrink-0 transition-colors">✕</button>
@@ -207,14 +214,14 @@ export default function DashboardHome() {
         </div>
         <div>
           <div className="flex justify-between text-xs text-slate-500 mb-1.5">
-            <span>Kredit terpakai bulan ini</span>
-            <span className="text-amber-400 font-semibold">{creditsUsed} / {creditsTotal} 💎</span>
+            <span>{wordsTotal ? "Pemakaian kata bulan ini" : "Status penggunaan"}</span>
+            <span className="text-amber-400 font-semibold">{wordsTotal ? `${wordsUsed.toLocaleString("id-ID")} / ${wordsTotal.toLocaleString("id-ID")} kata` : "Aktifkan paket untuk memulai"}</span>
           </div>
           <div className="w-full bg-slate-800 rounded-full h-1.5">
             <div className={`h-1.5 rounded-full transition-all ${progressPct > 80 ? "bg-red-500" : "bg-amber-500"}`}
               style={{ width: `${progressPct}%` }} />
           </div>
-          <p className="text-[11px] text-slate-600 mt-1.5">{credits} kredit tersisa</p>
+          <p className="text-[11px] text-slate-600 mt-1.5">{wordsRemaining !== null ? `${wordsRemaining.toLocaleString("id-ID")} kata tersisa` : "Trial memberi 1 artikel hingga 2.000 kata"}</p>
         </div>
       </div>
     </div>

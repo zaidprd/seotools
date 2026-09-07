@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { PLANS } from "@/lib/constants";
+import { getBillingProduct } from "@/lib/billing/products";
 import { requireAuth } from "@/lib/supabase/require-auth";
 import { createInvoice, isMayarConfigured } from "@/lib/mayar";
 
@@ -34,9 +34,9 @@ export async function POST(req: NextRequest) {
     const body = await req.json().catch(() => ({}));
     const planId: string = body.planId || userData?.plan || "starter";
 
-    const plan = PLANS.find(p => p.id === planId);
-    if (!plan || plan.price === 0) {
-      return NextResponse.json({ error: "Plan tidak valid atau gratis." }, { status: 400 });
+    const product = getBillingProduct(planId);
+    if (!product || product.type !== "plan") {
+      return NextResponse.json({ error: "Paket tidak valid." }, { status: 400 });
     }
 
     if (!isMayarConfigured()) {
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
 
     const { data: payRow, error: insErr } = await supabase
       .from("payments")
-      .insert({ user_id: user.id, plan_id: planId, amount: plan.price, credits: plan.credits, status: "pending" })
+      .insert({ user_id: user.id, product_id: product.id, product_type: product.type, plan_id: product.planId, amount: product.amount, credits: product.credits, article_grants: product.articleGrants, duration_days: product.durationDays, word_quota: product.wordQuota, max_words_per_article: product.maxWordsPerArticle, status: "pending" })
       .select("id")
       .single();
 
@@ -59,8 +59,8 @@ export async function POST(req: NextRequest) {
     const invoice = await createInvoice({
       name: email.split("@")[0] || "Pelanggan",
       email,
-      amount: plan.price,
-      description: `Artikel SEO ${plan.name} (Perpanjang) — ${plan.credits} kredit (30 hari)`,
+      amount: product.amount,
+      description: `Artikel SEO ${product.name} (Perpanjang) — ${product.wordQuota.toLocaleString("id-ID")} kata (30 hari)`,
       redirectUrl: `${siteUrl}/account?verify_payment=${payRow.id}`,
     });
 
@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
       payment_url: invoice.link,
     }).eq("id", payRow.id);
 
-    return NextResponse.json({ paymentId: payRow.id, paymentUrl: invoice.link, planId });
+    return NextResponse.json({ paymentId: payRow.id, paymentUrl: invoice.link, planId: product.planId });
   } catch (e: any) {
     return NextResponse.json({ error: e?.message || "Gagal membuat transaksi perpanjangan" }, { status: 500 });
   }

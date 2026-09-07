@@ -1,7 +1,23 @@
 import { createClient } from "@supabase/supabase-js";
 import { getInvoiceStatus } from "./mayar";
 
-export type SettleResult = "credited" | "already_paid" | "unpaid" | "expired" | "not_found";
+export type SettleResult =
+  | "credited"
+  | "granted"
+  | "already_paid"
+  | "unpaid"
+  | "expired"
+  | "not_found";
+
+export type Settlement = {
+  result: SettleResult;
+  productId?: string;
+  planId?: string;
+  creditsAdded?: number;
+  articleGrantsAdded?: number;
+  newCredits?: number;
+  trialArticlesRemaining?: number;
+};
 
 function svc() {
   return createClient(
@@ -10,58 +26,43 @@ function svc() {
   );
 }
 
-/**
- * Verifikasi pembayaran langsung ke API Mayar lalu terapkan paket + kredit.
- * Aman dipanggil berkali-kali (redirect, polling, maupun webhook): guard
- * update(status: pending -> paid) memastikan kredit hanya ditambahkan sekali.
- *
- * Model langganan: tiap pembayaran sukses memperpanjang plan 30 hari dari
- * sekarang dan menambah kredit paket. Saat expired, plan-status menurunkan ke
- * free; user tinggal bayar lagi (top-up) untuk memperpanjang.
- *
- * @param expectedUserId jika diisi, settle hanya jika pembayaran milik user ini.
- */
-export async function settlePayment(
-  paymentId: string,
-  expectedUserId?: string
-): Promise<{ result: SettleResult; planId?: string; creditsAdded?: number; newCredits?: number }> {
+/** Verify with Mayar, then atomically apply the entitlement and mark the payment paid. */
+export async function settlePayment(paymentId: string, expectedUserId?: string): Promise<Settlement> {
   const sb = svc();
+  const { data: pay, error: paymentError } = await sb
+    .from("payments")
+    .select("id,user_id,status,amount,plan_id,product_id,mayar_invoice_id")
+    .eq("id", paymentId)
+    .maybeSingle();
 
-  const { data: pay } = await sb.from("payments").select("*").eq("id", paymentId).single();
-  if (!pay) return { result: "not_found" };
-  if (expectedUserId && pay.user_id !== expectedUserId) return { result: "not_found" };
-  if (pay.status === "paid") return { result: "already_paid", planId: pay.plan_id };
+  if (paymentError) throw paymentError;
+  if (!pay || (expectedUserId && pay.user_id !== expectedUserId)) return { result: "not_found" };
+  if (pay.status === "paid") {
+    return { result: "already_paid", productId: pay.product_id, planId: pay.plan_id ?? undefined };
+  }
+  if (pay.status === "expired") return { result: "expired" };
+  if (pay.status !== "pending" || !pay.mayar_invoice_id) return { result: "unpaid" };
 
-  const { status, amount } = await getInvoiceStatus(pay.mayar_invoice_id);
-
-  if (status === "closed") {
+  const invoice = await getInvoiceStatus(pay.mayar_invoice_id);
+  if (invoice.status === "closed") {
     await sb.from("payments").update({ status: "expired" }).eq("id", paymentId).eq("status", "pending");
     return { result: "expired" };
   }
-  if (status !== "paid" || amount < pay.amount) return { result: "unpaid" };
 
-  // Guard atomik: hanya satu pemanggil yang berhasil mengubah pending -> paid
-  const { data: locked } = await sb
-    .from("payments")
-    .update({ status: "paid", paid_at: new Date().toISOString() })
-    .eq("id", paymentId)
-    .eq("status", "pending")
-    .select("id");
+  // Exact equality is intentional: neither underpayment nor overpayment is accepted.
+  if (invoice.status !== "paid" || invoice.amount !== pay.amount) return { result: "unpaid" };
 
-  if (!locked || locked.length === 0) return { result: "already_paid", planId: pay.plan_id };
+  const { data, error } = await sb.rpc("settle_mayar_payment", {
+    p_payment_id: paymentId,
+    p_verified_amount: invoice.amount,
+  });
+  if (error) throw error;
 
-  // Terapkan paket + tambah kredit + perpanjang 30 hari (lanjut dari expiry lama jika masih aktif)
-  const { data: u } = await sb.from("users").select("credits, plan_expires_at").eq("id", pay.user_id).single();
-  const newCredits = (u?.credits ?? 0) + pay.credits;
-  const currentExpiry = u?.plan_expires_at ? new Date(u.plan_expires_at) : new Date();
-  const base = currentExpiry > new Date() ? currentExpiry : new Date();
-  const newExpiry = new Date(base.getTime() + 30 * 24 * 60 * 60 * 1000);
-  await sb.from("users").update({
-    plan: pay.plan_id,
-    credits: newCredits,
-    plan_expires_at: newExpiry.toISOString(),
-    subscription_id: pay.mayar_invoice_id,
-  }).eq("id", pay.user_id);
-
-  return { result: "credited", planId: pay.plan_id, creditsAdded: pay.credits, newCredits };
+  const result = data as Settlement | null;
+  if (!result) throw new Error("Settlement RPC tidak mengembalikan hasil");
+  if (result.result === "credited" || result.result === "granted" || result.result === "already_paid") {
+    return result;
+  }
+  if (result.result === "not_found") return result;
+  throw new Error(`Settlement ditolak: ${String((result as { result?: string }).result || "unknown")}`);
 }

@@ -9,6 +9,8 @@ import AppShell from "@/components/AppShell";
 interface UserProfile {
   id: string; email: string; plan: string; credits: number;
   credits_used: number; articles_used: number; full_name?: string;
+  monthly_word_quota?: number | null; monthly_words_used?: number | null;
+  max_words_per_article?: number | null; word_quota_period_ends_at?: string | null;
   plan_expires_at?: string; role?: string; subscription_id?: string; auto_renew?: boolean;
 }
 interface Article { id: string; title: string; keyword: string; word_count: number; created_at: string; model_id: string; credits_used: number; }
@@ -96,7 +98,12 @@ export default function AccountPage() {
   const creditsTotal = isAdmin ? Infinity : (planData?.credits ?? 1);
   const creditsUsed = profile?.credits_used ?? 0;
   const credits = profile?.credits ?? 0;
-  const progressPct = isAdmin ? 0 : Math.min(100, creditsTotal > 0 ? Math.round((creditsUsed / creditsTotal) * 100) : 0);
+  const wordQuota = profile?.monthly_word_quota ?? null;
+  const wordsUsed = profile?.monthly_words_used ?? 0;
+  const wordsRemaining = wordQuota === null ? null : Math.max(0, wordQuota - wordsUsed);
+  const progressPct = isAdmin ? 0 : wordQuota !== null
+    ? Math.min(100, Math.round((wordsUsed / wordQuota) * 100))
+    : Math.min(100, creditsTotal > 0 ? Math.round((creditsUsed / creditsTotal) * 100) : 0);
   const name = profile?.full_name || authUser?.user_metadata?.full_name || authUser?.email?.split("@")[0] || "—";
 
   const planColor = isAdmin
@@ -272,9 +279,9 @@ export default function AccountPage() {
             {/* Stats */}
             <div className="grid grid-cols-3 gap-4">
               {[
-                { label: "Kredit Tersisa", value: isAdmin ? "∞" : `${credits} 💎`, sub: isAdmin ? "unlimited" : `dari ${creditsTotal} total` },
+                { label: wordQuota !== null ? "Kata Tersisa" : "Kredit Tersisa", value: isAdmin ? "∞" : wordQuota !== null ? wordsRemaining!.toLocaleString("id-ID") : `${credits} 💎`, sub: isAdmin ? "akses penuh" : wordQuota !== null ? `dari ${wordQuota.toLocaleString("id-ID")} kata` : `dari ${creditsTotal} total` },
                 { label: "Artikel Dibuat", value: String(profile?.articles_used ?? 0), sub: "total artikel" },
-                { label: "Kredit Terpakai", value: isAdmin ? "0" : String(creditsUsed), sub: "💎 digunakan" },
+                { label: wordQuota !== null ? "Kata Terpakai" : "Kredit Terpakai", value: isAdmin ? "0" : wordQuota !== null ? wordsUsed.toLocaleString("id-ID") : String(creditsUsed), sub: wordQuota !== null ? "kata periode ini" : "kredit digunakan" },
               ].map(s => (
                 <div key={s.label} className="bg-slate-900/40 border border-slate-800 rounded-2xl p-4 text-center">
                   <p className="text-2xl font-black text-amber-400">{s.value}</p>
@@ -288,18 +295,18 @@ export default function AccountPage() {
             {!isAdmin && (
               <div className="bg-slate-900/40 border border-slate-800 rounded-2xl p-5">
                 <div className="flex justify-between text-sm mb-2">
-                  <span className="text-slate-400 font-semibold">Pemakaian Kredit</span>
-                  <span className="text-amber-400 font-bold">{creditsUsed} / {creditsTotal} 💎</span>
+                  <span className="text-slate-400 font-semibold">{wordQuota !== null ? "Pemakaian Kata" : "Pemakaian Kredit"}</span>
+                  <span className="text-amber-400 font-bold">{wordQuota !== null ? `${wordsUsed.toLocaleString("id-ID")} / ${wordQuota.toLocaleString("id-ID")} kata` : `${creditsUsed} / ${creditsTotal} kredit`}</span>
                 </div>
                 <div className="w-full bg-slate-800 rounded-full h-2 mb-2">
                   <div className={`h-2 rounded-full transition-all ${progressPct > 80 ? "bg-red-500" : progressPct > 60 ? "bg-amber-500" : "bg-emerald-500"}`}
                     style={{ width: `${progressPct}%` }} />
                 </div>
-                <p className="text-xs text-slate-600">{credits} kredit tersisa bulan ini</p>
-                {credits === 0 && (
+                <p className="text-xs text-slate-600">{wordQuota !== null ? `${wordsRemaining!.toLocaleString("id-ID")} kata tersisa pada periode ini` : `${credits} kredit tersisa bulan ini`}</p>
+                {(wordQuota !== null ? wordsRemaining === 0 : credits === 0) && (
                   <div className="mt-3 flex items-center gap-2 bg-red-500/10 border border-red-500/20 rounded-xl px-3 py-2">
                     <span className="text-red-400 text-sm">⚠️</span>
-                    <p className="text-xs text-red-300">Kredit habis — <Link href="/pricing" className="underline font-semibold">upgrade sekarang</Link> untuk lanjutkan</p>
+                    <p className="text-xs text-red-300">Kuota habis — <Link href="/pricing" className="underline font-semibold">pilih paket</Link> untuk lanjutkan</p>
                   </div>
                 )}
               </div>

@@ -12,8 +12,8 @@ Dibangun dengan **Next.js 14 + TypeScript + Tailwind CSS + Supabase**.
 - **Bulk Article Generation** â€” input puluhan keyword sekaligus, AI suggest judul, generate semua sekaligus
 - **Ilustrasi SVG AI** â€” generate dan sisipkan ilustrasi SVG otomatis ke dalam artikel
 - **Auto-Publish WordPress** â€” publish langsung via WordPress REST API (Application Password, tanpa plugin)
-- **Multi-Model AI** â€” GPT-5.4 Mini (gratis), GPT-5.2, GPT-5.4, GPT-5.5 (premium)
-- **Sistem Kredit ðŸ’Ž** â€” kredit per artikel sesuai model AI, 3 kredit per gambar SVG
+- **AI Otomatis** â€” pipeline strategi, penulisan, dan review dengan fallback otomatis
+- **Preset Gambar** â€” desain dapat dipreview dan dipilih tanpa biaya image-generation API
 - **SEO Checker** â€” analisis real-time keyword density, heading structure, dll
 - **13 Bahasa** â€” Indonesia, English, Melayu, Jawa, Sunda, dll
 
@@ -36,9 +36,17 @@ NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJxxx
 SUPABASE_SERVICE_ROLE_KEY=eyJxxx
 
-# AI (JoinBareng â€” OpenAI-compatible proxy)
+# AI primary/fallback (SumoPod untuk tahap awal)
+AI_PRIMARY_PROVIDER=sumopod
+AI_PRIMARY_MODEL=claude-sonnet-4-6
+AI_FALLBACK_PROVIDER=sumopod
+AI_FALLBACK_MODEL=claude-haiku-4-5
 SUMOPOD_BASE_URL=https://ai.sumopod.com/v1
 SUMOPOD_API_KEY=sk-xxx
+
+# Siapkan untuk migrasi ke Anthropic resmi
+ANTHROPIC_API_KEY=
+ANTHROPIC_BASE_URL=https://api.anthropic.com/v1
 
 # Payment (Mayar)
 MAYAR_API_KEY=xxx

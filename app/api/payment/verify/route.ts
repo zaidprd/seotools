@@ -37,11 +37,19 @@ export async function POST(req: NextRequest) {
 
     const r = await settlePayment(paymentId!, user.id);
 
-    if (r.result === "credited") {
-      return NextResponse.json({ success: true, planId: r.planId, creditsAdded: r.creditsAdded, newCredits: r.newCredits });
+    if (r.result === "credited" || r.result === "granted") {
+      return NextResponse.json({
+        success: true,
+        productId: r.productId,
+        planId: r.planId,
+        creditsAdded: r.creditsAdded,
+        articleGrantsAdded: r.articleGrantsAdded,
+        newCredits: r.newCredits,
+        trialArticlesRemaining: r.trialArticlesRemaining,
+      });
     }
     if (r.result === "already_paid") {
-      return NextResponse.json({ success: true, alreadyApplied: true, planId: r.planId });
+      return NextResponse.json({ success: true, alreadyApplied: true, productId: r.productId, planId: r.planId });
     }
     if (r.result === "not_found") {
       return NextResponse.json({ success: false, error: "Pembayaran tidak ditemukan." }, { status: 404 });

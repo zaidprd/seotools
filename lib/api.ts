@@ -1,6 +1,5 @@
-﻿import { Config, FREE_MODEL_ID } from "./constants";
-import { buildPrompt, buildTitlePrompt } from "./prompt";
-import type { AioGenerateRequest, AioGenerateResponse } from "@/app/api/aio-generate/route";
+﻿import { Config } from "./constants";
+import type { GeneratedArticle } from "./generation/types";
 
 // Perkiraan output token sesuai target panjang artikel.
 // Teks Indonesia ≈ 2 token/kata, ditambah headroom untuk FAQ/kesimpulan.
@@ -15,46 +14,35 @@ function maxTokensFor(articleSize: string): number {
   return 4000;
 }
 
-export async function generateArticle(cfg: Config & { modelId?: string; userId?: string }): Promise<string> {
+export type ArticleResult = GeneratedArticle & { id?: string };
+
+export async function generateArticle(cfg: Config): Promise<ArticleResult> {
   const res = await fetch("/api/generate", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      prompt: buildPrompt(cfg),
-      modelId: cfg.modelId,
-      userId: cfg.userId,
-      aiCleaning: cfg.aiCleaning,
-      maxTokens: maxTokensFor(cfg.articleSize),
-      imageConfig: {
-        count: parseInt(cfg.imgCount || "0"),
-        style: cfg.imgStyle || "Foto",
-        instructions: cfg.imgInstructions || "",
-        userPrompt: cfg.imgPrompt || "",
-        altText: cfg.imgAltText !== false,
-        firstKeyword: cfg.imgFirstKeyword !== false,
-        keyword: cfg.keyword || "",
-        size: cfg.imgSize || "Sedang 800px",
-      },
-    }),
+    body: JSON.stringify({ ...cfg, maxTokens: maxTokensFor(cfg.articleSize) }),
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || `Error ${res.status}`);
-  return data.text || "Gagal menghasilkan konten.";
+  if (!data.article) throw new Error("Respons artikel tidak valid");
+  return data.article as ArticleResult;
 }
 
-export async function generateTitlesAPI(keyword: string, count = 5): Promise<string[]> {
-  const res = await fetch("/api/generate", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ prompt: buildTitlePrompt(keyword, count), modelId: FREE_MODEL_ID }),
-  });
-  const data = await res.json();
-  return (data.text || "").split("\n").map((t: string) => t.trim()).filter((t: string) => t.length > 10).slice(0, count);
+export function generateTitlesAPI(keyword: string, count = 5): Promise<string[]> {
+  const year = new Date().getFullYear();
+  const clean = keyword.trim();
+  return Promise.resolve([
+    `Panduan ${clean} Terlengkap ${year}`,
+    `${clean}: Cara, Tips, dan Kesalahan Umum`,
+    `Cara ${clean} yang Efektif untuk Pemula`,
+    `7 Strategi ${clean} yang Layak Dicoba`,
+    `Apa Itu ${clean}? Panduan Praktis ${year}`,
+  ].slice(0, count));
 }
 
 export async function publishToWordPress(
   site: { url: string; user: string; pass: string },
-  post: { title: string; content: string; status: string; slug?: string; scheduledAt?: string; focusKeyword?: string; featuredMediaId?: number }
+  post: { title: string; content: string; status: string; slug?: string; scheduledAt?: string; focusKeyword?: string; featuredMediaId?: number; featuredImageDataUrl?: string }
 ) {
   const res = await fetch("/api/publish/wordpress", {
     method: "POST",
@@ -66,21 +54,4 @@ export async function publishToWordPress(
     throw new Error(err.error || `Publish gagal (${res.status})`);
   }
   return res.json();
-}
-
-/**
- * Panggil pipeline AI Overview (7 step + loop 10x) di /api/aio-generate.
- * Return full response AioGenerateResponse (fullMarkdown, fullHtml, schemas, meta,
- * qaScore, stepLogs, dst) supaya caller bisa render di Tiptap + preview schema.
- */
-export async function generateAioArticle(req: AioGenerateRequest): Promise<AioGenerateResponse> {
-  const res = await fetch("/api/aio-generate", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(req),
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || `Error ${res.status}`);
-  if (!data.success) throw new Error(data.error || "Pipeline AIO gagal");
-  return data as AioGenerateResponse;
 }
