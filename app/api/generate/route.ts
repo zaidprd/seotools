@@ -259,8 +259,11 @@ export async function POST(request: NextRequest) {
       user_id: user.id,
       title: article.title,
       keyword: input.keyword,
-      model_id: process.env.AI_PRIMARY_MODEL || "claude-sonnet-4-6",
+      model_id: process.env.AI_PRIMARY_MODEL || "claude-sonnet-5",
       content: article.contentMarkdown,
+      content_html: article.contentHtml,
+      slug: article.slug,
+      meta_description: article.meta.description,
       word_count: article.wordCount,
       credits_used: article.creditsUsed,
     }).select("id").single();

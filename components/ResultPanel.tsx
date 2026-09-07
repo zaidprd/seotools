@@ -178,9 +178,10 @@ function TipTapToolbar({ editor, wpSite, onUpload, isUploading, uploadError }: {
 }
 
 // ─── Main ResultPanel ──────────────────────────────────────────────────────────
-export default function ResultPanel({ content: initialContent, articleTitle, metaDescription = "", keyword = "", slug = "", model, wpSites, synds, userId, onContentChange }: {
+export default function ResultPanel({ content: initialContent, articleTitle, metaDescription = "", keyword = "", slug = "", model, wpSites, synds, userId, onContentChange, onFeaturedImageChange }: {
   content: string; articleTitle?: string; metaDescription?: string; keyword?: string; slug?: string; model: ModelInfo; wpSites: WPSite[]; synds: Synds; userId?: string;
   onContentChange?: (html: string) => void;
+  onFeaturedImageChange?: (image: RenderedImageTemplate | null) => void;
 }) {
   const [mode, setMode] = useState<"preview" | "edit">("preview");
   const [htmlContent, setHtmlContent] = useState(() => {
@@ -285,6 +286,7 @@ export default function ResultPanel({ content: initialContent, articleTitle, met
 
   const useTemplateImage = (image: RenderedImageTemplate) => {
     setFeaturedImage(image);
+    onFeaturedImageChange?.(image);
     setShowTemplateGallery(false);
   };
 
@@ -415,7 +417,7 @@ export default function ResultPanel({ content: initialContent, articleTitle, met
             <p className="text-xs font-bold text-emerald-300">Featured image siap</p>
             <p className="text-[10px] text-slate-500">Akan diunggah ke WordPress dan tidak dimasukkan ke body artikel.</p>
           </div>
-          <button onClick={() => setFeaturedImage(null)} className="text-[10px] text-slate-500 hover:text-red-400">Hapus</button>
+          <button onClick={() => { setFeaturedImage(null); onFeaturedImageChange?.(null); }} className="text-[10px] text-slate-500 hover:text-red-400">Hapus</button>
         </div>
       )}
 

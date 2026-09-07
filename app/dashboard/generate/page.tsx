@@ -51,6 +51,7 @@ export default function GeneratePage() {
 
   const [mobileTab, setMobileTab] = useState<"form" | "result">("form");
   const resultRef = useRef<HTMLDivElement>(null);
+  const draftSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fetchUser = useCallback(async (uid: string) => {
     const res = await fetch(`/api/user?userId=${uid}`);
@@ -109,6 +110,22 @@ export default function GeneratePage() {
     }
     setLoading(false);
   };
+
+  const saveDraftPatch = useCallback((patch: Record<string, unknown>) => {
+    if (!result?.id) return;
+    if (draftSaveTimer.current) clearTimeout(draftSaveTimer.current);
+    draftSaveTimer.current = setTimeout(() => {
+      fetch(`/api/articles/${result.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(patch),
+      }).catch(() => undefined);
+    }, 800);
+  }, [result?.id]);
+
+  useEffect(() => () => {
+    if (draftSaveTimer.current) clearTimeout(draftSaveTimer.current);
+  }, []);
 
   const currentModel = model;
 
@@ -239,7 +256,19 @@ export default function GeneratePage() {
 
             </div>
           )}
-          {result && <ResultPanel content={result.contentMarkdown} articleTitle={result.title} metaDescription={result.meta.description} keyword={keyword} slug={result.slug} model={currentModel} wpSites={wpSel ? [wpSel] : wpSites} synds={cfg.synds} userId={user?.id} />}
+          {result && <ResultPanel
+            content={result.contentMarkdown}
+            articleTitle={result.title}
+            metaDescription={result.meta.description}
+            keyword={keyword}
+            slug={result.slug}
+            model={currentModel}
+            wpSites={wpSel ? [wpSel] : wpSites}
+            synds={cfg.synds}
+            userId={user?.id}
+            onContentChange={html => saveDraftPatch({ content_html: html })}
+            onFeaturedImageChange={image => saveDraftPatch({ featured_preset: image })}
+          />}
         </div>
       </div>
     </div>
