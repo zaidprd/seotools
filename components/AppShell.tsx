@@ -10,187 +10,26 @@ const NAV = [
   { href: "/account", icon: "○", label: "Akun" },
   { href: "/settings", icon: "⌘", label: "Pengaturan" },
 ];
-
-interface UserInfo {
-  id: string;
-  email: string;
-  plan: string;
-  credits: number;
-  full_name?: string;
-  role?: string;
-  plan_expires_at?: string;
-}
+interface UserInfo { id: string; email: string; plan: string; credits: number; full_name?: string; role?: string; plan_expires_at?: string; }
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  const router = useRouter();
-  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  // Tutup sidebar otomatis saat navigasi (mobile/tablet)
-  useEffect(() => {
-    setSidebarOpen(false);
-  }, [pathname]);
-
-  // Tutup sidebar saat resize ke desktop
-  useEffect(() => {
-    const onResize = () => { if (window.innerWidth >= 1024) setSidebarOpen(false); };
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, []);
-
-  useEffect(() => {
-    const sb = createClient();
-    sb.auth.getUser().then(({ data: { user } }) => {
-      if (!user) { router.push("/login"); return; }
-      fetch(`/api/user`)
-        .then(async r => r.ok ? r.json() : null)
-        .then(data => data && setUserInfo(data));
-    });
-  }, []);
-
-  const logout = async () => {
-    await createClient().auth.signOut();
-    router.push("/login");
-  };
-
+  const pathname = usePathname(); const router = useRouter();
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null); const [sidebarOpen, setSidebarOpen] = useState(false);
+  useEffect(() => { setSidebarOpen(false); }, [pathname]);
+  useEffect(() => { const onResize = () => { if (window.innerWidth >= 1024) setSidebarOpen(false); }; window.addEventListener("resize", onResize); return () => window.removeEventListener("resize", onResize); }, []);
+  useEffect(() => { const sb = createClient(); sb.auth.getUser().then(({ data: { user } }) => { if (!user) { router.push("/login"); return; } fetch("/api/user").then(async r => r.ok ? r.json() : null).then(data => data && setUserInfo(data)); }); }, [router]);
+  const logout = async () => { await createClient().auth.signOut(); router.push("/login"); };
   const isAdmin = userInfo?.role === "admin";
+  const planLabel = isAdmin ? "Owner" : userInfo?.plan === "free" ? "Gratis" : userInfo?.plan || "Gratis";
 
-  const planBadge = isAdmin
-    ? "text-yellow-300 bg-yellow-500/10 border-yellow-500/30"
-    : userInfo?.plan && userInfo.plan !== "free"
-      ? "text-amber-400 bg-amber-500/10 border-amber-500/20"
-      : "text-slate-500 bg-slate-800/80 border-slate-700";
-
-  const planLabel = isAdmin ? "OWNER" : (userInfo?.plan || "FREE").toUpperCase();
-
-  return (
-    <div className="flex min-h-screen bg-[#0c0e14] text-slate-100" style={{ fontFamily: "'DM Sans',sans-serif" }}>
-
-      {/* ─── Hamburger button — mobile & tablet only ─── */}
-      <button
-        onClick={() => setSidebarOpen(o => !o)}
-        aria-label={sidebarOpen ? "Tutup menu" : "Buka menu"}
-        className="lg:hidden fixed top-3 left-3 z-50 w-9 h-9 rounded-xl bg-slate-900/95 border border-slate-700 flex items-center justify-center text-slate-300 hover:text-white hover:bg-slate-800 transition-all shadow-lg backdrop-blur-sm"
-      >
-        <span className="text-base leading-none select-none">
-          {sidebarOpen ? "✕" : "☰"}
-        </span>
-      </button>
-
-      {/* ─── Backdrop overlay — mobile & tablet only ─── */}
-      <div
-        onClick={() => setSidebarOpen(false)}
-        className={`lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-30 transition-opacity duration-300 ${
-          sidebarOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-        }`}
-      />
-
-      {/* ─── Sidebar ─────────────────────────────────────────────
-          Mobile/tablet: fixed overlay, slides in/out
-          Desktop:       sticky, participates in flex layout     ─── */}
-      <aside className={`
-        fixed lg:sticky top-0 h-screen z-40
-        w-64 lg:w-56 flex-shrink-0 flex flex-col
-        border-r border-slate-800/80 bg-[#0c0e14]
-        transition-transform duration-300 ease-in-out
-        ${sidebarOpen ? "translate-x-0 shadow-2xl shadow-black/40" : "-translate-x-full"}
-        lg:translate-x-0 lg:shadow-none
-      `}>
-
-        {/* Logo */}
-        <div className="px-4 py-4 border-b border-slate-800/60 flex items-center justify-between">
-          <a href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center font-black text-[#0c0e14] text-sm">A</div>
-            <span className="font-black text-base tracking-tight" style={{ fontFamily: "Sora,sans-serif" }}>
-              <span className="text-white">Artikel</span><span className="text-amber-400"> SEO</span>
-            </span>
-          </a>
-          {/* Close button inside sidebar — mobile only */}
-          <button
-            onClick={() => setSidebarOpen(false)}
-            className="lg:hidden w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center text-sm transition-colors flex-shrink-0"
-            aria-label="Tutup sidebar"
-          >
-            ✕
-          </button>
-        </div>
-
-        {/* Nav */}
-        <nav className="flex-1 px-3 py-4 flex flex-col gap-1 overflow-y-auto">
-          {NAV.map(item => {
-            const isActive = item.href === "/dashboard"
-              ? (pathname === "/dashboard" || pathname?.startsWith("/dashboard/"))
-              : pathname === item.href;
-
-            return (
-              <Link key={item.href} href={item.href}
-                onClick={() => setSidebarOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                  isActive
-                    ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
-                    : "text-slate-400 hover:text-white hover:bg-slate-900/60 border border-transparent"
-                }`}>
-                <span className="text-base">{item.icon}</span>
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
-
-        {/* User */}
-        <div className="px-3 pb-4 border-t border-slate-800/60 pt-3 flex flex-col gap-2">
-          {userInfo ? (
-            <>
-              <div className="flex items-center gap-2.5 px-1">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-xs flex-shrink-0 ${
-                  isAdmin
-                    ? "bg-gradient-to-br from-yellow-400 to-amber-600 text-[#0c0e14]"
-                    : "bg-gradient-to-br from-amber-500 to-orange-600 text-[#0c0e14]"
-                }`}>
-                  {isAdmin ? "A" : (userInfo.full_name || userInfo.email || "U")[0].toUpperCase()}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold text-white truncate">
-                    {userInfo.full_name || userInfo.email?.split("@")[0] || "Pengguna"}
-                  </p>
-                  <span className={`inline-flex text-[9px] font-bold px-1.5 py-0.5 rounded border ${planBadge}`}>
-                    {planLabel}
-                  </span>
-                </div>
-              </div>
-
-              {!isAdmin && (
-                <div className="bg-slate-900/60 border border-slate-800 rounded-lg px-3 py-2">
-                  <p className="text-xs text-slate-400">Status paket</p>
-                  <p className="text-xs font-bold text-amber-300">{userInfo.plan === "free" ? "Belum aktif" : "Aktif"}</p>
-                </div>
-              )}
-
-              {isAdmin && (
-                <div className="bg-yellow-500/5 border border-yellow-500/20 rounded-lg px-3 py-2">
-                  <p className="text-xs text-yellow-400/80">Akses penuh aktif</p>
-                  <p className="text-xs font-bold text-yellow-400">∞ Unlimited</p>
-                </div>
-              )}
-
-              <button onClick={logout}
-                className="flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-red-400 text-xs transition-colors rounded-lg hover:bg-red-500/5">
-                <span aria-hidden="true">↪</span> Keluar
-              </button>
-            </>
-          ) : (
-            <div className="px-3 py-4 flex justify-center">
-              <div className="w-4 h-4 rounded-full border-2 border-slate-700 border-t-amber-500 animate-spin" />
-            </div>
-          )}
-        </div>
-      </aside>
-
-      {/* ─── Main ─── */}
-      <main className="flex-1 min-w-0 h-screen overflow-y-auto">
-        {children}
-      </main>
-    </div>
-  );
+  return <div className="flex min-h-screen bg-[#f8f7f3] text-slate-800" style={{ fontFamily: "'DM Sans',sans-serif" }}>
+    <button onClick={() => setSidebarOpen(o => !o)} aria-label={sidebarOpen ? "Tutup menu" : "Buka menu"} className="lg:hidden fixed top-3 left-3 z-50 grid h-10 w-10 place-items-center rounded-lg border border-stone-200 bg-white text-slate-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-400">{sidebarOpen ? "✕" : "☰"}</button>
+    <div onClick={() => setSidebarOpen(false)} className={`lg:hidden fixed inset-0 bg-slate-900/25 z-30 transition-opacity ${sidebarOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`} />
+    <aside className={`fixed lg:sticky top-0 h-screen z-40 w-72 lg:w-60 flex-shrink-0 flex flex-col border-r border-stone-200 bg-[#fffefa] transition-transform duration-300 ${sidebarOpen ? "translate-x-0 shadow-xl" : "-translate-x-full"} lg:translate-x-0 lg:shadow-none`}>
+      <div className="px-5 py-5 border-b border-stone-200 flex items-center justify-between"><a href="/" className="flex items-center gap-2.5"><div className="grid h-9 w-9 place-items-center rounded-lg bg-amber-500 font-black text-stone-950">A</div><span className="font-bold text-base tracking-tight" style={{ fontFamily: "Sora,sans-serif" }}>Artikel<span className="text-amber-700">SEO</span></span></a><button onClick={() => setSidebarOpen(false)} className="lg:hidden text-slate-500" aria-label="Tutup sidebar">✕</button></div>
+      <nav className="flex-1 px-3 py-5 flex flex-col gap-1 overflow-y-auto">{NAV.map(item => { const isActive = item.href === "/dashboard" ? (pathname === "/dashboard" || pathname?.startsWith("/dashboard/")) : pathname === item.href; return <Link key={item.href} href={item.href} onClick={() => setSidebarOpen(false)} className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive ? "bg-amber-100 text-amber-900" : "text-slate-600 hover:bg-stone-100 hover:text-slate-900"}`}><span className="text-base">{item.icon}</span>{item.label}</Link>; })}</nav>
+      <div className="px-4 pb-5 pt-4 border-t border-stone-200">{userInfo ? <><div className="flex items-center gap-2.5"><div className="grid h-9 w-9 place-items-center rounded-full bg-amber-100 text-sm font-bold text-amber-800">{isAdmin ? "A" : (userInfo.full_name || userInfo.email || "U")[0].toUpperCase()}</div><div className="min-w-0"><p className="truncate text-sm font-semibold text-slate-800">{userInfo.full_name || userInfo.email?.split("@")[0] || "Pengguna"}</p><p className="text-xs capitalize text-slate-500">{planLabel}</p></div></div>{!isAdmin && <div className="mt-4 rounded-lg bg-stone-100 px-3 py-2"><p className="text-xs text-slate-500">Status paket</p><p className="text-sm font-semibold text-emerald-700">{userInfo.plan === "free" ? "Siap digunakan" : "Aktif"}</p></div>}<button onClick={logout} className="mt-3 text-xs text-slate-500 hover:text-red-700">↪ Keluar</button></> : <div className="py-4 flex justify-center"><div className="w-4 h-4 rounded-full border-2 border-stone-300 border-t-amber-500 animate-spin" /></div>}</div>
+    </aside>
+    <main className="flex-1 min-w-0 h-screen overflow-y-auto">{children}</main>
+  </div>;
 }
