@@ -179,7 +179,7 @@ ${JSON.stringify(context)}
 Strategi:
 ${JSON.stringify(strategy)}`,
     }],
-    maxTokens: Math.min(8_000, Math.max(2_500, Math.ceil(words * 3.2))),
+    maxTokens: Math.min(8_000, Math.max(3_000, Math.ceil(words * 3.8))),
     temperature: 0.55,
   });
 
@@ -201,6 +201,13 @@ ${JSON.stringify(strategy)}`,
   const tail = contentMarkdown.slice(-240);
   if (/^#{1,6}\s+[^\n]*$/m.test(tail.split("\n").slice(-1)[0] || "")) {
     throw new Error("Artikel terpotong pada heading terakhir");
+  }
+  const endingText = contentMarkdown
+    .replace(/\s+/g, " ")
+    .replace(/[*_`>#]/g, "")
+    .trim();
+  if (!/[.!?…]$/.test(endingText)) {
+    throw new Error("Artikel terpotong di tengah kalimat");
   }
   if (input.withConclusion && !/kesimpulan|penutup/i.test(contentMarkdown.slice(-2_500))) {
     throw new Error("Artikel belum memiliki kesimpulan lengkap");
